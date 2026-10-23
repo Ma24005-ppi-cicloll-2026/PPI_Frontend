@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "lanzarBrowserSync",
+          "type":"shell",
+          "command": "browser-sync start --servers src -f \"***/*\"* ./src  --no-open",
+          "isBackground":true,
+        },
+        {
+        "label":"apagarBrowserSync",
+        "type":"shell",
+        "command":"echo ${input:terminate}",
+        "problemMatcher":[]
+        }
+    ],
+  "inputs":[
+     {
+"id":"matarBrowserSync",
+"type":"command",
+"command": "workbench.action.tasks.terminate",
+"args": "terminateAll"
+  }
+  ],
+
+  "tasks":[
+    {
+
+    }
+  ]
+ 
+}
