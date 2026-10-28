@@ -3,30 +3,37 @@
     "tasks": [
         {
             "label": "lanzarBrowserSync",
-          "type":"shell",
-          "command": "browser-sync start --servers src -f \"***/*\"* ./src  --no-open",
-          "isBackground":true,
+            "command": "browser-sync start --server src -f \"**/*\" ./src/ --no-open",
+            "type": "shell",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "isBackground": true,
+            "problemMatcher": []
         },
         {
-        "label":"apagarBrowserSync",
-        "type":"shell",
-        "command":"echo ${input:terminate}",
-        "problemMatcher":[]
+            "label": "debugBrowserSync",
+            "command": "browser-sync start --server ./ -f \"**/*\" ./ --no-open",
+            "type": "shell",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "paraBrowserSync",
+            "command": "echo ${input:terminate}",
+            "type": "shell",
+            "problemMatcher": []
         }
     ],
-  "inputs":[
-     {
-"id":"matarBrowserSync",
-"type":"command",
-"command": "workbench.action.tasks.terminate",
-"args": "terminateAll"
-  }
-  ],
-
-  "tasks":[
-    {
-
-    }
-  ]
- 
+    "inputs": [
+        {
+            "id": "terminate",
+            "type": "command",
+            "command": "workbench.action.tasks.terminate",
+            "args": "terminateAll"
+        }
+    ]
 }
