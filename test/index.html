@@ -1,11 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-2048, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pruebas de los services</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mocha@10.8.2/mocha.css">
 </head>
 <body>
-     estas son las pruebas
+    <div id="mocha"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mocha@10.8.2/mocha.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chai@4.5.0/chai.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sinon@17.0.1/pkg/sinon.js"></script>
+    <script>mocha.setup("bdd");</script>
+
+    <!-- Los services que se van a probar (default_service primero) -->
+    <script src="../src/js/control/default_service.js"></script>
+    <script src="../src/js/control/clinica_service.js"></script>
+    <script src="../src/js/control/consulta_procedimiento_paso_service.js"></script>
+    <script src="../src/js/control/consulta_procedimiento_service.js"></script>
+    <script src="../src/js/control/consulta_service.js"></script>
+    <script src="../src/js/control/documento_service.js"></script>
+    <script src="../src/js/control/examen_resultado_service.js"></script>
+    <script src="../src/js/control/examen_service.js"></script>
+    <script src="../src/js/control/examen_tipo_examen_service.js"></script>
+    <script src="../src/js/control/medio_contacto_service.js"></script>
+    <script src="../src/js/control/orden_examen_service.js"></script>
+    <script src="../src/js/control/persona_rol_service.js"></script>
+    <script src="../src/js/control/persona_service.js"></script>
+    <script src="../src/js/control/procedimiento_paso_examen_service.js"></script>
+    <script src="../src/js/control/procedimiento_paso_secuencia_service.js"></script>
+    <script src="../src/js/control/procedimiento_paso_service.js"></script>
+    <script src="../src/js/control/procedimiento_service.js"></script>
+    <script src="../src/js/control/rol_service.js"></script>
+    <script src="../src/js/control/tipo_documento_service.js"></script>
+    <script src="../src/js/control/tipo_examen_service.js"></script>
+    <script src="../src/js/control/tipo_medio_contacto_service.js"></script>
+
+    <!-- Las pruebas -->
+    <script src="./control/default_service.test.js"></script>
+    <script src="./control/rutas_services.test.js"></script>
+
+    <script>mocha.run();</script>
 </body>
 </html>
