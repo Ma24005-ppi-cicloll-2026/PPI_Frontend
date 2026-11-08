@@ -1,47 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>GalenoSV</title>
+    <link rel="stylesheet" href="./recursos/principal.css">
+    <link rel="stylesheet" href="./recursos/galeno.css">
 </head>
 <body>
     <main>
-<header id="id">
-    Encabezado
-</header>
-<nav>
-    Navegacion 
-</nav>
-<article>
-  cuerpo
-</article>
-<footer>
-    Pie de página
-</footer>
+        <header id="id">
+            <h1>GalenoSV</h1>
+            <span id="sesion"></span>
+         
+        </header>
+        <nav>
+            <galeno-menu id="menu"></galeno-menu>
+        </nav>
+        <article id="pantalla"></article>
+        <footer>
+            GalenoSV · Sistema de gestión médica
+        </footer>
     </main>
-<script src="js/control/default_service.js"></script>
-<script src="js/control/clinica_service.js"></script>
-<script src="js/control/consulta_service.js"></script>
-<script src="js/control/consulta_procedimiento_service.js"></script>
-<script src="js/control/consulta_procedimiento_paso_service.js"></script>
-<script src="js/control/documento_service.js"></script>
-<script src="js/control/examen_service.js"></script>
-<script src="js/control/examen_resultado_service.js"></script>
-<script src="js/control/examen_tipo_examen_service.js"></script>
-<script src="js/control/medio_contacto_service.js"></script>
-<script src="js/control/orden_examen_service.js"></script>
-<script src="js/control/persona_service.js"></script>
-<script src="js/control/persona_rol_service.js"></script>
-<script src="js/control/procedimiento_service.js"></script>
-<script src="js/control/procedimiento_paso_service.js"></script>
-<script src="js/control/procedimiento_paso_examen_service.js"></script>
-<script src="js/control/procedimiento_paso_secuencia_service.js"></script>
-<script src="js/control/rol_service.js"></script>
-<script src="js/control/tipo_documento_service.js"></script>
-<script src="js/control/tipo_examen_service.js"></script>
-<script src="js/control/tipo_medio_contacto_service.js"></script>
+    <galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>
 
+    <!-- 1. Services (control) -->
+    <script src="js/control/default_service.js"></script>
+    <script src="js/control/clinica_service.js"></script>
+    <script src="js/control/consulta_service.js"></script>
+    <script src="js/control/consulta_procedimiento_service.js"></script>
+    <script src="js/control/consulta_procedimiento_paso_service.js"></script>
+    <script src="js/control/documento_service.js"></script>
+    <script src="js/control/examen_service.js"></script>
+    <script src="js/control/examen_resultado_service.js"></script>
+    <script src="js/control/examen_tipo_examen_service.js"></script>
+    <script src="js/control/medio_contacto_service.js"></script>
+    <script src="js/control/orden_examen_service.js"></script>
+    <script src="js/control/persona_service.js"></script>
+    <script src="js/control/persona_rol_service.js"></script>
+    <script src="js/control/procedimiento_service.js"></script>
+    <script src="js/control/procedimiento_paso_service.js"></script>
+    <script src="js/control/procedimiento_paso_examen_service.js"></script>
+    <script src="js/control/procedimiento_paso_secuencia_service.js"></script>
+    <script src="js/control/rol_service.js"></script>
+    <script src="js/control/tipo_documento_service.js"></script>
+    <script src="js/control/tipo_examen_service.js"></script>
+    <script src="js/control/tipo_medio_contacto_service.js"></script>
+    <script src="js/control/gestor_fechas.js"></script>
+
+    <!-- 2. Componentes (autocomplete ANTES de sus hijos) -->
+    <script src="js/boundary/componentes/autocomplete.js"></script>
+    <script src="js/boundary/componentes/buscador_persona.js"></script>
+    <script src="js/boundary/componentes/buscador_tipo_documentos.js"></script>
+    <script src="js/boundary/componentes/menu_navegacion.js"></script>
+    <script src="js/boundary/componentes/notificacion_emergente.js"></script>
+    <script src="js/boundary/componentes/pestanas.js"></script>
+    <script src="js/boundary/componentes/tabla.js"></script>
+    <script src="js/boundary/componentes/tarjeta_consulta.js"></script>
+    <script src="js/boundary/componentes/tarjeta_simple.js"></script>
+
+    <!-- 3. Models (boundary): entidades.js antes de app_model.js -->
+    <script src="js/boundary/entidades.js"></script>
+    <script src="js/boundary/login_model.js"></script>
+    <script src="js/boundary/busqueda_consulta_model.js"></script>
+    <script src="js/boundary/inicio_model.js"></script>
+    <script src="js/boundary/app_model.js"></script>
 </body>
-<link rel="stylesheet" href="./recursos/principal.css">
 </html>

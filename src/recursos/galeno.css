@@ -1,0 +1,12 @@
+/* Ajustes para las pantallas con componentes. No reemplaza a principal.css. */
+header { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0 1rem; }
+header h1 { margin:0; font-size:1.3rem; }
+#sesion { font-size:.9rem; }
+nav { overflow:auto; }
+article { overflow:auto; padding:1rem; color:var(--oscuro); }
+article h2, article h3 { margin-top:0; }
+article button { padding:.45rem .9rem; border:0; border-radius:.4rem; background:var(--oscuro);
+                 color:#fff; cursor:pointer; font:inherit; margin-bottom:.8rem; }
+footer { color:var(--claro); padding:1rem; }
+
+article galeno-tabla { display:block; border:1px solid #B9D3EA; border-radius:.5rem; overflow:hidden; }

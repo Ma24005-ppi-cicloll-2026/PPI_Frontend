@@ -1,11 +1,12 @@
 
 
 
+
 :root{
     --oscuro:#1D3461;
-    --mate:#829CBC;
-    --sombra:#EEE183;
-   --claro:#F8F4E3;
+    --mate:#FFFFFF;
+    --sombra:#DCEBF7;
+   --claro:#FFFFFF;
     --azul:#629DCB;
 }
 main{
@@ -17,6 +18,7 @@ main{
 }
 header{
 background: var(--claro);
+border-bottom:3px solid var(--sombra);
 color:var(--oscuro);
 grid-area:cabecera;
 }

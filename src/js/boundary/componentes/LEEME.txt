@@ -1,0 +1,4 @@
+ORDEN DE <script> en el HTML:
+  1. los services (default_service.js primero)
+  2. autocomplete.js            <- ANTES de buscador_persona y buscador_tipo_documentos
+  3. el resto de componentes (cualquier orden)
