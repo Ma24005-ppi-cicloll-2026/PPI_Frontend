@@ -1,46 +1,67 @@
 // Modelo principal: une el menu, el encabezado (sesion) y la zona de pantallas (#pantalla).
-// Para agregar una pantalla nueva: una linea en `this.pantallas` y una en `this.items`.
+// Lo que ve cada quien sale de Sesion.puede() (control/sesion.js). Se arranca desde el index.html:
+//     new AppModel().iniciar();
 class AppModel {
 
     constructor() {
         this.menu = document.querySelector("#menu");
         this.zona = document.querySelector("#pantalla");
+        this.textoSesion = document.querySelector("#sesion");
+        // Para agregar una pantalla: una entrada aqui (y su regla en PERMISOS si hace falta).
         this.pantallas = {
-            inicio: c => new InicioModel(c, d => this.irA(d)).iniciar(),
-            consulta: c => new BusquedaConsultaModel(c).iniciar(),
-            login: c => new LoginModel(c).iniciar()
+            inicio:    { texto: "Inicio", crear: c => new InicioModel(c, d => this.irA(d), this.modulos()).iniciar() },
+            login:     { texto: "Iniciar sesión", crear: c => new LoginModel(c).iniciar() },
+            consulta:  { texto: "Consultas", descripcion: "Buscar pacientes y ver sus consultas",
+                         crear: c => new BusquedaConsultaModel(c).iniciar() },
+            historial: { texto: "Mi historial", descripcion: "Sus consultas, pasos y resultados",
+                         crear: c => new HistorialModel(c).iniciar() }
         };
-        this.items = [
-            { texto: "Inicio", destino: "inicio" },
-            { texto: "Consultas", destino: "consulta" },
-            { texto: "Cambio de rol", destino: "login" }
-        ];
+        // las pantallas de administracion (listados) salen de entidades.js
         Object.entries(ENTIDADES).forEach(([destino, e]) => {
-            this.pantallas[destino] = c => new ListadoModel(c, e).iniciar();
-            this.items.push({ texto: e.titulo, destino });
+            this.pantallas[destino] = { texto: e.titulo, descripcion: e.descripcion,
+                                        crear: c => new ListadoModel(c, e).iniciar() };
         });
+        this.alCambiarSesion = () => this.reiniciar();
     }
 
     iniciar() {
-        this.menu.items = this.items;
-        this.menu.addEventListener("galeno-navegar", e => this.irA(e.detail.destino));
-        window.addEventListener("galeno-sesion", () => this.pintarSesion());
-        this.pintarSesion();
-        this.irA("inicio");
+        this.menu.addEventListener("galeno-navegar", e =>
+            e.detail.destino === "salir" ? Sesion.cerrar() : this.irA(e.detail.destino));
+        window.addEventListener("galeno-sesion", this.alCambiarSesion);
+        this.reiniciar();
+    }
+
+    destruir() { window.removeEventListener("galeno-sesion", this.alCambiarSesion); }
+
+    permitidas() { return Object.keys(this.pantallas).filter(d => Sesion.puede(d)); }
+
+    // las tarjetas del Inicio: las pantallas permitidas, menos Inicio y Login
+    modulos() {
+        return this.permitidas()
+            .filter(d => d !== "inicio" && d !== "login")
+            .map(d => ({ destino: d, titulo: this.pantallas[d].texto, descripcion: this.pantallas[d].descripcion }));
+    }
+
+    construirMenu() {
+        const items = this.permitidas().map(d => ({ texto: this.pantallas[d].texto, destino: d }));
+        if (Sesion.obtener()) items.push({ texto: "Cerrar sesión", destino: "salir" });
+        return items;
+    }
+
+    // se llama al arrancar y cada vez que alguien inicia o cierra sesion
+    reiniciar() {
+        const sesion = Sesion.obtener();
+        this.textoSesion.textContent = sesion
+            ? [sesion.nombre, sesion.rol, sesion.clinica].filter(Boolean).join(" · ")
+            : "Sin sesión iniciada";
+        this.menu.items = this.construirMenu();
+        this.irA(sesion ? "inicio" : "login");
     }
 
     irA(destino) {
+        if (!Sesion.puede(destino)) destino = Sesion.obtener() ? "inicio" : "login";   // sin permiso: no entra
         this.zona.replaceChildren();          // limpiar la pantalla anterior
         this.menu.activo = destino;
-        this.pantallas[destino](this.zona);   // dibujar la nueva
-    }
-
-    pintarSesion() {
-        let s = null;
-        try { s = JSON.parse(sessionStorage.getItem("sesion") || "null"); } catch (e) { /* sin almacenamiento: sin sesion */ }
-        document.querySelector("#sesion").textContent =
-            s ? `${s.nombre} · ${s.rol} · ${s.clinica}` : "Sin sesión iniciada";
+        this.pantallas[destino].crear(this.zona);
     }
 }
-
-new AppModel().iniciar();

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GalenoSV</title>
@@ -13,7 +12,6 @@
         <header id="id">
             <h1>GalenoSV</h1>
             <span id="sesion"></span>
-         
         </header>
         <nav>
             <galeno-menu id="menu"></galeno-menu>
@@ -48,23 +46,33 @@
     <script src="js/control/tipo_examen_service.js"></script>
     <script src="js/control/tipo_medio_contacto_service.js"></script>
     <script src="js/control/gestor_fechas.js"></script>
+    <script src="js/control/sesion.js"></script>
 
-    <!-- 2. Componentes (autocomplete ANTES de sus hijos) -->
+    <!-- 2. Componentes (autocomplete ANTES de buscador_persona y buscador_tipo_documentos) -->
     <script src="js/boundary/componentes/autocomplete.js"></script>
     <script src="js/boundary/componentes/buscador_persona.js"></script>
     <script src="js/boundary/componentes/buscador_tipo_documentos.js"></script>
+    <script src="js/boundary/componentes/estado_vista.js"></script>
+    <script src="js/boundary/componentes/formulario.js"></script>
     <script src="js/boundary/componentes/menu_navegacion.js"></script>
+    <script src="js/boundary/componentes/modal_confirmacion.js"></script>
     <script src="js/boundary/componentes/notificacion_emergente.js"></script>
+    <script src="js/boundary/componentes/paginador.js"></script>
     <script src="js/boundary/componentes/pestanas.js"></script>
     <script src="js/boundary/componentes/tabla.js"></script>
     <script src="js/boundary/componentes/tarjeta_consulta.js"></script>
     <script src="js/boundary/componentes/tarjeta_simple.js"></script>
 
-    <!-- 3. Models (boundary): entidades.js antes de app_model.js -->
+    <!-- 3. Models (boundary): los auxiliares primero, app_model.js al final -->
     <script src="js/boundary/entidades.js"></script>
+    <script src="js/boundary/busqueda_documento.js"></script>
+    <script src="js/boundary/consulta_detalle.js"></script>
+    <script src="js/boundary/listado_model.js"></script>
     <script src="js/boundary/login_model.js"></script>
     <script src="js/boundary/busqueda_consulta_model.js"></script>
+    <script src="js/boundary/historial_model.js"></script>
     <script src="js/boundary/inicio_model.js"></script>
     <script src="js/boundary/app_model.js"></script>
+    <script>new AppModel().iniciar();</script>
 </body>
 </html>

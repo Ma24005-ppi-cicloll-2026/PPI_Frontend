@@ -24,7 +24,7 @@ class GalenoMenu extends HTMLElement {
             ul { list-style:none; margin:0; padding:0; }
             button { width:100%; text-align:left; padding:.7rem 1rem; border:0; background:transparent;
                      color:#1D3461; cursor:pointer; font:inherit; }
-            button:hover { background:#F8F4E3; }
+            button:hover { background:#C5DDF1; }
             button[aria-current=page] { background:#1D3461; color:#fff; font-weight:700; }
           </style>
           <ul></ul>`;

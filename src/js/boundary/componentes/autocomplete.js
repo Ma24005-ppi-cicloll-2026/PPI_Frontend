@@ -43,7 +43,7 @@ class GalenoAutocomplete extends HTMLElement {
             ul { list-style:none; margin:.2rem 0 0; padding:0; max-height:12rem; overflow:auto;
                  background:#fff; border:1px solid #829CBC; border-radius:.4rem; }
             li { padding:.5rem .7rem; cursor:pointer; }
-            li:hover { background:#F8F4E3; }
+            li:hover { background:#EEF5FB; }
             small { color:#1D3461; }
           </style>
           <label for="q">${this.escapar(this.getAttribute("label") || "Buscar")}</label>
