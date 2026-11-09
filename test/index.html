@@ -37,36 +37,52 @@
     <script src="../src/js/control/tipo_examen_service.js"></script>
     <script src="../src/js/control/tipo_medio_contacto_service.js"></script>
     <script src="../src/js/control/gestor_fechas.js"></script>
+    <script src="../src/js/control/sesion.js"></script>
 
     <!-- Los componentes (autocomplete ANTES de los buscadores que heredan de el) -->
     <script src="../src/js/boundary/componentes/autocomplete.js"></script>
     <script src="../src/js/boundary/componentes/buscador_persona.js"></script>
     <script src="../src/js/boundary/componentes/buscador_tipo_documentos.js"></script>
+    <script src="../src/js/boundary/componentes/estado_vista.js"></script>
+    <script src="../src/js/boundary/componentes/formulario.js"></script>
     <script src="../src/js/boundary/componentes/menu_navegacion.js"></script>
+    <script src="../src/js/boundary/componentes/modal_confirmacion.js"></script>
     <script src="../src/js/boundary/componentes/notificacion_emergente.js"></script>
+    <script src="../src/js/boundary/componentes/paginador.js"></script>
     <script src="../src/js/boundary/componentes/pestanas.js"></script>
     <script src="../src/js/boundary/componentes/tabla.js"></script>
     <script src="../src/js/boundary/componentes/tarjeta_consulta.js"></script>
     <script src="../src/js/boundary/componentes/tarjeta_simple.js"></script>
 
-    <!-- Los models (app_model.js no se carga: se arranca solo al cargarse) -->
+    <!-- Los models (app_model.js se carga pero NO se arranca: el index.html de src es quien hace new AppModel().iniciar()) -->
     <script src="../src/js/boundary/entidades.js"></script>
-    <script src="../src/js/boundary/busqueda_consulta_model.js"></script>
-    <script src="../src/js/boundary/inicio_model.js"></script>
+    <script src="../src/js/boundary/busqueda_documento.js"></script>
+    <script src="../src/js/boundary/consulta_detalle.js"></script>
+    <script src="../src/js/boundary/listado_model.js"></script>
     <script src="../src/js/boundary/login_model.js"></script>
+    <script src="../src/js/boundary/busqueda_consulta_model.js"></script>
+    <script src="../src/js/boundary/historial_model.js"></script>
+    <script src="../src/js/boundary/inicio_model.js"></script>
+    <script src="../src/js/boundary/app_model.js"></script>
 
     <!-- Las pruebas -->
     <script src="./control/default_service.test.js"></script>
     <script src="./control/rutas_services.test.js"></script>
     <script src="./control/gestor_fechas.test.js"></script>
+    <script src="./control/sesion.test.js"></script>
     <script src="./boundary/componentes/buscadores.test.js"></script>
+    <script src="./boundary/componentes/formulario.test.js"></script>
     <script src="./boundary/componentes/menu_notificacion.test.js"></script>
+    <script src="./boundary/componentes/paginador_estado_modal.test.js"></script>
     <script src="./boundary/componentes/pestanas.test.js"></script>
     <script src="./boundary/componentes/tabla.test.js"></script>
     <script src="./boundary/componentes/tarjetas.test.js"></script>
     <script src="./boundary/busqueda_consulta_model.test.js"></script>
+    <script src="./boundary/historial_model.test.js"></script>
     <script src="./boundary/inicio_model.test.js"></script>
+    <script src="./boundary/listado_model.test.js"></script>
     <script src="./boundary/login_model.test.js"></script>
+    <script src="./boundary/app_model.test.js"></script>
 
     <script>mocha.run();</script>
 </body>
