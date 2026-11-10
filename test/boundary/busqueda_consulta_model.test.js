@@ -267,9 +267,9 @@ describe("BusquedaConsultaModel", () => {
         });
     });
 
-    describe("cualquier rol de personal", () => {
-        it("una recepcionista tambien ve el detalle completo (5 pestañas)", async () => {
-            await arrancar("Recepcionista");
+    describe("roles que ven Consultas", () => {
+        it("un administrador tambien ve el detalle completo (5 pestañas)", async () => {
+            await arrancar("Administrador");
             const titulos = [...$("pestanas").shadowRoot.querySelectorAll("button")].map(b => b.textContent);
             expect(titulos).to.have.length(5);
         });

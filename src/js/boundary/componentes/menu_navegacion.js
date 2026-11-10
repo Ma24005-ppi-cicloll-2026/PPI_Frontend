@@ -21,11 +21,17 @@ class GalenoMenu extends HTMLElement {
     pintar() {
         this.shadowRoot.innerHTML = `
           <style>
-            ul { list-style:none; margin:0; padding:0; }
-            button { width:100%; text-align:left; padding:.7rem 1rem; border:0; background:transparent;
-                     color:#1D3461; cursor:pointer; font:inherit; }
+            ul { list-style:none; margin:0; padding:0; display:flex; overflow-x:auto; }
+            li { flex:0 0 auto; }
+            button { width:100%; text-align:left; padding:.7rem 1rem; min-height:2.75rem; border:0; background:transparent;
+                     color:#1D3461; cursor:pointer; font:inherit; white-space:nowrap; }
             button:hover { background:#C5DDF1; }
+            button:focus-visible { outline:3px solid #1D3461; outline-offset:-3px; }
             button[aria-current=page] { background:#1D3461; color:#fff; font-weight:700; }
+            /* pantallas grandes: el menu es una lista vertical */
+            @media (min-width: 48em) {
+                ul { display:block; overflow:visible; }
+            }
           </style>
           <ul></ul>`;
         const ul = this.shadowRoot.querySelector("ul");

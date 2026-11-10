@@ -1,57 +1,94 @@
-
-
-
+/* Estilos base de GalenoSV (hechos a mano, sin librerias).
+   Se diseña primero para celular y se amplia con @media para pantallas grandes. */
 
 :root{
     --oscuro:#1D3461;
     --mate:#FFFFFF;
     --sombra:#DCEBF7;
-   --claro:#FFFFFF;
+    --claro:#FFFFFF;
     --azul:#629DCB;
+    --texto:#14233F;          /* contraste alto sobre blanco */
+    --espacio:1rem;
+    --radio:.5rem;
+    --fuente:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
-main{
-    display:grid; 
-    height:100vh;
-    grid-template-columns: 1fr 6fr;
-    grid-template-rows: 1fr 4fr 1fr;
-    grid-template-areas:"menu cabecera" "menu centro" "pie pie";
+
+*, *::before, *::after { box-sizing:border-box; }
+
+html { font-size:100%; }
+
+body{
+    margin:0;
+    font-family:var(--fuente);
+    font-size:1rem;
+    line-height:1.5;
+    color:var(--texto);
+    background:var(--mate);
 }
+
+h1, h2, h3 { line-height:1.25; color:var(--oscuro); }
+
+/* ---- estructura: celular = una columna (cabecera, menu, contenido, pie) ---- */
+.app{
+    display:grid;
+    min-height:100vh;
+    min-height:100dvh;
+    grid-template-columns:minmax(0, 1fr);
+    grid-template-rows:auto auto 1fr auto;
+    grid-template-areas:"cabecera" "menu" "centro" "pie";
+}
+
 header{
-background: var(--claro);
-border-bottom:3px solid var(--sombra);
-color:var(--oscuro);
-grid-area:cabecera;
+    grid-area:cabecera;
+    background:var(--claro);
+    border-bottom:3px solid var(--sombra);
+    color:var(--oscuro);
 }
 
 nav{
-grid-area:menu;
-background: var(--sombra);
-
+    grid-area:menu;
+    background:var(--sombra);
 }
 
-article{
-grid-area:centro;
-background:var(--mate);
+main{
+    grid-area:centro;
+    background:var(--mate);
+    min-width:0;               /* deja que tablas anchas hagan scroll en vez de ensanchar la pagina */
 }
+
 footer{
-grid-area:pie;
-background:var(--oscuro);
+    grid-area:pie;
+    background:var(--oscuro);
+    color:var(--claro);
+    padding:var(--espacio);
+    font-size:.9rem;
 }
-@media screen and (min-width: 30em){
-main{
-    display:grid; 
-    height:100vh;
-    grid-template-columns: 1fr 6fr;
-    grid-template-rows: 1fr 4fr 1fr;
-    grid-template-areas:"menu cabecera" "menu centro" "pie pie";
+
+/* ---- pantallas medianas y grandes: menu a la izquierda ---- */
+@media screen and (min-width: 48em){
+    .app{
+        grid-template-columns:minmax(12rem, 16rem) minmax(0, 1fr);
+        grid-template-rows:auto 1fr auto;
+        grid-template-areas:"menu cabecera" "menu centro" "pie pie";
+    }
 }
+
+/* ---- accesibilidad ---- */
+.saltar{
+    position:absolute; left:.5rem; top:-4rem; z-index:100;
+    background:var(--oscuro); color:#fff; padding:.6rem 1rem; border-radius:var(--radio);
 }
-@media screen and (max-width: 30em){
-main{
-    display:grid; 
-    height:100vh;
-    grid-template-columns: 1fr 2fr;
-    grid-template-rows:  2fr 1fr;
-    grid-template-areas:"cabecera cabecera" "centro centro"  "pie pie";
+.saltar:focus{ top:.5rem; }
+
+:focus-visible{ outline:3px solid var(--azul); outline-offset:2px; }
+main:focus{ outline:none; }
+
+@media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
 }
+
+/* ---- al imprimir solo se ve el contenido ---- */
+@media print{
+    nav, header, footer, galeno-conexion, .saltar{ display:none !important; }
+    .app{ display:block; }
 }

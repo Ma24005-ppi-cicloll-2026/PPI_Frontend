@@ -2,6 +2,8 @@
 //   tarjeta.consulta = consulta;   // objeto que devuelve ConsultaService
 // Si el usuario pulsa "Ver detalle" emite "galeno-abrir-consulta" con el idConsulta.
 // Con el atributo `sin-boton` no dibuja el boton (cuando la tarjeta ya es el detalle).
+// Con el atributo `con-paciente` muestra tambien el nombre del paciente.
+// Con el atributo `turno="3"` el titulo dice "Turno 3" (sala de espera).
 class GalenoTarjetaConsulta extends HTMLElement {
 
     constructor() {
@@ -34,7 +36,8 @@ class GalenoTarjetaConsulta extends HTMLElement {
                      background:#1D3461; color:#fff; cursor:pointer; }
           </style>
           <article>
-            <h3>Consulta</h3>
+            <h3>${this.hasAttribute("turno") ? "Turno " + this.escapar(this.getAttribute("turno")) : "Consulta"}</h3>
+            ${this.hasAttribute("con-paciente") ? `<p><strong>Paciente:</strong> ${this.escapar(this.nombrePaciente(c))}</p>` : ""}
             <p><strong>Inicio:</strong> ${this.formatear(c.fechaInicio)}</p>
             <p><strong>Fin:</strong> ${c.fechaFin ? this.formatear(c.fechaFin) : "En curso"}</p>
             <p><strong>Referencia:</strong> ${this.escapar(c.referenciaExterna || "—")}</p>
@@ -45,6 +48,11 @@ class GalenoTarjetaConsulta extends HTMLElement {
         if (ver) ver.addEventListener("click", () =>
             this.dispatchEvent(new CustomEvent("galeno-abrir-consulta",
                 { detail: { idConsulta: c.idConsulta }, bubbles: true, composed: true })));
+    }
+
+    nombrePaciente(c) {
+        const p = c.idPersonaRol?.idPersona;
+        return `${p?.nombres ?? ""} ${p?.apellidos ?? ""}`.trim() || "—";
     }
 
     escapar(v) {

@@ -4,23 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GalenoSV</title>
+    <meta name="description" content="GalenoSV: sistema de gestión médica">
+    <meta name="theme-color" content="#1D3461">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" href="./recursos/iconos/icon-192.png">
+    <link rel="apple-touch-icon" href="./recursos/iconos/icon-192.png">
     <link rel="stylesheet" href="./recursos/principal.css">
     <link rel="stylesheet" href="./recursos/galeno.css">
 </head>
 <body>
-    <main>
-        <header id="id">
+    <a class="saltar" href="#/" id="saltar">Saltar al contenido</a>
+    <galeno-conexion></galeno-conexion>
+    <div class="app">
+        <header>
             <h1>GalenoSV</h1>
-            <span id="sesion"></span>
+            <span id="sesion" aria-live="polite"></span>
+            <galeno-instalar id="instalar"></galeno-instalar>
         </header>
-        <nav>
+        <nav aria-label="Menú principal">
             <galeno-menu id="menu"></galeno-menu>
         </nav>
-        <article id="pantalla"></article>
+        <main id="pantalla" tabindex="-1"></main>
         <footer>
             GalenoSV · Sistema de gestión médica
         </footer>
-    </main>
+    </div>
     <galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>
 
     <!-- 1. Services (control) -->
@@ -46,14 +54,21 @@
     <script src="js/control/tipo_examen_service.js"></script>
     <script src="js/control/tipo_medio_contacto_service.js"></script>
     <script src="js/control/gestor_fechas.js"></script>
+    <script src="js/control/datos_clinica.js"></script>
     <script src="js/control/sesion.js"></script>
+    <script src="js/control/pwa.js"></script>
+    <script src="js/control/generador_pdf.js"></script>
 
     <!-- 2. Componentes (autocomplete ANTES de buscador_persona y buscador_tipo_documentos) -->
+    <script src="js/boundary/componentes/campo.js"></script>
+    <script src="js/boundary/componentes/opcion.js"></script>
     <script src="js/boundary/componentes/autocomplete.js"></script>
     <script src="js/boundary/componentes/buscador_persona.js"></script>
     <script src="js/boundary/componentes/buscador_tipo_documentos.js"></script>
+    <script src="js/boundary/componentes/estado_conexion.js"></script>
     <script src="js/boundary/componentes/estado_vista.js"></script>
     <script src="js/boundary/componentes/formulario.js"></script>
+    <script src="js/boundary/componentes/instalar_app.js"></script>
     <script src="js/boundary/componentes/menu_navegacion.js"></script>
     <script src="js/boundary/componentes/modal_confirmacion.js"></script>
     <script src="js/boundary/componentes/notificacion_emergente.js"></script>
@@ -71,8 +86,25 @@
     <script src="js/boundary/login_model.js"></script>
     <script src="js/boundary/busqueda_consulta_model.js"></script>
     <script src="js/boundary/historial_model.js"></script>
+    <script src="js/boundary/solicitud_model.js"></script>
+    <script src="js/boundary/atencion_model.js"></script>
+    <script src="js/boundary/cierre_model.js"></script>
+    <script src="js/boundary/admision_model.js"></script>
+    <script src="js/boundary/sala_model.js"></script>
+    <script src="js/boundary/registro_consulta_model.js"></script>
     <script src="js/boundary/inicio_model.js"></script>
     <script src="js/boundary/app_model.js"></script>
-    <script>new AppModel().iniciar();</script>
+    <script>
+        new AppModel().iniciar();
+        // PWA: registra el service worker (funciona sin conexion) y conecta el boton "Instalar app"
+        const pwa = new Pwa();
+        pwa.iniciar();
+        document.querySelector("#instalar").pwa = pwa;
+        // "Saltar al contenido": mueve el foco a la pantalla sin tocar la direccion (#/...) de la SPA
+        document.querySelector("#saltar").addEventListener("click", e => {
+            e.preventDefault();
+            document.querySelector("#pantalla").focus();
+        });
+    </script>
 </body>
 </html>

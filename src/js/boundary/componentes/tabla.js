@@ -11,7 +11,13 @@ class GalenoTabla extends HTMLElement {
         this.attachShadow({ mode: "open" });
         this._columnas = [];
         this._filas = [];
+        this._acciones = null;
     }
+
+    // Botones propios por fila (en vez de Editar/Eliminar):
+    //   tabla.acciones = [ { texto: "Atender", evento: "galeno-atender", clase: "pr" } ];
+    // Al pulsar emite ese evento con { fila }. Clases: "pr" (principal), "ed" (azul), "el" (rojo).
+    set acciones(v) { this._acciones = Array.isArray(v) ? v : null; this.pintar(); }
 
     set columnas(v) { this._columnas = Array.isArray(v) ? v : []; this.pintar(); }
     set filas(v) { this._filas = Array.isArray(v) ? v : []; this.pintar(); }
@@ -36,7 +42,7 @@ class GalenoTabla extends HTMLElement {
             th { background:#1D3461; color:#fff; text-align:left; }
             th, td { padding:.5rem .7rem; border-bottom:1px solid #829CBC; }
             button { padding:.3rem .6rem; border:0; border-radius:.3rem; cursor:pointer; color:#fff; }
-            .ed { background:#629DCB; } .el { background:#b3261e; }
+            .ed { background:#3F7DB0; } .el { background:#b3261e; } .pr { background:#1D3461; }
             .vacio { padding:1rem; text-align:center; }
           </style>
           <div class="marco"><table>
@@ -71,8 +77,9 @@ class GalenoTabla extends HTMLElement {
             });
             if (!lectura) {
                 const acciones = document.createElement("td");
-                acciones.append(this.boton("Editar", "ed", "galeno-editar", fila),
-                                this.boton("Eliminar", "el", "galeno-eliminar", fila));
+                const botones = this._acciones ?? [{ texto: "Editar", clase: "ed", evento: "galeno-editar" },
+                                                   { texto: "Eliminar", clase: "el", evento: "galeno-eliminar" }];
+                botones.forEach(a => acciones.append(this.boton(a.texto, a.clase, a.evento, fila)));
                 tr.append(acciones);
             }
             cuerpo.append(tr);

@@ -1,0 +1,18 @@
+{
+    "id": "./",
+    "name": "GalenoSV · Sistema de gestión médica",
+    "short_name": "GalenoSV",
+    "description": "Consulta de historiales, procedimientos y resultados médicos.",
+    "lang": "es",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "any",
+    "theme_color": "#1D3461",
+    "background_color": "#FFFFFF",
+    "icons": [
+        { "src": "recursos/iconos/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "recursos/iconos/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "recursos/iconos/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}

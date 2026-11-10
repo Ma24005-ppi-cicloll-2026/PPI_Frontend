@@ -1,12 +1,47 @@
 /* Ajustes para las pantallas con componentes. No reemplaza a principal.css. */
-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0 1rem; }
-header h1 { margin:0; font-size:1.3rem; }
-#sesion { font-size:.9rem; }
-nav { overflow:auto; }
-article { overflow:auto; padding:1rem; color:var(--oscuro); }
-article h2, article h3 { margin-top:0; }
-article button { padding:.45rem .9rem; border:0; border-radius:.4rem; background:var(--oscuro);
-                 color:#fff; cursor:pointer; font:inherit; margin-bottom:.8rem; }
-footer { color:var(--claro); padding:1rem; }
+header{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    gap:.5rem 1rem; padding:.6rem 1rem;
+}
+header h1{ margin:0; font-size:1.3rem; }
+#sesion{ font-size:.9rem; flex:1 1 12rem; text-align:right; }
+nav{ overflow:auto; }
 
-article galeno-tabla { display:block; border:1px solid #B9D3EA; border-radius:.5rem; overflow:hidden; }
+#pantalla{ overflow:auto; padding:1rem; color:var(--oscuro); }
+#pantalla h2, #pantalla h3{ margin-top:0; }
+#pantalla button{
+    padding:.55rem 1rem; min-height:2.5rem; border:0; border-radius:.4rem; background:var(--oscuro);
+    color:#fff; cursor:pointer; font:inherit; margin-bottom:.8rem;
+}
+#pantalla button:hover{ background:#27498A; }
+#pantalla button:disabled{ opacity:.6; cursor:not-allowed; }
+#pantalla button.secundario{ background:#fff; color:var(--oscuro); border:2px solid var(--oscuro); }
+#pantalla button.secundario:hover{ background:var(--sombra); }
+#pantalla .acciones{ display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.8rem; }
+#pantalla .acciones button{ margin-bottom:0; }
+
+#pantalla galeno-tabla{ display:block; border:1px solid #B9D3EA; border-radius:.5rem; overflow:hidden; }
+
+@media screen and (min-width: 48em){
+    #pantalla{ padding:1.5rem 2rem; }
+    header{ padding:.6rem 2rem; }
+}
+
+/* ---- pantallas de la clinica ---- */
+#pantalla .subtitulo{ margin:1.4rem 0 .6rem; }
+#pantalla .rejilla{ display:grid; gap:1rem; grid-template-columns:repeat(auto-fit, minmax(14rem, 1fr)); align-items:start; }
+#pantalla .rejilla-tarjetas{ display:grid; gap:.8rem; grid-template-columns:repeat(auto-fill, minmax(11rem, 1fr)); grid-auto-rows:1fr; margin-top:.6rem; }
+#pantalla .paciente-elegido{ font-weight:600; margin:1rem 0; }
+#pantalla .lista-tarjetas{ display:grid; gap:1rem; grid-template-columns:repeat(auto-fill, minmax(18rem, 1fr)); }
+#pantalla .solicitud{ max-width:60rem; }
+#pantalla .solicitud galeno-campo{ margin-top:.4rem; }
+#pantalla #confirmacion{ margin-top:1rem; padding:1rem; border-left:6px solid #1D6B3A; background:#EAF6EE; border-radius:.5rem; }
+
+/* ---- login ---- */
+#pantalla .login{ max-width:26rem; margin:1rem auto; }
+#pantalla .login form{ display:grid; gap:1rem; }
+#pantalla .login button[type=submit]{ margin-bottom:0; width:100%; }
+#pantalla .mensaje-error{ color:#B3261E; font-weight:600; min-height:1.2em; }
+#pantalla .enlace-aparte{ margin-top:1.5rem; }
+#pantalla button.enlace{ background:none; color:#1D3461; text-decoration:underline; padding:.3rem 0; margin:0; min-height:2.5rem; }
+#pantalla button.enlace:hover{ background:none; color:#27498A; }

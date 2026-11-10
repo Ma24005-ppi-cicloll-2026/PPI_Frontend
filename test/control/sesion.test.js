@@ -1,4 +1,4 @@
-// Pruebas de Sesion: dos tipos de usuario (paciente y personal) y que pantallas le tocan a cada uno.
+// Pruebas de Sesion: tipos de usuario (medico, recepcion, personal y paciente) y que pantallas le tocan a cada uno.
 {  // bloque: evita que 'expect' choque con el de otros archivos de prueba
 const { expect } = chai;
 
@@ -24,9 +24,9 @@ describe("Sesion", () => {
             expect(Sesion.tipo()).to.equal(null);
             expect(Sesion.esPaciente()).to.equal(false);
         });
-        it("solo se puede ir al login", () => {
-            expect(Sesion.puede("login")).to.equal(true);
-            ["inicio", "consulta", "historial", "persona"].forEach(p => expect(Sesion.puede(p), p).to.equal(false));
+        it("solo se puede ir al login y a la solicitud publica de consulta", () => {
+            ["login", "solicitar"].forEach(p => expect(Sesion.puede(p), p).to.equal(true));
+            ["inicio", "consulta", "historial", "persona", "atencion", "cierre"].forEach(p => expect(Sesion.puede(p), p).to.equal(false));
         });
     });
 
@@ -52,15 +52,47 @@ describe("Sesion", () => {
         });
     });
 
-    describe("personal (cualquier rol que no sea paciente)", () => {
-        ["Medico", "Médico", "Recepcionista", "Administrador", "rodrigo"].forEach(rol => {
-            it(`"${rol}" es personal y ve consultas y administracion, pero no el historial de paciente`, () => {
+    describe("medico", () => {
+        ["Medico", "Médico", " MÉDICA "].forEach(rol => {
+            it(`"${rol}" es medico: ve Inicio, Atencion y Consultas, y nada mas`, () => {
+                iniciar(rol);
+                expect(Sesion.tipo()).to.equal("medico");
+                ["inicio", "atencion", "consulta"].forEach(p => expect(Sesion.puede(p), p).to.equal(true));
+                ["cierre", "historial", "login", "solicitar", "persona", "rol"].forEach(p => expect(Sesion.puede(p), p).to.equal(false));
+            });
+        });
+    });
+
+    describe("recepcion", () => {
+        ["Recepcionista", "recepción"].forEach(rol => {
+            it(`"${rol}" es recepcion: ve Inicio, Registrar paciente y consulta, Sala de espera y Cierre, y nada mas`, () => {
+                iniciar(rol);
+                expect(Sesion.tipo()).to.equal("recepcion");
+                ["inicio", "admision", "registrar", "sala", "cierre"].forEach(p => expect(Sesion.puede(p), p).to.equal(true));
+                ["atencion", "consulta", "historial", "login", "persona", "solicitar", "enfermeria"].forEach(p => expect(Sesion.puede(p), p).to.equal(false));
+            });
+        });
+    });
+
+    describe("enfermero", () => {
+        ["Enfermero", "enfermera", " ENFERMERA "].forEach(rol => {
+            it(`"${rol}" es enfermero: ve Inicio y Enfermeria, y nada mas`, () => {
+                iniciar(rol);
+                expect(Sesion.tipo()).to.equal("enfermero");
+                ["inicio", "enfermeria"].forEach(p => expect(Sesion.puede(p), p).to.equal(true));
+                ["atencion", "consulta", "cierre", "admision", "registrar", "sala", "historial", "login", "persona", "solicitar"].forEach(p => expect(Sesion.puede(p), p).to.equal(false));
+            });
+        });
+    });
+
+    describe("personal (cualquier otro rol, ej. administrador)", () => {
+        ["Administrador", "rodrigo"].forEach(rol => {
+            it(`"${rol}" ve consultas y administracion, pero no Atencion, Cierre ni el historial de paciente`, () => {
                 iniciar(rol);
                 expect(Sesion.tipo()).to.equal("personal");
                 expect(Sesion.esPaciente()).to.equal(false);
-                ["inicio", "consulta", "persona", "clinica", "examen", "rol"].forEach(p => expect(Sesion.puede(p), p).to.equal(true));
-                expect(Sesion.puede("historial")).to.equal(false);
-                expect(Sesion.puede("login")).to.equal(false);
+                ["inicio", "consulta", "persona", "clinica", "examen", "rol", "solicitar"].forEach(p => expect(Sesion.puede(p), p).to.equal(true));
+                ["historial", "login", "atencion", "cierre", "admision", "registrar", "enfermeria", "sala"].forEach(p => expect(Sesion.puede(p), p).to.equal(false));
             });
         });
     });

@@ -1,16 +1,21 @@
 // El detalle de una consulta: la tarjeta arriba (una sola vez) y las pestañas debajo.
 // Pestañas: Documentos, Procedimientos, Pasos, Ordenes de examen y Resultados.
+// El backend manda idProcedimiento como UUID (texto), no como objeto: el nombre se busca en el catalogo
+// que DetalleConsulta carga al abrir. Si algun dia llega como objeto, tambien se entiende.
+const nombreProcedimiento = v =>
+    v && typeof v === "object" ? (v.nombre ?? "—") : (DetalleConsulta.catalogo.get(String(v)) ?? "—");
+
 const PESTANAS_DETALLE = {
     documentos: { titulo: "Documentos", columnas: [
         { campo: "valor", titulo: "Número" },
         { campo: "idTipoDocumento", titulo: "Tipo", formato: t => t?.nombre ?? "—" }] },
     procedimientos: { titulo: "Procedimientos", columnas: [
-        { campo: "idProcedimiento", titulo: "Procedimiento", formato: p => p?.nombre ?? "—" },
+        { campo: "idProcedimiento", titulo: "Procedimiento", formato: nombreProcedimiento },
         { campo: "fechaInicio", titulo: "Inicio", formato: GestorFechas.aFechaHora },
         { campo: "fechaFin", titulo: "Fin", formato: v => v ? GestorFechas.aFechaHora(v) : "En curso" },
         { campo: "observaciones", titulo: "Observaciones" }] },
     pasos: { titulo: "Pasos", columnas: [
-        { campo: "idConsultaProcedimiento", titulo: "Procedimiento", formato: cp => cp?.idProcedimiento?.nombre ?? "—" },
+        { campo: "idConsultaProcedimiento", titulo: "Procedimiento", formato: cp => nombreProcedimiento(cp?.idProcedimiento) },
         { campo: "estado", titulo: "Estado" },
         { campo: "fechaInicio", titulo: "Inicio", formato: GestorFechas.aFechaHora },
         { campo: "fechaFin", titulo: "Fin", formato: v => v ? GestorFechas.aFechaHora(v) : "En curso" }] },
@@ -38,7 +43,10 @@ class DetalleConsulta {
         const cap = c => c[0].toUpperCase() + c.slice(1);
         this.seccion.hidden = true;
         this.seccion.innerHTML = `
-            <button id="volver" type="button">← Volver a las consultas</button>
+            <div class="acciones">
+                <button id="volver" type="button">← Volver a las consultas</button>
+                <button id="pdf" type="button" class="secundario">Descargar resumen (PDF)</button>
+            </div>
             <galeno-tarjeta-consulta id="tarjeta" sin-boton></galeno-tarjeta-consulta>
             <galeno-pestanas id="pestanas" style="margin-top:1rem; display:block;">
                 ${this.claves.map((c, i) => `<div slot="p${i}"><galeno-tabla id="tabla${cap(c)}" solo-lectura></galeno-tabla></div>`).join("")}
@@ -51,11 +59,46 @@ class DetalleConsulta {
             this.tablas[c].columnas = PESTANAS_DETALLE[c].columnas;
         });
         this.seccion.querySelector("#volver").addEventListener("click", () => this.alVolver());
+        this.seccion.querySelector("#pdf").addEventListener("click", () => this.descargarPdf());
+    }
+
+    // Arma el resumen de la consulta abierta y lo baja como PDF (sin librerias: control/generador_pdf.js)
+    descargarPdf() {
+        if (!this.consulta) return;
+        const c = this.consulta;
+        const persona = c.idPersonaRol?.idPersona;
+        const paciente = `${persona?.nombres ?? ""} ${persona?.apellidos ?? ""}`.trim() || "—";
+        const fin = v => v ? GestorFechas.aFechaHora(v) : "En curso";
+        const nombre = x => x?.nombre ?? "—";
+        const filas = clave => this.tablas[clave].filas;
+        const bytes = new GeneradorPdf().generar({
+            titulo: "Resumen de consulta",
+            subtitulo: `Paciente: ${paciente}`,
+            secciones: [
+                { titulo: "Consulta", filas: [
+                    ["Inicio", GestorFechas.aFechaHora(c.fechaInicio)], ["Fin", fin(c.fechaFin)],
+                    ["Referencia", c.referenciaExterna || "—"], ["Observaciones", c.observaciones || "Sin observaciones"]] },
+                { titulo: "Documentos", filas: filas("documentos").map(d => [nombre(d.idTipoDocumento), d.valor ?? "—"]) },
+                { titulo: "Procedimientos", filas: filas("procedimientos").map(p =>
+                    [nombreProcedimiento(p.idProcedimiento), `${GestorFechas.aFechaHora(p.fechaInicio)} a ${fin(p.fechaFin)}. ${p.observaciones ?? ""}`.trim()]) },
+                { titulo: "Pasos", filas: filas("pasos").map(p =>
+                    [nombreProcedimiento(p.idConsultaProcedimiento?.idProcedimiento), `${p.estado ?? "—"}. ${GestorFechas.aFechaHora(p.fechaInicio)} a ${fin(p.fechaFin)}`]) },
+                { titulo: "Órdenes de examen", filas: filas("ordenes").map(o =>
+                    [GestorFechas.aFechaHora(o.fechaCreacion), o.indicaciones ?? "—"]) },
+                { titulo: "Resultados", filas: filas("resultados").map(r =>
+                    [GestorFechas.aFechaHora(r.fechaCreacion), `${r.resultado ?? "—"}. ${r.interpretacion ?? ""}`.trim()]) }
+            ],
+            pie: "GalenoSV · Sistema de gestión médica"
+        });
+        const dia = GestorFechas.leer(c.fechaInicio)?.toISOString().slice(0, 10) ?? "sin-fecha";
+        GeneradorPdf.descargar(bytes, `consulta-${dia}.pdf`);
     }
 
     // persona: el paciente dueño de la consulta ({ idPersona })
     async abrir(consulta, persona) {
+        this.consulta = consulta;
         this.tarjeta.consulta = consulta;
+        (await new ProcedimientoService().listar(0, 500)).forEach(p => DetalleConsulta.catalogo.set(String(p.idProcedimiento), p.nombre));
         const docs = await new DocumentoService().listar(0, 500);
         this.tablas.documentos.filas = docs.filter(d => d.idPersona?.idPersona === persona.idPersona);
 
@@ -81,3 +124,4 @@ class DetalleConsulta {
         this.seccion.hidden = false;
     }
 }
+DetalleConsulta.catalogo = new Map();      // idProcedimiento -> nombre
