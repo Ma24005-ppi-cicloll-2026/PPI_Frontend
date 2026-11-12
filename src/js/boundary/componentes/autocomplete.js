@@ -38,8 +38,8 @@ class GalenoAutocomplete extends HTMLElement {
           <style>
             :host { display:block; font-family:inherit; }
             label { display:block; font-weight:600; margin-bottom:.3rem; }
-            input { width:100%; box-sizing:border-box; padding:.55rem .7rem;
-                    border:1px solid #829CBC; border-radius:.4rem; font:inherit; }
+            input { width:100%; box-sizing:border-box; height:2.75rem; padding:.6rem .7rem;
+                    border:1px solid #5D7899; border-radius:.4rem; font:inherit; }
             ul { list-style:none; margin:.2rem 0 0; padding:0; max-height:12rem; overflow:auto;
                  background:#fff; border:1px solid #829CBC; border-radius:.4rem; }
             li { padding:.5rem .7rem; cursor:pointer; }

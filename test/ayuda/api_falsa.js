@@ -49,7 +49,14 @@ class ApiFalsa {
 const Ayuda = {
     esperar: (veces = 8) => (async () => { for (let i = 0; i < veces; i++) await new Promise(r => setTimeout(r, 0)); })(),
     escribir(campo, texto) {                               // <galeno-campo>
-        const i = campo.shadowRoot.querySelector("input"); i.value = texto; i.dispatchEvent(new Event("input"));
+        const i = campo.shadowRoot.querySelector("input, textarea"); i.value = texto; i.dispatchEvent(new Event("input"));
+    },
+    elegir(selector, indice) {                             // <galeno-selector>: elige la opcion `indice`
+        const s = selector.shadowRoot.querySelector("select"); s.value = String(indice); s.dispatchEvent(new Event("change"));
+    },
+    tipo(buscador, nombre) {                               // <galeno-buscador-tipo-documentos>: elige por nombre
+        const q = buscador.shadowRoot.querySelector("#q"); q.value = nombre; q.dispatchEvent(new Event("input"));
+        buscador.shadowRoot.querySelector("li").click();
     },
     clic(el, selector) { el.shadowRoot.querySelector(selector).click(); },
     textos(el, selector) { return [...el.shadowRoot.querySelectorAll(selector)].map(x => x.textContent.trim()); }

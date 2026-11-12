@@ -20,7 +20,6 @@ nav{ overflow:auto; }
 #pantalla .acciones{ display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.8rem; }
 #pantalla .acciones button{ margin-bottom:0; }
 
-#pantalla galeno-tabla{ display:block; border:1px solid #B9D3EA; border-radius:.5rem; overflow:hidden; }
 
 @media screen and (min-width: 48em){
     #pantalla{ padding:1.5rem 2rem; }
@@ -45,3 +44,9 @@ nav{ overflow:auto; }
 #pantalla .enlace-aparte{ margin-top:1.5rem; }
 #pantalla button.enlace{ background:none; color:#1D3461; text-decoration:underline; padding:.3rem 0; margin:0; min-height:2.5rem; }
 #pantalla button.enlace:hover{ background:none; color:#27498A; }
+
+/* los componentes definen su propio display: sin esto el atributo hidden no los esconde */
+#pantalla [hidden]{ display:none !important; }
+/* filtros y rangos de fechas: en fila cuando hay espacio */
+#pantalla .fila-fechas, #pantalla #filtros{ display:grid; gap:1rem; grid-template-columns:repeat(auto-fit, minmax(12rem, 1fr)); align-items:start; margin:1rem 0; }
+#pantalla #filtros[hidden]{ display:none !important; }

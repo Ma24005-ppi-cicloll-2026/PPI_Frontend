@@ -1,5 +1,5 @@
 // Pruebas de autocomplete y de los buscadores que heredan de el
-// (buscador_persona y buscador_tipo_documentos).
+// (buscador_tipo_documentos).
 {  // bloque: evita que 'expect' choque con el de otros archivos de prueba
 const { expect } = chai;
 
@@ -88,29 +88,6 @@ describe("Buscadores", () => {
             componente.seleccionar({ nombre: "Carla" });
             document.body.append(componente);
             expect(componente.shadowRoot.querySelector("#q").value).to.equal("Carla");
-        });
-    });
-
-    describe("galeno-buscador-persona", () => {
-        beforeEach(() => {
-            crear("galeno-buscador-persona");
-            componente.opciones = [
-                { nombres: "Ana", apellidos: "Lopez" },
-                { nombres: "Beto", apellidos: "Ruiz" }
-            ];
-        });
-        it("muestra nombres y apellidos", () => {
-            escribir(componente, "beto");
-            expect(opcionesVisibles(componente)).to.deep.equal(["Beto Ruiz"]);
-        });
-        it("tambien busca por apellido", () => {
-            escribir(componente, "lopez");
-            expect(opcionesVisibles(componente)).to.deep.equal(["Ana Lopez"]);
-        });
-        it("no falla si a la persona le falta un dato", () => {
-            componente.opciones = [{ nombres: "Solo" }];
-            escribir(componente, "solo");
-            expect(opcionesVisibles(componente)).to.deep.equal(["Solo"]);
         });
     });
 

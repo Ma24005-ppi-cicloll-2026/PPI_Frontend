@@ -12,6 +12,7 @@ class GalenoMenu extends HTMLElement {
         this._activo = null;
     }
 
+    get items() { return this._items; }
     set items(v) { this._items = Array.isArray(v) ? v : []; this.pintar(); }
     set activo(v) { this._activo = v; this.pintar(); }
     get activo() { return this._activo; }

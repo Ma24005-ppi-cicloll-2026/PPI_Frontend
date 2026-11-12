@@ -15,106 +15,89 @@
     <script>mocha.setup("bdd");</script>
 
     <!-- Los services que se van a probar (default_service primero) -->
+    <!-- Services y helpers (control) -->
     <script src="../src/js/control/default_service.js"></script>
     <script src="../src/js/control/clinica_service.js"></script>
-    <script src="../src/js/control/consulta_procedimiento_paso_service.js"></script>
-    <script src="../src/js/control/consulta_procedimiento_service.js"></script>
     <script src="../src/js/control/consulta_service.js"></script>
+    <script src="../src/js/control/consulta_procedimiento_service.js"></script>
+    <script src="../src/js/control/consulta_procedimiento_paso_service.js"></script>
     <script src="../src/js/control/documento_service.js"></script>
-    <script src="../src/js/control/examen_resultado_service.js"></script>
     <script src="../src/js/control/examen_service.js"></script>
+    <script src="../src/js/control/examen_resultado_service.js"></script>
     <script src="../src/js/control/examen_tipo_examen_service.js"></script>
     <script src="../src/js/control/medio_contacto_service.js"></script>
     <script src="../src/js/control/orden_examen_service.js"></script>
-    <script src="../src/js/control/persona_rol_service.js"></script>
     <script src="../src/js/control/persona_service.js"></script>
+    <script src="../src/js/control/persona_rol_service.js"></script>
+    <script src="../src/js/control/procedimiento_service.js"></script>
+    <script src="../src/js/control/procedimiento_paso_service.js"></script>
     <script src="../src/js/control/procedimiento_paso_examen_service.js"></script>
     <script src="../src/js/control/procedimiento_paso_secuencia_service.js"></script>
-    <script src="../src/js/control/procedimiento_paso_service.js"></script>
-    <script src="../src/js/control/procedimiento_service.js"></script>
     <script src="../src/js/control/rol_service.js"></script>
     <script src="../src/js/control/tipo_documento_service.js"></script>
     <script src="../src/js/control/tipo_examen_service.js"></script>
     <script src="../src/js/control/tipo_medio_contacto_service.js"></script>
     <script src="../src/js/control/gestor_fechas.js"></script>
     <script src="../src/js/control/datos_clinica.js"></script>
+    <script src="../src/js/control/documentos.js"></script>
+    <script src="../src/js/control/agenda.js"></script>
+    <script src="../src/js/control/flujo_pasos.js"></script>
+    <script src="../src/js/control/notas_paso.js"></script>
+    <script src="../src/js/control/expediente.js"></script>
     <script src="../src/js/control/sesion.js"></script>
-    <script src="../src/js/control/pwa.js"></script>
     <script src="../src/js/control/sw_estrategias.js"></script>
-    <script src="../src/js/control/generador_pdf.js"></script>
+    <script src="../src/js/control/pwa.js"></script>
 
-    <!-- Los componentes (autocomplete ANTES de los buscadores que heredan de el) -->
+    <!-- Componentes -->
     <script src="../src/js/boundary/componentes/campo.js"></script>
     <script src="../src/js/boundary/componentes/opcion.js"></script>
     <script src="../src/js/boundary/componentes/autocomplete.js"></script>
-    <script src="../src/js/boundary/componentes/buscador_persona.js"></script>
     <script src="../src/js/boundary/componentes/buscador_tipo_documentos.js"></script>
+    <script src="../src/js/boundary/componentes/selector.js"></script>
     <script src="../src/js/boundary/componentes/estado_conexion.js"></script>
     <script src="../src/js/boundary/componentes/estado_vista.js"></script>
-    <script src="../src/js/boundary/componentes/formulario.js"></script>
     <script src="../src/js/boundary/componentes/instalar_app.js"></script>
     <script src="../src/js/boundary/componentes/menu_navegacion.js"></script>
-    <script src="../src/js/boundary/componentes/modal_confirmacion.js"></script>
     <script src="../src/js/boundary/componentes/notificacion_emergente.js"></script>
-    <script src="../src/js/boundary/componentes/paginador.js"></script>
-    <script src="../src/js/boundary/componentes/pestanas.js"></script>
-    <script src="../src/js/boundary/componentes/tabla.js"></script>
-    <script src="../src/js/boundary/componentes/tarjeta_consulta.js"></script>
-    <script src="../src/js/boundary/componentes/tarjeta_simple.js"></script>
+    <script src="../src/js/boundary/componentes/tarjeta_cita.js"></script>
+    <script src="../src/js/boundary/componentes/tarjeta_agenda.js"></script>
+    <script src="../src/js/boundary/componentes/registro_paso.js"></script>
+    <script src="../src/js/boundary/componentes/indicador_pasos.js"></script>
+    <script src="../src/js/boundary/componentes/lista_examenes.js"></script>
 
-    <!-- Los models (app_model.js se carga pero NO se arranca: el index.html de src es quien hace new AppModel().iniciar()) -->
-    <script src="../src/js/boundary/entidades.js"></script>
-    <script src="../src/js/boundary/busqueda_documento.js"></script>
-    <script src="../src/js/boundary/consulta_detalle.js"></script>
-    <script src="../src/js/boundary/listado_model.js"></script>
+    <!-- Models -->
     <script src="../src/js/boundary/login_model.js"></script>
-    <script src="../src/js/boundary/busqueda_consulta_model.js"></script>
-    <script src="../src/js/boundary/historial_model.js"></script>
-    <script src="../src/js/boundary/solicitud_model.js"></script>
-    <script src="../src/js/boundary/atencion_model.js"></script>
-    <script src="../src/js/boundary/cierre_model.js"></script>
-    <script src="../src/js/boundary/admision_model.js"></script>
-    <script src="../src/js/boundary/sala_model.js"></script>
-    <script src="../src/js/boundary/registro_consulta_model.js"></script>
-    <script src="../src/js/boundary/inicio_model.js"></script>
+    <script src="../src/js/boundary/citas_model.js"></script>
+    <script src="../src/js/boundary/dashboard_model.js"></script>
+    <script src="../src/js/boundary/seguimiento_model.js"></script>
     <script src="../src/js/boundary/app_model.js"></script>
 
-    <!-- Ayudas de las pruebas -->
     <script src="./ayuda/api_falsa.js"></script>
+    <script src="./ayuda/datos.js"></script>
 
-    <!-- Las pruebas -->
     <script src="./control/default_service.test.js"></script>
     <script src="./control/rutas_services.test.js"></script>
     <script src="./control/gestor_fechas.test.js"></script>
+    <script src="./control/datos_clinica.test.js"></script>
     <script src="./control/sesion.test.js"></script>
+    <script src="./control/documentos.test.js"></script>
+    <script src="./control/flujo_notas_agenda.test.js"></script>
+    <script src="./control/consulta_ticket.test.js"></script>
+    <script src="./control/expediente.test.js"></script>
     <script src="./control/pwa.test.js"></script>
     <script src="./control/sw_estrategias.test.js"></script>
-    <script src="./control/generador_pdf.test.js"></script>
-    <script src="./boundary/componentes/instalar_conexion.test.js"></script>
-    <script src="./boundary/componentes/buscadores.test.js"></script>
-    <script src="./boundary/componentes/formulario.test.js"></script>
-    <script src="./boundary/componentes/menu_notificacion.test.js"></script>
-    <script src="./boundary/componentes/paginador_estado_modal.test.js"></script>
-    <script src="./boundary/componentes/pestanas.test.js"></script>
-    <script src="./boundary/componentes/tabla.test.js"></script>
-    <script src="./boundary/componentes/tarjetas.test.js"></script>
-    <script src="./boundary/busqueda_consulta_model.test.js"></script>
-    <script src="./boundary/historial_model.test.js"></script>
-    <script src="./boundary/inicio_model.test.js"></script>
-    <script src="./boundary/listado_model.test.js"></script>
-    <script src="./boundary/login_model.test.js"></script>
-    <script src="./boundary/app_model.test.js"></script>
-    <script src="./control/datos_clinica.test.js"></script>
     <script src="./boundary/componentes/campo_opcion.test.js"></script>
-    <script src="./boundary/solicitud_model.test.js"></script>
-    <script src="./boundary/atencion_model.test.js"></script>
-    <script src="./boundary/cierre_model.test.js"></script>
-    <script src="./boundary/admision_model.test.js"></script>
-    <script src="./boundary/sala_model.test.js"></script>
-    <script src="./boundary/registro_consulta_model.test.js"></script>
-    <script src="./boundary/enfermeria_model.test.js"></script>
-    <script src="./boundary/app_model_rutas.test.js"></script>
-    <script src="./boundary/consulta_detalle_pdf.test.js"></script>
+    <script src="./boundary/componentes/buscadores.test.js"></script>
+    <script src="./boundary/componentes/instalar_conexion.test.js"></script>
+    <script src="./boundary/componentes/menu_notificacion.test.js"></script>
+    <script src="./boundary/componentes/estado_selector.test.js"></script>
+    <script src="./boundary/componentes/tarjetas_hu.test.js"></script>
+    <script src="./boundary/componentes/registro_pasos_examenes.test.js"></script>
+    <script src="./boundary/login_model.test.js"></script>
+    <script src="./boundary/citas_model.test.js"></script>
+    <script src="./boundary/dashboard_model.test.js"></script>
+    <script src="./boundary/seguimiento_model.test.js"></script>
+    <script src="./boundary/app_model.test.js"></script>
 
     <script>mocha.run();</script>
 </body>

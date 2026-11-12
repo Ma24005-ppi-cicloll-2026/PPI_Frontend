@@ -4,7 +4,8 @@
 //   campo.value                  // lo escrito (con type="checkbox" es true/false)
 //   campo.error("Falta la contraseña");   campo.error("");   // muestra / quita el error
 //   campo.addEventListener("galeno-cambio", e => e.detail.valor);
-// Atributos: label, type (text, password, checkbox...), placeholder, autocomplete, ayuda.
+// Atributos: label, type (text, password, date, checkbox, textarea...), placeholder, autocomplete, ayuda.
+//   campo.deshabilitado = true;   // no deja escribir (ej. el numero de documento hasta elegir el tipo)
 // Con type="password" aparece el boton "Mostrar" para ver lo escrito.
 class GalenoCampo extends HTMLElement {
 
@@ -16,7 +17,13 @@ class GalenoCampo extends HTMLElement {
 
     connectedCallback() { if (!this.pintado) this.pintar(); }
 
-    get entrada() { return this.shadowRoot.querySelector("input"); }
+    get entrada() { return this.shadowRoot.querySelector("input, textarea"); }
+
+    set deshabilitado(v) {
+        if (!this.pintado) this.pintar();
+        this.entrada.disabled = Boolean(v);
+    }
+    get deshabilitado() { return Boolean(this.entrada?.disabled); }
 
     get value() {
         const e = this.entrada;
@@ -52,9 +59,12 @@ class GalenoCampo extends HTMLElement {
             :host { display:block; font-family:inherit; color:#1D3461; }
             label { display:block; font-weight:600; margin-bottom:.3rem; }
             .fila { display:flex; gap:.4rem; }
-            input:not([type=checkbox]) { flex:1; min-width:0; padding:.6rem .7rem; border:1px solid #5D7899;
-                   border-radius:.4rem; font:inherit; min-height:2.75rem; }
-            input[aria-invalid=true] { border-color:#B3261E; border-width:2px; }
+            input:not([type=checkbox]), textarea { flex:1; min-width:0; box-sizing:border-box; padding:.6rem .7rem; border:1px solid #5D7899;
+                   border-radius:.4rem; font:inherit; }
+            input:not([type=checkbox]) { height:2.75rem; }
+            textarea { resize:vertical; min-height:6rem; }
+            input:disabled, textarea:disabled { background:#EEF2F7; cursor:not-allowed; }
+            input[aria-invalid=true], textarea[aria-invalid=true] { border-color:#B3261E; border-width:2px; }
             input:focus-visible, button:focus-visible { outline:3px solid #629DCB; outline-offset:2px; }
             .check { display:flex; align-items:center; gap:.5rem; font-weight:400; min-height:2.5rem; }
             input[type=checkbox] { width:1.2rem; height:1.2rem; }
@@ -66,11 +76,14 @@ class GalenoCampo extends HTMLElement {
         if (tipo === "checkbox") {
             this.shadowRoot.innerHTML = `${estilos}<label class="check"><input type="checkbox">${etiqueta}</label><div id="error" role="alert"></div>`;
         } else {
+            const control = tipo === "textarea"
+                ? `<textarea id="c" rows="5" placeholder="${this.escapar(this.getAttribute("placeholder") || "")}" aria-describedby="ayuda error"></textarea>`
+                : `<input id="c" type="${this.escapar(tipo)}" autocomplete="${this.escapar(this.getAttribute("autocomplete") || "off")}"
+                       placeholder="${this.escapar(this.getAttribute("placeholder") || "")}" aria-describedby="ayuda error">`;
             this.shadowRoot.innerHTML = `${estilos}
               <label for="c">${etiqueta}</label>
               <div class="fila">
-                <input id="c" type="${this.escapar(tipo)}" autocomplete="${this.escapar(this.getAttribute("autocomplete") || "off")}"
-                       placeholder="${this.escapar(this.getAttribute("placeholder") || "")}" aria-describedby="ayuda error">
+                ${control}
                 ${tipo === "password" ? '<button id="ver" type="button" aria-pressed="false">Mostrar</button>' : ""}
               </div>
               <small id="ayuda">${ayuda}</small>

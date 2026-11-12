@@ -1,155 +1,101 @@
-// Pruebas de AppModel: el menu, el encabezado y las pantallas segun quien inicio sesion.
-{  // bloque: evita que 'expect' choque con el de otros archivos de prueba
+// Rutas y menu de la SPA: Buscar citas y Login (publicas), Dashboard y Consulta (empleado).
+{
 const { expect } = chai;
-
 describe("AppModel", () => {
-    let fetchFalso, menu, zona, textoSesion, aviso, app;
-    const esperar = () => new Promise(r => setTimeout(r, 0));
-    const opciones = () => [...menu.shadowRoot.querySelectorAll("button")].map(b => b.textContent);
-    const titulo = () => zona.querySelector("h2")?.textContent;
-    const MENU_ADMIN = ["Inicio", "Solicitar consulta", "Consultas", "Personas", "Clínicas", "Exámenes", "Procedimientos",
-        "Tipos de documento", "Tipos de medio de contacto", "Roles", "Tipos de examen", "Cerrar sesión"];
-
+    let api, app, cont;
+    const empleado = { idPersona: "p-ana", nombre: "Ana Mejía", contextos: [{ idPersonaRol: "pr-ana-med-sa", idRol: "r-med", rol: "Médico", idClinica: "c-sa", clinica: "Santa Ana" }] };
     beforeEach(() => {
-        fetchFalso = sinon.stub(window, "fetch").callsFake(async () => new Response("[]", { status: 200 }));
-        Sesion.cerrar();
-        menu = document.createElement("galeno-menu"); menu.id = "menu";
-        zona = document.createElement("div"); zona.id = "pantalla";
-        textoSesion = document.createElement("span"); textoSesion.id = "sesion";
-        aviso = document.createElement("galeno-notificacion-emergente"); aviso.id = "aviso";
-        document.body.append(menu, zona, textoSesion, aviso);
-        app = new AppModel();
-        app.iniciar();
+        Sesion.cerrar(); window.location.hash = "";
+        api = new ApiFalsa(Datos.bd());
+        cont = document.createElement("div");
+        cont.innerHTML = '<header><span id="sesion"></span></header><galeno-menu id="menu"></galeno-menu><main id="pantalla"></main><galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>';
+        document.body.append(cont);
     });
-    afterEach(() => { app.destruir(); fetchFalso.restore(); [menu, zona, textoSesion, aviso].forEach(e => e.remove()); Sesion.cerrar(); });
+    afterEach(() => { app?.destruir(); api.restaurar(); cont.remove(); Sesion.cerrar(); window.location.hash = ""; });
+    const arrancar = async () => { app = new AppModel(); app.iniciar(); await Ayuda.esperar(); };
+    const menu = () => app.menu.items.map(i => i.texto);
+    const titulo = () => cont.querySelector("#pantalla h2")?.textContent;
 
     describe("sin sesion", () => {
-        it("solo ofrece Iniciar sesion y Solicitar consulta, y muestra el login", () => {
-            expect(opciones()).to.deep.equal(["Iniciar sesión", "Solicitar consulta"]);
+        it("abre Buscar citas y el menu solo tiene Buscar citas e Iniciar sesión", async () => {
+            await arrancar();
+            expect(titulo()).to.equal("Buscar citas");
+            expect(menu()).to.deep.equal(["Buscar citas", "Iniciar sesión"]);
+            expect(cont.querySelector("#sesion").textContent).to.equal("Sin sesión iniciada");
+        });
+        it("puede ir a Iniciar sesión", async () => {
+            await arrancar(); app.irA("login");
             expect(titulo()).to.equal("Iniciar sesión");
-            expect(textoSesion.textContent).to.equal("Sin sesión iniciada");
+            expect(window.location.hash).to.equal("#/login");
         });
-        it("la solicitud de consulta es publica: se abre sin iniciar sesion", async () => {
-            app.irA("solicitar"); await esperar();
-            expect(titulo()).to.equal("Solicitar consulta");
+        it("no entra al Dashboard ni a una consulta aunque escriba la URL", async () => {
+            window.location.hash = "/dashboard"; await arrancar();
+            expect(titulo()).to.equal("Buscar citas");
+            app.irA("consulta", "k-hoy");
+            expect(titulo()).to.equal("Buscar citas");
         });
-        it("no deja entrar a otra pantalla: lo regresa al login", () => {
-            ["consulta", "historial", "persona", "atencion", "cierre"].forEach(p => { app.irA(p); expect(titulo(), p).to.equal("Iniciar sesión"); });
-        });
-    });
-
-    describe("paciente", () => {
-        beforeEach(() => Sesion.iniciar({ idPersona: "p1", nombre: "Ana Lopez", rol: "Paciente", clinica: "" }));
-
-        it("el menu tiene solo Inicio, Mi historial y Cerrar sesion", () => {
-            expect(opciones()).to.deep.equal(["Inicio", "Mi historial", "Cerrar sesión"]);
-        });
-        it("el encabezado muestra su nombre y su rol", () => {
-            expect(textoSesion.textContent).to.equal("Ana Lopez · Paciente");
-        });
-        it("empieza en el Inicio con la tarjeta de su historial", () => {
-            expect(titulo()).to.equal("Bienvenido, Ana Lopez");
-            expect([...zona.querySelectorAll("galeno-tarjeta-simple")].map(t => t.datos.titulo)).to.deep.equal(["Mi historial"]);
-        });
-        it("no puede entrar a las consultas del personal ni a administracion", () => {
-            ["consulta", "persona", "rol"].forEach(p => { app.irA(p); expect(titulo(), p).to.equal("Bienvenido, Ana Lopez"); });
-        });
-        it("puede abrir su historial desde el menu", async () => {
-            menu.shadowRoot.querySelectorAll("button")[1].click();
-            await esperar();
-            expect(titulo()).to.equal("Mi historial médico");
+        it("las pantallas que no son de la rubrica no existen", async () => {
+            await arrancar();
+            ["solicitar", "admision", "registrar", "cierre", "sala", "enfermeria", "atencion", "historial", "inicio"].forEach(p =>
+                expect(app.pantallas[p], p).to.equal(undefined));
         });
     });
 
-    describe("medico", () => {
-        beforeEach(() => Sesion.iniciar({ nombre: "Dr House", rol: "Medico", clinica: "Central", idClinica: "c1" }));
-        it("el menu tiene Inicio, Atencion, Consultas y Cerrar sesion", () => {
-            expect(opciones()).to.deep.equal(["Inicio", "Atención", "Consultas", "Cerrar sesión"]);
+    describe("empleado", () => {
+        beforeEach(() => Sesion.iniciar(empleado));
+        it("empieza en el Dashboard", async () => {
+            await arrancar();
+            expect(titulo()).to.equal("Dashboard");
+            expect(cont.querySelector("#sesion").textContent).to.equal("Ana Mejía");
         });
-        it("el encabezado muestra nombre, rol y clinica", () => {
-            expect(textoSesion.textContent).to.equal("Dr House · Medico · Central");
+        it("el menu: Buscar citas, Dashboard y Cerrar sesión (la consulta se abre desde una card)", async () => {
+            await arrancar();
+            expect(menu()).to.deep.equal(["Buscar citas", "Dashboard", "Cerrar sesión"]);
         });
-        it("el Inicio tiene una tarjeta por cada pantalla suya", () => {
-            expect([...zona.querySelectorAll("galeno-tarjeta-simple")].map(t => t.datos.titulo)).to.deep.equal(["Atención", "Consultas"]);
+        it("no puede ir a Login", async () => {
+            await arrancar(); app.irA("login");
+            expect(titulo()).to.equal("Dashboard");
         });
-        it("no puede entrar a Cierre ni al historial de paciente", () => {
-            ["cierre", "historial"].forEach(p => { app.irA(p); expect(titulo(), p).to.equal("Bienvenido, Dr House"); });
+        it("#/consulta/<id> abre la consulta y la URL guarda el id", async () => {
+            await arrancar(); app.irA("consulta", "k-hoy"); await Ayuda.esperar(15);
+            expect(titulo()).to.equal("Consulta");
+            expect(window.location.hash).to.equal("#/consulta/k-hoy");
+            expect(app.menu.activo).to.equal("dashboard");
         });
-        it("puede abrir Atencion y Consultas desde el menu", async () => {
-            menu.shadowRoot.querySelectorAll("button")[1].click(); await esperar();
-            expect(titulo()).to.equal("Atención de consultas");
-            menu.shadowRoot.querySelectorAll("button")[2].click(); await esperar();
-            expect(titulo()).to.equal("Consultas");
+        it("consulta sin id regresa al Dashboard", async () => {
+            await arrancar(); app.irA("consulta");
+            expect(titulo()).to.equal("Dashboard");
         });
-    });
-
-    describe("recepcion", () => {
-        beforeEach(() => Sesion.iniciar({ nombre: "Laura", rol: "Recepcionista", clinica: "Central", idClinica: "c1" }));
-        it("el menu tiene Inicio, Registrar paciente, Registrar consulta, Sala de espera, Cierre de consulta y Cerrar sesion", () => {
-            expect(opciones()).to.deep.equal(["Inicio", "Registrar paciente", "Registrar consulta", "Sala de espera", "Cierre de consulta", "Cerrar sesión"]);
+        it("recargar con #/consulta/<id> respeta la direccion", async () => {
+            window.location.hash = "/consulta/k-hoy"; await arrancar(); await Ayuda.esperar(15);
+            expect(titulo()).to.equal("Consulta");
         });
-        it("puede abrir sus cuatro pantallas desde el menu", async () => {
-            const abrir = async i => { menu.shadowRoot.querySelectorAll("button")[i].click(); await esperar(); };
-            await abrir(1); expect(titulo()).to.equal("Registrar paciente");
-            await abrir(2); expect(titulo()).to.equal("Registrar consulta");
-            await abrir(3); expect(titulo()).to.equal("Sala de espera");
-            await abrir(4); expect(titulo()).to.equal("Cierre de consulta");
+        it("el boton Atrás (hashchange) cambia de pantalla", async () => {
+            await arrancar();
+            window.location.hash = "/citas"; await Ayuda.esperar(20);
+            expect(titulo()).to.equal("Buscar citas");
         });
-        it("no usa la pantalla publica Solicitar consulta (para eso tiene Registrar consulta)", () => {
-            app.irA("solicitar");
-            expect(titulo()).to.equal("Bienvenido, Laura");
+        it("elegir clinica y rol actualiza el encabezado", async () => {
+            await arrancar();
+            Sesion.elegirContexto(empleado.contextos[0]);
+            expect(cont.querySelector("#sesion").textContent).to.equal("Ana Mejía · Médico · Santa Ana");
         });
-        it("no puede entrar a Atencion", () => {
-            app.irA("atencion");
-            expect(titulo()).to.equal("Bienvenido, Laura");
-        });
-    });
-
-    describe("enfermero", () => {
-        beforeEach(() => Sesion.iniciar({ nombre: "Marta", rol: "Enfermera", clinica: "Central", idClinica: "c1" }));
-        it("el menu tiene Inicio, Enfermeria y Cerrar sesion", () => {
-            expect(opciones()).to.deep.equal(["Inicio", "Enfermería", "Cerrar sesión"]);
-        });
-        it("abre Enfermeria desde el menu y no puede entrar a Atencion", async () => {
-            menu.shadowRoot.querySelectorAll("button")[1].click(); await esperar();
-            expect(titulo()).to.equal("Enfermería: pasos de las consultas");
-            app.irA("atencion");
-            expect(titulo()).to.equal("Bienvenido, Marta");
+        it("Cerrar sesión vuelve a Buscar citas", async () => {
+            await arrancar();
+            app.menu.dispatchEvent(new CustomEvent("galeno-navegar", { detail: { destino: "salir" } }));
+            await Ayuda.esperar();
+            expect(titulo()).to.equal("Buscar citas");
+            expect(menu()).to.deep.equal(["Buscar citas", "Iniciar sesión"]);
         });
     });
 
-    describe("personal (administrador)", () => {
-        beforeEach(() => Sesion.iniciar({ nombre: "Admin", rol: "Administrador", clinica: "Central", idClinica: "c1" }));
-        it("el menu tiene Consultas y todas las pantallas de administracion", () => {
-            expect(opciones()).to.deep.equal(MENU_ADMIN);
-        });
-        it("el Inicio tiene una tarjeta por cada pantalla (Consultas + Solicitar + 8 de administracion)", () => {
-            expect(zona.querySelectorAll("galeno-tarjeta-simple")).to.have.length(10);
-        });
-        it("no puede entrar a Atencion, Cierre ni al historial de paciente", () => {
-            ["atencion", "cierre", "historial"].forEach(p => { app.irA(p); expect(titulo(), p).to.equal("Bienvenido, Admin"); });
-        });
-    });
-
-    describe("cerrar sesion", () => {
-        it("Cerrar sesion borra la sesion y vuelve al login", () => {
-            Sesion.iniciar({ nombre: "Dr House", rol: "Medico", clinica: "Central", idClinica: "c1" });
-            const salir = [...menu.shadowRoot.querySelectorAll("button")].find(b => b.textContent === "Cerrar sesión");
-            salir.click();
-            expect(Sesion.obtener()).to.equal(null);
-            expect(opciones()).to.deep.equal(["Iniciar sesión", "Solicitar consulta"]);
-            expect(titulo()).to.equal("Iniciar sesión");
-            expect(textoSesion.textContent).to.equal("Sin sesión iniciada");
-        });
-    });
-
-    it("al recargar la pagina con una sesion abierta entra directo al Inicio", () => {
-        Sesion.iniciar({ nombre: "Dr House", rol: "Medico", clinica: "Central", idClinica: "c1" });
-        app.destruir();
-        zona.replaceChildren();
-        app = new AppModel();
-        app.iniciar();
-        expect(titulo()).to.equal("Bienvenido, Dr House");
+    it("iniciar sesion desde el login lleva al Dashboard", async () => {
+        await arrancar(); app.irA("login"); await Ayuda.esperar(15);
+        const z = cont.querySelector("#pantalla");
+        Ayuda.tipo(z.querySelector("#tipo"), "DUI"); Ayuda.escribir(z.querySelector("#numero"), "01234567-8");
+        z.querySelector("#formulario").dispatchEvent(new Event("submit", { cancelable: true }));
+        await Ayuda.esperar(20);
+        expect(titulo()).to.equal("Dashboard");
     });
 });
 }

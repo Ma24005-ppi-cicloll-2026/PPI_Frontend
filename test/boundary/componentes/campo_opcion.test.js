@@ -1,4 +1,4 @@
-// Pruebas de <galeno-campo>, <galeno-opcion>, y de los cambios a <galeno-tabla> y <galeno-tarjeta-consulta>.
+// Pruebas de <galeno-campo> y <galeno-opcion>.
 {
 const { expect } = chai;
 
@@ -90,35 +90,6 @@ describe("<galeno-opcion>", () => {
         [["Cardiología", "corazon"], ["Odontología", "diente"], ["Oftalmología", "ojo"], ["Pediatría", "bebe"],
          ["Emergencias", "cruz"], ["Otra cosa", "general"], [null, "general"]].forEach(([texto, esperado]) =>
             it(`"${texto}" usa el icono ${esperado}`, () => expect(GalenoOpcion.iconoPara(texto)).to.equal(esperado)));
-    });
-});
-
-describe("<galeno-tabla> con acciones propias", () => {
-    it("dibuja los botones indicados en vez de Editar/Eliminar y emite su evento con la fila", () => {
-        const t = document.createElement("galeno-tabla"); document.body.append(t);
-        t.columnas = [{ campo: "n", titulo: "N" }];
-        t.acciones = [{ texto: "Cerrar", clase: "pr", evento: "galeno-cerrar" }];
-        t.filas = [{ n: "uno" }];
-        let fila = null; t.addEventListener("galeno-cerrar", e => { fila = e.detail.fila; });
-        expect(Ayuda.textos(t, "td button")).to.deep.equal(["Cerrar"]);
-        t.shadowRoot.querySelector("td button").click();
-        expect(fila).to.deep.equal({ n: "uno" });
-        t.remove();
-    });
-});
-
-describe("<galeno-tarjeta-consulta> con paciente", () => {
-    it("con-paciente muestra el nombre del paciente", () => {
-        const t = document.createElement("galeno-tarjeta-consulta"); t.setAttribute("con-paciente", ""); document.body.append(t);
-        t.consulta = { idConsulta: "k", idPersonaRol: { idPersona: { nombres: "Ana", apellidos: "López" } } };
-        expect(t.shadowRoot.textContent).to.contain("Paciente: Ana López");
-        t.remove();
-    });
-    it("sin el atributo no lo muestra", () => {
-        const t = document.createElement("galeno-tarjeta-consulta"); document.body.append(t);
-        t.consulta = { idConsulta: "k", idPersonaRol: { idPersona: { nombres: "Ana", apellidos: "López" } } };
-        expect(t.shadowRoot.textContent).to.not.contain("Paciente:");
-        t.remove();
     });
 });
 }
