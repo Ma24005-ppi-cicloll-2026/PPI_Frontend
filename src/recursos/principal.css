@@ -1,16 +1,57 @@
-/* Estilos base de GalenoSV (hechos a mano, sin librerias).
-   Se diseña primero para celular y se amplia con @media para pantallas grandes. */
+/* ============================================================
+   GalenoSV · estilos base y tokens (hechos a mano, sin librerias)
+   Concepto "consultorio sereno": calido, limpio y profesional.
+   Primero celular; con @media se amplía a pantallas grandes.
+   ============================================================ */
 
 :root{
-    --oscuro:#1D3461;
-    --mate:#FFFFFF;
-    --sombra:#DCEBF7;
-    --claro:#FFFFFF;
-    --azul:#629DCB;
-    --texto:#14233F;          /* contraste alto sobre blanco */
+    /* ---- paleta ---- */
+    --tinta:#1D3461;            /* azul marino: titulos, marca, iconos */
+    --tinta-suave:#44577B;      /* texto secundario sobre blanco */
+    --texto:#26354E;            /* texto principal, contraste alto */
+    --fondo:#F5F8F8;            /* crema azulado muy claro */
+    --superficie:#FFFFFF;       /* tarjetas y paneles */
+    --borde:#E3EAEA;            /* borde sutil de superficies */
+    --borde-fuerte:#9FB0B8;     /* controles de formulario */
+    --inactivo:#8CA0A8;
+
+    --primario:#2F6F73;         /* verde azulado apagado */
+    --primario-oscuro:#25585B;
+    --primario-suave:#E9F1EF;
+    --sobre-primario:#FFFFFF;
+
+    --secundario:#CFE3DD;       /* salvia suave */
+    --secundario-borde:#AECFC6;
+
+    --acento:#C9775B;           /* terracota apagado: solo la accion principal */
+    --acento-oscuro:#B05F44;
+    --sobre-acento:#FFFFFF;
+
+    --exito:#3E7C59;      --exito-fondo:#E9F3ED;
+    --aviso:#96662C;      --aviso-fondo:#F7F0E3;
+    --error:#A8402F;      --error-fondo:#F9EAE6;
+    --info-fondo:#EDF3F2;
+
+    /* textos y estados sobre fondos oscuros (menu lateral, panel de marca) */
+    --sobre-tinta:#F2F6F9;          /* texto claro sobre azul marino (contraste > 12:1) */
+    --sobre-tinta-suave:#C7D3E1;    /* texto secundario sobre azul marino (contraste > 7:1) */
+    --tinta-hover:#254370;          /* azul marino apenas mas claro, para hover del menu */
+
+    --foco:#2F6F73;             /* anillo de foco visible */
+
+    /* ---- elevacion y forma ---- */
+    --sombra-1:0 1px 2px rgba(29,52,97,.05), 0 2px 10px rgba(29,52,97,.05);
+    --sombra-2:0 6px 18px rgba(29,52,97,.10);
+    --radio-tarjeta:.875rem;    /* 14px: tarjetas (12–16px) */
+    --radio-control:.625rem;    /* 10px: botones y campos */
+
+    /* ---- ritmo ---- */
     --espacio:1rem;
-    --radio:.5rem;
+    --velocidad:180ms;          /* transiciones 150–200 ms */
     --fuente:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* ---- escala tipografica 12/14/16/20/28 ---- */
+    --fs-0:.75rem;  --fs-1:.875rem;  --fs-2:1rem;  --fs-3:1.25rem;  --fs-4:1.75rem;
 }
 
 *, *::before, *::after { box-sizing:border-box; }
@@ -20,13 +61,20 @@ html { font-size:100%; }
 body{
     margin:0;
     font-family:var(--fuente);
-    font-size:1rem;
+    font-size:var(--fs-2);
     line-height:1.5;
     color:var(--texto);
-    background:var(--mate);
+    background-color:var(--fondo);
+    /* decoracion propia: manchas organicas apenas visibles, sin imagenes externas */
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' aria-hidden='true'%3E%3Cpath d='M760 120c90 60 110 200 30 280S590 500 530 400s30-220 130-260 120-60 100-20z' fill='%232F6F73' opacity='.045'/%3E%3C/svg%3E") top right / min(46rem, 60vw) auto no-repeat,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' aria-hidden='true'%3E%3Cpath d='M120 700c-70-80-60-210 40-260s230-10 280 80-10 210-130 240-140 10-190-60z' fill='%23C9775B' opacity='.04'/%3E%3C/svg%3E") bottom left / min(40rem, 55vw) auto no-repeat;
+    background-attachment:fixed;
 }
 
-h1, h2, h3 { line-height:1.25; color:var(--oscuro); }
+h1, h2, h3 { line-height:1.25; color:var(--tinta); }
+h2 { font-size:var(--fs-4); margin:.2rem 0 .3rem; }
+h3 { font-size:var(--fs-3); }
 
 /* ---- estructura: celular = una columna (cabecera, menu, contenido, pie) ---- */
 .app{
@@ -40,47 +88,58 @@ h1, h2, h3 { line-height:1.25; color:var(--oscuro); }
 
 header{
     grid-area:cabecera;
-    background:var(--claro);
-    border-bottom:3px solid var(--sombra);
-    color:var(--oscuro);
+    background:var(--superficie);
+    border-bottom:1px solid var(--borde);
+    color:var(--tinta);
 }
 
 nav{
     grid-area:menu;
-    background:var(--sombra);
+    background:var(--tinta);       /* el menu es la unica franja oscura de la pagina */
 }
 
 main{
     grid-area:centro;
-    background:var(--mate);
+    background:transparent;
     min-width:0;               /* deja que tablas anchas hagan scroll en vez de ensanchar la pagina */
 }
 
 footer{
     grid-area:pie;
-    background:var(--oscuro);
-    color:var(--claro);
-    padding:var(--espacio);
-    font-size:.9rem;
+    background:var(--superficie);
+    border-top:1px solid var(--borde);
+    color:var(--tinta-suave);
+    padding:.8rem var(--espacio);
+    font-size:var(--fs-1);
+    text-align:center;
 }
 
 /* ---- pantallas medianas y grandes: menu a la izquierda ---- */
 @media screen and (min-width: 48em){
     .app{
-        grid-template-columns:minmax(12rem, 16rem) minmax(0, 1fr);
+        grid-template-columns:minmax(13rem, 16rem) minmax(0, 1fr);
         grid-template-rows:auto 1fr auto;
         grid-template-areas:"menu cabecera" "menu centro" "pie pie";
     }
+    /* la barra lateral se estira de arriba abajo para que galeno-menu pueda
+       llevar la marca arriba y "Cerrar sesion" al fondo */
+    nav{ display:flex; flex-direction:column; }
+    nav > galeno-menu{ flex:1 1 auto; min-height:0; }
 }
 
 /* ---- accesibilidad ---- */
+/* visualmente oculto pero disponible para lectores de pantalla (marca h1, titulos de pagina) */
+.sr{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip-path:inset(50%); white-space:nowrap;
+}
 .saltar{
     position:absolute; left:.5rem; top:-4rem; z-index:100;
-    background:var(--oscuro); color:#fff; padding:.6rem 1rem; border-radius:var(--radio);
+    background:var(--tinta); color:#fff; padding:.6rem 1rem; border-radius:var(--radio-control);
 }
 .saltar:focus{ top:.5rem; }
 
-:focus-visible{ outline:3px solid var(--azul); outline-offset:2px; }
+:focus-visible{ outline:3px solid var(--foco); outline-offset:2px; }
 main:focus{ outline:none; }
 
 @media (prefers-reduced-motion: reduce){
@@ -91,4 +150,5 @@ main:focus{ outline:none; }
 @media print{
     nav, header, footer, galeno-conexion, .saltar{ display:none !important; }
     .app{ display:block; }
+    body{ background:none; }
 }

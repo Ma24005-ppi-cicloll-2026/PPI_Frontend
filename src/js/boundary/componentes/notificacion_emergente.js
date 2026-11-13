@@ -13,12 +13,14 @@ class GalenoNotificacionEmergente extends HTMLElement {
         this.shadowRoot.innerHTML = `
           <style>
             div { position:fixed; top:1rem; right:1rem; z-index:1000; max-width:22rem;
-                  padding:.8rem 1rem; border-radius:.5rem; color:#fff; font-family:inherit;
-                  box-shadow:0 2px 8px rgba(0,0,0,.3); }
+                  padding:.8rem 1rem .8rem 1.1rem; border-radius:var(--radio-control, .625rem); color:#fff; font-family:inherit;
+                  font-size:var(--fs-1, .875rem); font-weight:600;
+                  border-left:5px solid rgba(255,255,255,.55);
+                  box-shadow:var(--sombra-2, 0 6px 18px rgba(29,52,97,.10)); }
             div[hidden] { display:none; }
-            .exito { background:#2e7d32; }
-            .error { background:#b3261e; }
-            .info  { background:#1D3461; }
+            .exito { background:var(--exito, #3E7C59); }
+            .error { background:var(--error, #A8402F); }
+            .info  { background:var(--tinta, #1D3461); }
           </style>
           <div id="caja" role="status" aria-live="polite" hidden></div>`;
     }

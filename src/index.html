@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GalenoSV</title>
     <meta name="description" content="GalenoSV: sistema de gestión médica">
-    <meta name="theme-color" content="#1D3461">
+    <meta name="theme-color" content="#F5F8F8">
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/png" href="./recursos/iconos/icon-192.png">
     <link rel="apple-touch-icon" href="./recursos/iconos/icon-192.png">
@@ -17,7 +17,15 @@
     <galeno-conexion></galeno-conexion>
     <div class="app">
         <header>
-            <h1>GalenoSV</h1>
+            <!-- la marca vive para lectores de pantalla; a la vista: logo + titulo de la seccion actual -->
+            <h1 class="sr">GalenoSV</h1>
+            <p id="titulo-seccion">
+                <svg class="logo" viewBox="0 0 32 32" width="22" height="22" aria-hidden="true" focusable="false">
+                    <rect x="2.5" y="2.5" width="27" height="27" rx="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                    <path d="M16 9.5v13M9.5 16h13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                <span id="titulo-seccion-texto">Buscar citas</span>
+            </p>
             <span id="sesion" aria-live="polite"></span>
             <galeno-instalar id="instalar"></galeno-instalar>
         </header>
@@ -69,6 +77,7 @@
     <script src="js/boundary/componentes/autocomplete.js"></script>
     <script src="js/boundary/componentes/buscador_tipo_documentos.js"></script>
     <script src="js/boundary/componentes/selector.js"></script>
+    <script src="js/boundary/componentes/segmentado.js"></script>
     <script src="js/boundary/componentes/estado_conexion.js"></script>
     <script src="js/boundary/componentes/estado_vista.js"></script>
     <script src="js/boundary/componentes/instalar_app.js"></script>

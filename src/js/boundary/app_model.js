@@ -8,6 +8,7 @@ class AppModel {
         this.menu = document.querySelector("#menu");
         this.zona = document.querySelector("#pantalla");
         this.textoSesion = document.querySelector("#sesion");
+        this.tituloSeccion = document.querySelector("#titulo-seccion-texto");
         // Para agregar una pantalla: una entrada aqui (y su regla en control/sesion.js).
         // `enMenu: false` = se llega desde otra pantalla (la consulta se abre desde el Dashboard).
         this.pantallas = {
@@ -54,17 +55,45 @@ class AppModel {
     permitidas() { return Object.keys(this.pantallas).filter(d => Sesion.puede(d)); }
 
     construirMenu() {
-        const items = this.permitidas().filter(d => this.pantallas[d].enMenu !== false)
+        // El menu solo lleva pantallas: "Cerrar sesion" vive en la tarjeta de usuario de la cabecera.
+        return this.permitidas().filter(d => this.pantallas[d].enMenu !== false)
             .map(d => ({ texto: this.pantallas[d].texto, destino: d }));
-        if (Sesion.obtener()) items.push({ texto: "Cerrar sesión", destino: "salir" });
-        return items;
     }
 
+    static escapar(v) {
+        return String(v ?? "").replace(/[&<>"']/g,
+            c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    // Tarjeta de usuario compacta alineada a la derecha: avatar con iniciales, nombre, rol · clinica
+    // y debajo el boton-enlace "Cerrar sesion". Sin sesion: "Sin sesión iniciada" + "Iniciar sesión".
+    // Conserva #sesion y su aria-live: todo el texto vive dentro del mismo span.
     pintarSesion() {
         const s = Sesion.obtener();
-        this.textoSesion.textContent = s
-            ? [s.nombre, s.rol, s.clinica].filter(Boolean).join(" · ")
-            : "Sin sesión iniciada";
+        const t = this.textoSesion;
+        if (s) {
+            const detalle = [s.rol, s.clinica].filter(Boolean).join(" · ");
+            const nombre = AppModel.escapar(s.nombre || "");
+            t.innerHTML = `
+                <span class="avatar" aria-hidden="true">${AppModel.escapar(GalenoTarjetaAgenda.iniciales(s.nombre || ""))}</span>
+                <span class="datos">
+                    <span class="nombre" title="${nombre}">${nombre}</span>
+                    ${detalle ? `<span class="detalle" title="${AppModel.escapar(detalle)}">${AppModel.escapar(detalle)}</span>` : ""}
+                    <button class="salir" type="button">
+                        ${GalenoMenu.ICONOS.salir}<span>Cerrar sesión</span>
+                    </button>
+                </span>`;
+            t.querySelector("button.salir").addEventListener("click", () => Sesion.cerrar());
+        } else {
+            t.innerHTML = `
+                <span class="avatar" aria-hidden="true">${GalenoMenu.ICONOS.login}</span>
+                <span class="datos">
+                    <span class="nombre">Sin sesión iniciada</span>
+                    <button class="entrar" type="button"><span>Iniciar sesión</span></button>
+                </span>`;
+            t.querySelector("button.entrar").addEventListener("click", () => this.irA("login"));
+        }
+        t.classList.toggle("con-sesion", Boolean(s));   // resalta la tarjeta solo con sesion
     }
 
     // al arrancar y cada vez que alguien inicia o cierra sesion: sin sesion -> Buscar citas; con sesion -> Dashboard
@@ -85,6 +114,8 @@ class AppModel {
         this.zona.replaceChildren();          // limpiar la pantalla anterior
         this.menu.activo = destino === "consulta" ? "dashboard" : destino;
         document.title = `${this.pantallas[destino].texto} · GalenoSV`;
+        // la cabecera compacta muestra a la izquierda el titulo de la seccion actual
+        if (this.tituloSeccion) this.tituloSeccion.textContent = this.pantallas[destino].texto;
         this.pantallas[destino].crear(this.zona, this.param);
     }
 }

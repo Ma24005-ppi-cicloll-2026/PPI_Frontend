@@ -20,27 +20,47 @@ class SeguimientoModel {
         this.sesion = Sesion.obtener();
         this.contenedor.innerHTML = `
             <section class="consulta" aria-labelledby="titulo-consulta">
-                <h2 id="titulo-consulta">Consulta</h2>
+                <header class="cabecera-consulta">
+                    <h2 id="titulo-consulta">Consulta</h2>
+                    <button id="volver" type="button" class="enlace">Volver al dashboard</button>
+                </header>
                 <galeno-estado-vista id="estado"></galeno-estado-vista>
                 <div id="cuerpo" hidden>
-                    <p id="paciente"></p>
-                    <galeno-selector id="procedimiento" label="Procedimiento" hidden></galeno-selector>
-                    <galeno-indicador-pasos id="pasos"></galeno-indicador-pasos>
-                    <h3 id="paso"></h3>
-                    <galeno-campo id="notas" label="Notas del paso" type="textarea"></galeno-campo>
-                    <galeno-lista-examenes id="examenes"></galeno-lista-examenes>
-                    <div id="mensaje" role="alert" class="mensaje-error"></div>
-                    <div class="acciones">
-                        <button id="anterior" type="button">Anterior</button>
-                        <button id="avanzar" type="button">Guardar y avanzar al siguiente paso</button>
-                        <button id="finalizar" type="button">Finalizar consulta</button>
-                        <button id="volver" type="button" class="enlace">Volver al dashboard</button>
+                    <div class="tarjeta tarjeta-paciente">
+                        <span id="iniciales" class="avatar" aria-hidden="true"></span>
+                        <p id="paciente"></p>
+                    </div>
+                    <div class="consulta-grid">
+                        <div class="columna-procedimiento">
+                            <galeno-selector id="procedimiento" label="Procedimiento" hidden></galeno-selector>
+                            <galeno-indicador-pasos id="pasos"></galeno-indicador-pasos>
+                            <div class="bloque-paso" id="bloque-paso">
+                                <h3 id="paso"></h3>
+                                <p id="lectura" class="badge-lectura" hidden>Solo lectura: este paso ya quedó registrado</p>
+                                <galeno-campo id="notas" label="Notas del paso" type="textarea"></galeno-campo>
+                                <div id="mensaje" role="alert" class="mensaje-error"></div>
+                            </div>
+                        </div>
+                        <div class="columna-examenes">
+                            <galeno-lista-examenes id="examenes"></galeno-lista-examenes>
+                        </div>
+                    </div>
+                    <div class="barra-acciones">
+                        <div class="acciones">
+                            <button id="anterior" type="button" class="secundario">Anterior</button>
+                            <button id="avanzar" type="button">Guardar y avanzar al siguiente paso</button>
+                            <button id="finalizar" type="button" class="acento">Finalizar consulta</button>
+                        </div>
+                        <p class="nota-finalizar" id="nota-finalizar" hidden>Al finalizar se cierra la consulta y sus pasos quedan en solo lectura.</p>
                     </div>
                 </div>
             </section>`;
         const $ = id => this.contenedor.querySelector("#" + id);
-        ["estado", "cuerpo", "paciente", "procedimiento", "pasos", "paso", "notas", "examenes", "mensaje", "anterior", "avanzar", "finalizar", "volver"]
+        ["estado", "cuerpo", "iniciales", "paciente", "procedimiento", "pasos", "paso", "lectura",
+         "notas", "examenes", "mensaje", "anterior", "avanzar", "finalizar", "volver"]
             .forEach(id => this[id] = $(id));
+        this.bloquePaso = $("bloque-paso");
+        this.notaFinalizar = $("nota-finalizar");
         this.aviso = document.querySelector("#aviso");
         this.procedimiento.formatoTexto = o => o.nombre;
         this.estado.addEventListener("galeno-reintentar", () => this.iniciar());
@@ -80,6 +100,7 @@ class SeguimientoModel {
         if (this.procs.length) this.procedimiento.seleccionar(this.procs[0]);
         const p = Expediente.paciente(this.datos, this.consulta);
         this.paciente.textContent = `${p.nombre}${p.edad != null ? " · " + p.edad + " años" : ""}${p.documento ? " · " + p.documento : ""}`;
+        this.iniciales.textContent = GalenoTarjetaAgenda.iniciales(p.nombre);
         if (!this.procs.length) { this.mensaje.textContent = "Esta consulta no tiene procedimientos."; this.pintar(); return true; }
         this.indiceProc = Math.min(this.indiceProc, this.procs.length - 1);
         this.vista = this.actual();
@@ -102,6 +123,9 @@ class SeguimientoModel {
         this.pasos.vista = this.vista;
         this.paso.textContent = `Paso ${this.vista + 1} de ${n}: ${e.definidos[this.vista].nombre}`;
         const editable = this.editable();
+        // el paso ya registrado se ve distinto: sin edicion y con su insignia de solo lectura
+        this.lectura.hidden = editable;
+        this.bloquePaso.classList.toggle("solo-lectura", !editable);
         this.notas.value = NotasPaso.de(this.proc.cp.observaciones, this.vista + 1);
         this.notas.deshabilitado = !editable;
         this.pintarExamenes(editable);
@@ -109,6 +133,7 @@ class SeguimientoModel {
         this.anterior.hidden = this.vista === 0;
         this.avanzar.hidden = !editable || ultimo;
         this.finalizar.hidden = !(editable && ultimo);
+        this.notaFinalizar.hidden = this.finalizar.hidden;   // la nota de confirmacion acompana al boton
     }
 
     // examenes disponibles para el paso definido que se esta viendo

@@ -50,9 +50,9 @@ class GalenoConexion extends HTMLElement {
         this.shadowRoot.innerHTML = `
           <style>
             :host { display:block; }
-            div { padding:.5rem 1rem; text-align:center; font-size:.9rem; font-weight:600; }
-            .sin-conexion { background:#7A1F1F; color:#fff; }
-            .restablecida { background:#1E6B3A; color:#fff; }
+            div { padding:.45rem 1rem; text-align:center; font-size:var(--fs-1, .875rem); font-weight:600; }
+            .sin-conexion { background:var(--error, #A8402F); color:#fff; }
+            .restablecida { background:var(--exito, #3E7C59); color:#fff; }
             .oculto { display:none; }
           </style>
           <div role="status" aria-live="polite" class="${this._estado}">${textos[this._estado] ?? ""}</div>`;

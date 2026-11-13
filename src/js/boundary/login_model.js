@@ -18,17 +18,44 @@ class LoginModel {
     iniciar() {
         this.contenedor.innerHTML = `
             <section class="login" aria-labelledby="titulo-login">
-                <h2 id="titulo-login">Iniciar sesión</h2>
-                <p>Portal de empleados de GalenoSV</p>
-                <form id="formulario" novalidate>
-                    <galeno-buscador-tipo-documentos id="tipo" label="Tipo de documento"></galeno-buscador-tipo-documentos>
-                    <galeno-campo id="numero" label="Número de documento" autocomplete="off"
-                                  placeholder="Elija primero el tipo de documento"
-                                  ayuda="Escríbalo con el formato del tipo de documento"></galeno-campo>
-                    <div id="mensaje" role="alert" class="mensaje-error"></div>
-                    <button id="ingresar" type="submit">Iniciar sesión</button>
-                </form>
-                <p class="enlace-aparte">¿Busca sus citas? <button id="citas" type="button" class="enlace">Ir a Buscar citas</button></p>
+                <div class="login-marco">
+                    <div class="panel-marca">
+                        <svg class="forma" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
+                            <path d="M310 60c60 40 80 130 20 190s-160 60-210 0-30-160 50-200 110-30 140 10z"
+                                  fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3"/>
+                            <path d="M260 170h-60v-60h-40v60h-60v40h60v60h40v-60h60z" fill="rgba(255,255,255,.10)"/>
+                        </svg>
+                        <p class="marca-nombre">
+                            <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" focusable="false">
+                                <rect x="2.5" y="2.5" width="27" height="27" rx="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                                <path d="M16 9.5v13M9.5 16h13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            </svg>
+                            GalenoSV
+                        </p>
+                        <p class="marca-lema">Atención serena, registro claro.</p>
+                        <p class="marca-nota">Portal de empleados: sus consultas, paso a paso.</p>
+                    </div>
+                    <div class="tarjeta login-tarjeta">
+                        <div class="login-cabecera">
+                            <svg class="logo" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true" focusable="false">
+                                <rect x="2.5" y="2.5" width="27" height="27" rx="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                                <path d="M16 9.5v13M9.5 16h13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            </svg>
+                            <h2 id="titulo-login">Iniciar sesión</h2>
+                        </div>
+                        <p class="login-sub">Portal de empleados</p>
+                        <form id="formulario" novalidate>
+                            <galeno-buscador-tipo-documentos id="tipo" label="Tipo de documento"
+                                                            placeholder="Elija el tipo de documento"></galeno-buscador-tipo-documentos>
+                            <galeno-campo id="numero" label="Número de documento" autocomplete="off"
+                                          placeholder="Elija primero el tipo de documento"
+                                          ayuda="Elija primero el tipo de documento"></galeno-campo>
+                            <div id="mensaje" role="alert" class="mensaje-error"></div>
+                            <button id="ingresar" type="submit">Iniciar sesión</button>
+                        </form>
+                        <p class="enlace-aparte">¿Busca sus citas? <button id="citas" type="button" class="enlace">Ir a Buscar citas</button></p>
+                    </div>
+                </div>
             </section>`;
         const $ = id => this.contenedor.querySelector("#" + id);
         this.aviso = document.querySelector("#aviso");
@@ -44,6 +71,9 @@ class LoginModel {
             const tipo = e.detail.valor;
             this.campoNumero.deshabilitado = !tipo;
             this.campoNumero.entrada.placeholder = tipo?.indicaciones || (tipo ? "Escriba su número de documento" : "Elija primero el tipo de documento");
+            this.campoNumero.ayuda = tipo?.indicaciones
+                ? "Formato: " + tipo.indicaciones
+                : "Elija primero el tipo de documento";
         });
         this.datos = this.cargarDatos();
         return this.datos;

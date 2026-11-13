@@ -14,6 +14,7 @@ Consume el API REST de GalenoSV (`http://localhost:9080/GalenoSV-1.0-SNAPSHOT/re
 
 ### Convenciones (el backend no tiene campos para esto y no se tocó el esquema)
 - El paso realizado N de un procedimiento corresponde al paso definido N (ordenados por `procedimiento_paso_secuencia`). Sin pasos definidos se usa un paso único "Atención".
+- `tipoSecuencia` se interpreta sin distinguir mayúsculas ni tildes: `AFTER`/`Después`/`Posterior` significa que el paso nuevo va **después** de la referencia (la referencia va antes; así lo crea el backend en `ProcedimientoPasoModels.crearSecuencia`), `BEFORE` que va antes, `anterior`/`previo` que la referencia va antes. El **primer paso** de un procedimiento es el que no depende de otro (ninguna secuencia lo tiene como paso), igual que `calcularPrimerPaso` del backend; los pasos que la secuencia no ordena quedan al final en el orden en que llegaron.
 - Las notas de cada paso se guardan en `consulta_procedimiento.observaciones`, una línea por paso: `Paso 2 (Consulta médica) · Autor: texto`.
 - Un examen asignado crea una `orden_examen` con el nombre del examen en `indicaciones`.
 - Estados de un paso: `En proceso` / `Completado`.

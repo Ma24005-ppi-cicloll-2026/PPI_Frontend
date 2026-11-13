@@ -1,52 +1,390 @@
-/* Ajustes para las pantallas con componentes. No reemplaza a principal.css. */
+/* Ajustes para las pantallas con componentes. No reemplaza a principal.css;
+   todo color sale de los tokens de :root en principal.css. */
+
+/* ---------------- cabecera (franja compacta de ~4rem) ----------------
+   Izquierda: marca (sr) + titulo de la seccion actual; derecha: tarjeta de usuario. */
 header{
     display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
-    gap:.5rem 1rem; padding:.6rem 1rem;
+    gap:.5rem 1rem; padding:.5rem .8rem;
 }
-header h1{ margin:0; font-size:1.3rem; }
-#sesion{ font-size:.9rem; flex:1 1 12rem; text-align:right; }
-nav{ overflow:auto; }
+header .logo{ color:var(--tinta); flex:0 0 auto; }
+/* titulo de la seccion actual (lo llena app_model.irA con el texto de la pantalla) */
+#titulo-seccion{
+    display:flex; align-items:center; gap:.55rem; margin:0; min-width:0;
+    font-size:var(--fs-2); font-weight:700; color:var(--tinta);
+}
+#titulo-seccion-texto{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* tarjeta de usuario: avatar con iniciales, nombre, rol · clinica y debajo el boton-enlace */
+#sesion{
+    display:flex; align-items:flex-start; gap:.55rem; margin-left:auto;
+    min-width:0; max-width:20rem;
+    font-size:var(--fs-1); color:var(--tinta-suave);
+    background:var(--superficie); border:1px solid var(--borde); border-radius:var(--radio-tarjeta);
+    box-shadow:var(--sombra-1); padding:.45rem .6rem;
+}
+#sesion .avatar{
+    width:2.1rem; height:2.1rem; flex:0 0 auto; border-radius:50%;
+    display:grid; place-items:center; overflow:hidden;
+    background:var(--secundario); color:var(--tinta);
+    border:1px solid var(--secundario-borde);
+    font-weight:700; font-size:var(--fs-1); letter-spacing:.02em;
+}
+#sesion .avatar svg{ width:1.2rem; height:1.2rem; }
+#sesion.con-sesion .avatar{ background:var(--primario); color:var(--sobre-primario); border-color:var(--primario); }
+#sesion .datos{ display:flex; flex-direction:column; min-width:0; flex:1 1 auto; }
+#sesion .nombre{
+    font-weight:700; color:var(--tinta);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+#sesion .detalle{
+    color:var(--tinta-suave); font-size:var(--fs-0);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* celular: tarjeta compacta (avatar + nombre + accion); la linea rol·clinica solo en escritorio */
+#sesion .detalle{ display:none; }
+@media screen and (min-width:48em){
+    #sesion .detalle{ display:block; }
+}
+#sesion button{
+    align-self:flex-start; display:inline-flex; align-items:center; gap:.3rem;
+    margin:.1rem 0 0; padding:.1rem 0; border:0; background:none;
+    color:var(--tinta); font:inherit; font-size:var(--fs-0); font-weight:600;
+    text-decoration:underline; text-underline-offset:2px; cursor:pointer; min-height:1.4rem;
+    transition:color var(--velocidad);
+}
+#sesion button svg{ width:1rem; height:1rem; flex:0 0 auto; }
+#sesion button:hover{ color:var(--error); }
+#sesion button:focus-visible{ outline:3px solid var(--foco); outline-offset:2px; }
+/* el fondo del <nav> (azul marino) se define en principal.css;
+   el scroll del menu en celular vive dentro del shadow de galeno-menu */
 
-#pantalla{ overflow:auto; padding:1rem; color:var(--oscuro); }
-#pantalla h2, #pantalla h3{ margin-top:0; }
-#pantalla button{
-    padding:.55rem 1rem; min-height:2.5rem; border:0; border-radius:.4rem; background:var(--oscuro);
-    color:#fff; cursor:pointer; font:inherit; margin-bottom:.8rem;
+/* ---------------- zona de pantallas ---------------- */
+#pantalla{
+    overflow:auto; padding:.8rem; color:var(--texto);
 }
-#pantalla button:hover{ background:#27498A; }
-#pantalla button:disabled{ opacity:.6; cursor:not-allowed; }
-#pantalla button.secundario{ background:#fff; color:var(--oscuro); border:2px solid var(--oscuro); }
-#pantalla button.secundario:hover{ background:var(--sombra); }
-#pantalla .acciones{ display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.8rem; }
+#pantalla > section{ max-width:66rem; margin:0 auto; }
+#pantalla h2, #pantalla h3{ margin-top:0; }
+#pantalla .cabecera-pantalla{ margin-bottom:.8rem; }
+#pantalla .cabecera-pantalla h2{ font-size:clamp(1.25rem, 2.2vw, 1.75rem); }
+#pantalla .cabecera-pantalla p{ margin:.05rem 0 0; color:var(--tinta-suave); font-size:var(--fs-1); }
+
+/* botones: primario (verde azulado), acento (terracota), secundario y enlace */
+#pantalla button{
+    display:inline-flex; align-items:center; justify-content:center; gap:.45rem;
+    padding:.6rem 1.1rem; min-height:2.75rem; border:0; border-radius:var(--radio-control);
+    background:var(--primario); color:var(--sobre-primario);
+    cursor:pointer; font:inherit; font-weight:600;
+    transition:background var(--velocidad), border-color var(--velocidad), color var(--velocidad), box-shadow var(--velocidad);
+    margin-bottom:.8rem;
+}
+#pantalla button svg{ width:1.05rem; height:1.05rem; flex:0 0 auto; }
+#pantalla button:hover{ background:var(--primario-oscuro); }
+#pantalla button:disabled{ opacity:.55; cursor:not-allowed; }
+#pantalla button.secundario{
+    background:var(--superficie); color:var(--tinta); border:1px solid var(--borde-fuerte); font-weight:600;
+}
+#pantalla button.secundario:hover{ background:var(--info-fondo); }
+#pantalla button.acento{ background:var(--acento); }
+#pantalla button.acento:hover{ background:var(--acento-oscuro); }
+#pantalla button.enlace{
+    background:none; color:var(--tinta); text-decoration:underline; padding:.3rem 0; margin:0; min-height:2.5rem; font-weight:500;
+}
+#pantalla button.enlace:hover{ background:none; color:var(--primario-oscuro); }
+#pantalla .acciones{ display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.8rem; }
 #pantalla .acciones button{ margin-bottom:0; }
 
-
-@media screen and (min-width: 48em){
-    #pantalla{ padding:1.5rem 2rem; }
-    header{ padding:.6rem 2rem; }
+/* ---------------- bloques y rejillas ---------------- */
+#pantalla .tarjeta{
+    background:var(--superficie); border:1px solid var(--borde); border-radius:var(--radio-tarjeta);
+    box-shadow:var(--sombra-1); padding:1.1rem;
 }
-
-/* ---- pantallas de la clinica ---- */
 #pantalla .subtitulo{ margin:1.4rem 0 .6rem; }
-#pantalla .rejilla{ display:grid; gap:1rem; grid-template-columns:repeat(auto-fit, minmax(14rem, 1fr)); align-items:start; }
-#pantalla .rejilla-tarjetas{ display:grid; gap:.8rem; grid-template-columns:repeat(auto-fill, minmax(11rem, 1fr)); grid-auto-rows:1fr; margin-top:.6rem; }
+#pantalla .rejilla{ display:grid; gap:.8rem; grid-template-columns:repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); align-items:start; margin-top:.6rem; }
+#pantalla .rejilla-tarjetas{ display:grid; gap:.8rem; grid-template-columns:repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); grid-auto-rows:1fr; margin-top:.6rem; }
+#pantalla .lista-tarjetas{ display:grid; gap:.8rem; grid-template-columns:repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); align-items:start; }
 #pantalla .paciente-elegido{ font-weight:600; margin:1rem 0; }
-#pantalla .lista-tarjetas{ display:grid; gap:1rem; grid-template-columns:repeat(auto-fill, minmax(18rem, 1fr)); }
 #pantalla .solicitud{ max-width:60rem; }
 #pantalla .solicitud galeno-campo{ margin-top:.4rem; }
-#pantalla #confirmacion{ margin-top:1rem; padding:1rem; border-left:6px solid #1D6B3A; background:#EAF6EE; border-radius:.5rem; }
+#pantalla #confirmacion{
+    margin-top:1rem; padding:1rem; border:1px solid var(--exito); border-left:6px solid var(--exito);
+    background:var(--exito-fondo); color:var(--tinta); border-radius:var(--radio-control);
+}
+#pantalla .mensaje-error{ color:var(--error); font-weight:600; min-height:1.2em; font-size:var(--fs-1); }
+/* sin mensaje no queda fila reservada: el error solo ocupa cuando hay algo que mostrar */
+#pantalla .mensaje-error:empty{ display:none; }
+#pantalla .enlace-aparte{ margin-top:1rem; color:var(--tinta-suave); font-size:var(--fs-1); }
 
-/* ---- login ---- */
-#pantalla .login{ max-width:26rem; margin:1rem auto; }
-#pantalla .login form{ display:grid; gap:1rem; }
+/* ---------------- login ---------------- */
+#pantalla .login{ max-width:70rem; margin:.5rem auto 0; }
+#pantalla .login form{ display:grid; gap:.8rem; }
 #pantalla .login button[type=submit]{ margin-bottom:0; width:100%; }
-#pantalla .mensaje-error{ color:#B3261E; font-weight:600; min-height:1.2em; }
-#pantalla .enlace-aparte{ margin-top:1.5rem; }
-#pantalla button.enlace{ background:none; color:#1D3461; text-decoration:underline; padding:.3rem 0; margin:0; min-height:2.5rem; }
-#pantalla button.enlace:hover{ background:none; color:#27498A; }
+
+@media screen and (min-width: 48em){
+    #pantalla .login-marco{
+        display:grid; grid-template-columns:minmax(15rem, 18rem) minmax(0, 26rem);
+        gap:2rem; justify-content:center; align-items:stretch;
+    }
+    #pantalla .panel-marca{ display:flex; }
+}
+/* escritorio ancho: panel de marca mas generoso */
+@media screen and (min-width: 72em){
+    #pantalla .login-marco{
+        grid-template-columns:minmax(18rem, 24rem) minmax(0, 26rem);
+        gap:2.5rem;
+    }
+}
+
+/* panel de marca (solo escritorio) */
+#pantalla .panel-marca{
+    display:none;
+    flex-direction:column; justify-content:flex-end;
+    background:var(--tinta); color:var(--sobre-tinta, #F2F6F9);
+    border-radius:var(--radio-tarjeta); box-shadow:var(--sombra-2);
+    padding:2rem; position:relative; overflow:hidden;
+}
+#pantalla .panel-marca .marca-nombre{
+    font-size:var(--fs-4); font-weight:700; margin:0 0 .2rem;
+    display:flex; align-items:center; gap:.6rem; color:inherit;
+}
+#pantalla .panel-marca .marca-lema{ margin:.2rem 0 0; color:var(--secundario); font-size:var(--fs-2); }
+#pantalla .panel-marca .forma{ position:absolute; right:-4rem; top:-4rem; width:16rem; height:16rem; opacity:.5; }
+#pantalla .panel-marca .marca-nota{ margin-top:2rem; font-size:var(--fs-1); color:var(--secundario); }
+
+#pantalla .login-tarjeta{ align-self:start; }
+#pantalla .login-cabecera{ display:flex; align-items:center; gap:.6rem; margin-bottom:.2rem; }
+#pantalla .login-cabecera .logo{ color:var(--tinta); }
+#pantalla .login-sub{ margin:.1rem 0 1rem; color:var(--tinta-suave); font-size:var(--fs-1); }
+
+/* ---------------- buscar citas (HU1) ---------------- */
+/* contenido centrado con ancho comodo: en pantallas muy anchas no se estira */
+#pantalla > section.citas{ max-width:76rem; }
+
+/* banner de encabezado: fondo salvia suave, ilustracion propia a la derecha, poco alto */
+#pantalla .citas .cabecera-pantalla{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    background:var(--primario-suave); border:1px solid var(--secundario-borde);
+    border-radius:var(--radio-tarjeta); box-shadow:var(--sombra-1);
+    padding:.75rem 1.1rem;
+}
+#pantalla .citas .cabecera-pantalla h2{ margin:0; }
+#pantalla .citas .banner-arte{ width:6.5rem; height:auto; flex:0 0 auto; }
+#pantalla .citas .banner-arte .cal{ stroke:var(--primario); fill:var(--superficie); }
+#pantalla .citas .banner-arte .cal-raya{ stroke:var(--primario-oscuro); }
+#pantalla .citas .banner-arte .cruz{ stroke:var(--acento); }
+#pantalla .citas .banner-arte .cora{ stroke:var(--acento); fill:var(--acento-fondo); }
+@media screen and (max-width:34.99em){
+    #pantalla .citas .banner-arte{ display:none; }
+}
+@media screen and (min-width:35em) and (max-width:47.99em){
+    #pantalla .citas .banner-arte{ width:4.5rem; }
+}
+
+/* la tarjeta del formulario es el CONTENEDOR: el layout responde al ancho real de la
+   tarjeta (el menu lateral lo reduce) y no al de la ventana */
+#pantalla .citas #formulario{
+    container-type:inline-size;
+    display:grid; gap:.8rem; align-items:start;
+    padding:1rem; border-radius:1rem;
+}
+
+/* guia de progreso horizontal: insignia + etiqueta + linea conectora */
+#pantalla .citas .pasos{ list-style:none; margin:0; padding:0; display:flex; align-items:center; }
+#pantalla .citas .paso{
+    display:flex; align-items:center; gap:.45rem; flex:1 1 0; min-width:0;
+    color:var(--tinta-suave); font-size:var(--fs-0); font-weight:600;
+}
+#pantalla .citas .paso .num{
+    flex:0 0 auto; border-radius:50%; display:grid; place-items:center;
+    background:var(--info-fondo); color:var(--tinta-suave); border:1px solid var(--borde);
+    transition:background var(--velocidad), color var(--velocidad), border-color var(--velocidad);
+}
+#pantalla .citas .paso .txt{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* celular: tres puntos conectados; solo se lee la etiqueta del paso activo */
+#pantalla .citas .paso .num{ width:.7rem; height:.7rem; font-size:0; }
+#pantalla .citas .paso .txt{ display:none; }
+#pantalla .citas .paso.activa .txt{ display:inline; color:var(--tinta); }
+#pantalla .citas .paso:not(:last-child)::after{
+    content:""; flex:1 1 .6rem; min-width:.6rem; height:2px; margin:0 .45rem;
+    background:var(--borde); border-radius:1px;
+}
+#pantalla .citas .paso.completa .num{ background:var(--exito); border-color:var(--exito); color:var(--sobre-primario); }
+#pantalla .citas .paso.activa .num{ background:var(--primario); border-color:var(--primario); color:var(--sobre-primario); }
+#pantalla .citas .paso.activa{ color:var(--tinta); }
+
+/* celular (<40rem de tarjeta): una columna; Desde/Hasta lado a lado; boton a todo lo ancho */
+#pantalla .citas .asistente{ list-style:none; margin:0; padding:0; display:grid; gap:.55rem; }
+#pantalla .citas .seccion-asistente{ display:grid; gap:.55rem; min-width:0; }
+#pantalla .citas .fila-fechas{ display:grid; gap:.6rem .8rem; grid-template-columns:repeat(2, minmax(0,1fr)); align-items:start; }
+#pantalla .citas #mensaje{ min-height:1.2em; margin:0; }
+#pantalla .citas #buscar{ width:100%; margin:0; }
+
+/* tarjeta mediana (40–72rem): dos filas — tipo + numero + clinica / desde + hasta + boton.
+   align-items:start mantiene etiquetas e inputs a la MISMA altura: ayuda y errores cuelgan
+   hacia abajo en filas reservadas sin mover el resto de la fila. */
+@container (min-width:40rem){
+    #pantalla .citas #formulario{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+    #pantalla .citas .pasos{ grid-column:1 / -1; grid-row:1; }
+    #pantalla .citas .paso .num{ width:1.25rem; height:1.25rem; font-size:var(--fs-0); }
+    #pantalla .citas .paso .txt{ display:inline; }
+    #pantalla .citas .asistente, #pantalla .citas .seccion-asistente, #pantalla .citas .fila-fechas{ display:contents; }
+    #pantalla .citas #tipo{ grid-column:1; grid-row:2; min-width:0; }
+    #pantalla .citas #numero{ grid-column:2; grid-row:2; min-width:0; }
+    #pantalla .citas #clinica{ grid-column:3; grid-row:2; min-width:0; }
+    #pantalla .citas #desde{ grid-column:1; grid-row:3; min-width:0; }
+    #pantalla .citas #hasta{ grid-column:2; grid-row:3; min-width:0; }
+    /* 1.6rem = altura de la etiqueta: el boton queda a la altura de los inputs */
+    #pantalla .citas #buscar{ grid-column:3; grid-row:3; width:auto; margin:1.6rem 0 0; white-space:nowrap; }
+    #pantalla .citas #mensaje{ grid-column:1 / -1; grid-row:4; margin:0; }
+}
+
+/* tarjeta ancha (≥72rem): una sola fila con el ancho que pide cada campo */
+@container (min-width:72rem){
+    #pantalla .citas #formulario{ grid-template-columns:1fr 1.3fr 1.3fr .9fr .9fr auto; gap:.7rem 1rem; }
+    #pantalla .citas #tipo{ grid-column:1; grid-row:2; }
+    #pantalla .citas #numero{ grid-column:2; grid-row:2; }
+    #pantalla .citas #clinica{ grid-column:3; grid-row:2; }
+    #pantalla .citas #desde{ grid-column:4; grid-row:2; }
+    #pantalla .citas #hasta{ grid-column:5; grid-row:2; }
+    #pantalla .citas #buscar{ grid-column:6; grid-row:2; }
+    #pantalla .citas #mensaje{ grid-column:1 / -1; grid-row:3; }
+}
+
+/* panel de bienvenida: solo se ve antes de la primera busqueda */
+#pantalla .citas .bienvenida{ margin-top:.9rem; }
+#pantalla .citas .bienvenida[hidden]{ display:none; }
+#pantalla .citas .bienvenida .hero{
+    display:flex; align-items:center; gap:.8rem;
+    background:var(--superficie); border:1px dashed var(--borde-fuerte); border-radius:var(--radio-tarjeta);
+    padding:.85rem 1.1rem; color:var(--primario);
+}
+#pantalla .citas .bienvenida .hero svg{ flex:0 0 auto; }
+#pantalla .citas .bienvenida .hero p{ margin:0; color:var(--tinta); font-weight:600; }
+#pantalla .citas .consejos{
+    list-style:none; margin:.6rem 0 0; padding:0;
+    display:grid; gap:.6rem; grid-template-columns:repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+#pantalla .citas .consejos li{
+    display:flex; align-items:flex-start; gap:.5rem;
+    background:var(--superficie); border:1px solid var(--borde); border-radius:var(--radio-control);
+    padding:.6rem .7rem; font-size:var(--fs-1); color:var(--texto);
+}
+#pantalla .citas .consejos svg{ color:var(--primario); flex:0 0 auto; margin-top:.15rem; }
+
+/* ---------------- dashboard (HU3) ---------------- */
+/* contenido centrado con ancho comodo; la seccion es el CONTENEDOR: la rejilla de
+   tarjetas responde al ancho real del contenido (el menu lateral lo reduce) */
+#pantalla > section.dashboard{ max-width:80rem; }
+#pantalla .dashboard{ container-type:inline-size; }
+
+/* barra de herramientas unica (saludo + contexto + filtros + conteo), sticky bajo la cabecera.
+   El wrapper es el contenedor: las filas de la tarjeta responden a su ancho REAL */
+#pantalla .dashboard .herramientas{
+    position:sticky; top:0; z-index:10;
+    background:var(--fondo); padding-bottom:.6rem;
+    container-type:inline-size;
+}
+#pantalla .dashboard .herramientas-caja{ display:grid; gap:.65rem; padding:.75rem .9rem; }
+#pantalla .dashboard .mini{ margin:0; align-self:center; font-size:var(--fs-1); color:var(--tinta-suave); font-weight:600; }
+#pantalla .dashboard #contexto, #pantalla .dashboard #filtros{ display:grid; gap:.7rem; min-width:0; grid-column:1 / -1; }
+#pantalla .dashboard #contexto #mensaje{ grid-column:1 / -1; margin:0; }
+#pantalla .dashboard #cargar{ margin:0; grid-column:1 / -1; }
+#pantalla .dashboard #filtros [hidden]{ display:none !important; }
+
+/* resumen del contexto tras cargar: icono + "Clínica · Rol" + boton-enlace "Cambiar" */
+#pantalla .dashboard #resumen-contexto{ display:flex; align-items:center; gap:.5rem; min-width:0; }
+#pantalla .dashboard #resumen-contexto svg{ color:var(--primario); flex:0 0 auto; }
+#pantalla .dashboard #resumen-contexto strong{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#pantalla .dashboard #resumen-contexto button{ margin:0 0 0 auto; }
+#pantalla .dashboard #resumen-contexto[hidden]{ display:none !important; }
+
+/* chips de conteo: Total / En curso / Finalizadas (clic filtra lo ya cargado) */
+#pantalla .dashboard .conteo{ display:flex; flex-wrap:wrap; gap:.5rem; min-width:0; justify-content:flex-start; }
+#pantalla .dashboard .chip{
+    display:inline-flex; align-items:center; gap:.4rem; margin:0;
+    padding:.3rem .8rem; min-height:2.25rem; border-radius:999px;
+    background:var(--superficie); border:1px solid var(--borde-fuerte); color:var(--tinta);
+    font-weight:600; font-size:var(--fs-1);
+    transition:background var(--velocidad), border-color var(--velocidad), color var(--velocidad);
+}
+#pantalla .dashboard .chip svg{ width:1rem; height:1rem; color:var(--tinta-suave); flex:0 0 auto; }
+#pantalla .dashboard .chip .n{ background:var(--info-fondo); border-radius:999px; padding:0 .5rem; font-size:var(--fs-0); min-width:1.4rem; text-align:center; }
+#pantalla .dashboard .chip:hover{ border-color:var(--primario); }
+#pantalla .dashboard .chip.activo{ background:var(--primario); border-color:var(--primario); color:var(--sobre-primario); }
+#pantalla .dashboard .chip.activo svg{ color:var(--sobre-primario); }
+#pantalla .dashboard .chip.activo .n{ background:var(--primario-oscuro, #25585B); color:var(--sobre-primario, #FFFFFF); }
+
+/* ≥36rem de tarjeta: saludo | resumen | chips en una fila; contexto en 3 columnas
+   (clinica | rol | boton) y filtros en 2 (paciente | fechas; desde/hasta luego) */
+@container (min-width:36rem){
+    #pantalla .dashboard .herramientas-caja{ grid-template-columns:auto minmax(0,1fr) auto; align-items:center; }
+    #pantalla .dashboard .mini{ grid-column:1; grid-row:1; }
+    #pantalla .dashboard #resumen-contexto{ grid-column:2; grid-row:1; }
+    #pantalla .dashboard #conteo{ grid-column:3; grid-row:1; justify-self:end; }
+    #pantalla .dashboard #contexto{ grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto; align-items:end; }
+    #pantalla .dashboard #contexto #cargar{ grid-column:3; grid-row:1; }
+    #pantalla .dashboard #contexto #mensaje{ grid-column:1 / -1; grid-row:2; margin:0; }
+    #pantalla .dashboard #filtros{ grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); }
+}
+/* ≥60rem: los filtros entran en UNA fila (con Rango: paciente | fechas | desde | hasta) */
+@container (min-width:60rem){
+    #pantalla .dashboard #filtros{ grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,.7fr) minmax(0,.7fr); }
+}
+
+/* rejilla de tarjetas: 1/2/3/4 columnas segun el ancho real (min ~20rem por tarjeta);
+   stretch + article height:100% = filas de tarjetas de la misma altura */
+#pantalla .dashboard #lista{ display:grid; gap:.8rem; align-items:stretch; margin-top:.2rem; }
+/* cada tarjeta es su propio contenedor: su layout interno responde al ancho REAL de la tarjeta */
+#pantalla .dashboard #lista galeno-tarjeta-agenda{ container-type:inline-size; min-width:0; }
+@container (min-width:36rem){ #pantalla .dashboard #lista{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+@container (min-width:58rem){ #pantalla .dashboard #lista{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+@container (min-width:76rem){ #pantalla .dashboard #lista{ grid-template-columns:repeat(4, minmax(0,1fr)); } }
+#pantalla .dashboard #mostrar-mas{ grid-column:1 / -1; justify-self:center; margin:.2rem 0 .8rem; }
+
+/* ---------------- consulta (HU4) ---------------- */
+#pantalla .cabecera-consulta{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.4rem 1rem; margin-bottom:.6rem;
+}
+#pantalla .cabecera-consulta h2{ margin-bottom:0; }
+#pantalla .tarjeta-paciente{
+    display:flex; align-items:center; gap:.9rem; padding:.8rem 1rem; margin-bottom:.8rem;
+}
+#pantalla .tarjeta-paciente #paciente{ margin:0; font-weight:600; color:var(--tinta); }
+#pantalla .avatar{
+    width:3rem; height:3rem; flex:0 0 auto; border-radius:50%;
+    display:grid; place-items:center;
+    background:var(--secundario); color:var(--tinta);
+    font-weight:700; font-size:var(--fs-2); letter-spacing:.02em;
+    border:1px solid var(--secundario-borde);
+}
+#pantalla .consulta-grid{ display:grid; gap:.8rem; grid-template-columns:1fr; align-items:start; }
+#pantalla .columna-procedimiento, #pantalla .columna-examenes{
+    background:var(--superficie); border:1px solid var(--borde); border-radius:var(--radio-tarjeta);
+    box-shadow:var(--sombra-1); padding:.9rem; display:grid; gap:.8rem;
+}
+#pantalla .bloque-paso{ display:grid; gap:.4rem; }
+#pantalla .bloque-paso h3{ font-size:var(--fs-2); margin:0; }
+#pantalla .badge-lectura{
+    justify-self:start; margin:0;
+    background:var(--aviso-fondo); color:var(--aviso);
+    border:1px solid var(--aviso); border-radius:999px;
+    font-size:var(--fs-0); font-weight:700; padding:.1rem .7rem;
+}
+#pantalla .solo-lectura{ background:var(--fondo); border-style:dashed; }
+#pantalla .barra-acciones{
+    position:sticky; bottom:0; z-index:5;
+    background:var(--superficie); border:1px solid var(--borde); border-radius:var(--radio-tarjeta);
+    box-shadow:var(--sombra-2); padding:.7rem .9rem; margin-top:.8rem;
+}
+#pantalla .barra-acciones .acciones{ margin-bottom:.2rem; }
+#pantalla .nota-finalizar{ margin:0; font-size:var(--fs-0); color:var(--tinta-suave); }
+#pantalla .nota-finalizar[hidden]{ display:none; }
+
+@media screen and (min-width: 48em){
+    #pantalla{ padding:1.2rem 1.6rem; }
+    header{ padding:.5rem 1.2rem; }
+    #pantalla .consulta-grid{ grid-template-columns:minmax(0, 3fr) minmax(0, 2fr); }
+}
 
 /* los componentes definen su propio display: sin esto el atributo hidden no los esconde */
 #pantalla [hidden]{ display:none !important; }
-/* filtros y rangos de fechas: en fila cuando hay espacio */
-#pantalla .fila-fechas, #pantalla #filtros{ display:grid; gap:1rem; grid-template-columns:repeat(auto-fit, minmax(12rem, 1fr)); align-items:start; margin:1rem 0; }
 #pantalla #filtros[hidden]{ display:none !important; }

@@ -62,11 +62,15 @@ class GalenoInstalar extends HTMLElement {
           <style>
             :host { display:inline-block; }
             :host([hidden]), .oculto { display:none; }
-            button { padding:.45rem .9rem; border:0; border-radius:.4rem; background:#1D3461; color:#fff;
-                     cursor:pointer; font:inherit; min-height:2.5rem; }
-            button:hover { background:#27498A; }
-            button:focus-visible { outline:3px solid #629DCB; outline-offset:2px; }
-            p { margin:.5rem 0 0; font-size:.85rem; max-width:18rem; }
+            button { padding:.45rem .9rem; border:1px solid var(--borde-fuerte, #9FB0B8); border-radius:999px;
+                     background:var(--superficie, #fff); color:var(--tinta, #1D3461);
+                     cursor:pointer; font:inherit; min-height:2.5rem; font-weight:600; font-size:var(--fs-1, .875rem);
+                     transition:background var(--velocidad, 180ms); }
+            button:hover { background:var(--primario-suave, #E9F1EF); }
+            button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+            p { margin:.5rem 0 0; font-size:var(--fs-0, .75rem); max-width:18rem; color:var(--tinta-suave, #44577B); }
+          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
+            @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <div class="${visible ? "" : "oculto"}">
             <button id="instalar" type="button" aria-label="Instalar la aplicación GalenoSV">Instalar app</button>

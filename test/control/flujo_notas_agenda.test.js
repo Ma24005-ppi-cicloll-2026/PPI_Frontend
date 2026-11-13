@@ -12,9 +12,40 @@ describe("FlujoPasos", () => {
         const ant = { idProcedimientoPaso: { idProcedimientoPaso: "b" }, idProcedimientoPasoReferencia: "a", tipoSecuencia: "anterior" };
         expect(FlujoPasos.ordenar([b, a], [ant]).map(p => p.nombre)).to.deep.equal(["Triaje", "Consulta"]);
     });
+    // como crea las secuencias el backend (ProcedimientoPasoModels.crearSecuencia):
+    // idProcedimientoPaso = el paso NUEVO, idProcedimientoPasoReferencia = el paso PADRE, tipoSecuencia = "AFTER"
+    const sec = (pasoId, refId, tipo) => ({ idProcedimientoPaso: { idProcedimientoPaso: pasoId }, idProcedimientoPasoReferencia: refId, tipoSecuencia: tipo });
+    it("entiende 'AFTER' del backend: la referencia va antes (cadena A->B->C)", () => {
+        const ab = sec("b", "a", "AFTER"), bc = sec("c", "b", "AFTER");
+        expect(FlujoPasos.ordenar([a, b, c], [ab, bc]).map(p => p.nombre)).to.deep.equal(["Triaje", "Consulta", "Cierre"]);
+        // el orden no depende del orden en que lleguen los pasos ni las secuencias
+        expect(FlujoPasos.ordenar([c, a, b], [bc, ab]).map(p => p.nombre)).to.deep.equal(["Triaje", "Consulta", "Cierre"]);
+        expect(FlujoPasos.ordenar([b, c, a], [bc, ab]).map(p => p.nombre)).to.deep.equal(["Triaje", "Consulta", "Cierre"]);
+    });
+    it("entiende 'after' en minusculas, 'Después' con tilde y 'BEFORE'", () => {
+        expect(FlujoPasos.ordenar([b, a], [sec("b", "a", "after")]).map(p => p.nombre)).to.deep.equal(["Triaje", "Consulta"]);
+        expect(FlujoPasos.ordenar([b, a], [sec("b", "a", "Después")]).map(p => p.nombre)).to.deep.equal(["Triaje", "Consulta"]);
+        // BEFORE: el paso va ANTES de la referencia
+        expect(FlujoPasos.ordenar([b, a], [sec("a", "b", "BEFORE")]).map(p => p.nombre)).to.deep.equal(["Triaje", "Consulta"]);
+    });
+    it("un solo paso y pasos sin ninguna secuencia quedan en el orden en que llegaron", () => {
+        expect(FlujoPasos.ordenar([b], []).map(p => p.nombre)).to.deep.equal(["Consulta"]);
+        expect(FlujoPasos.ordenar([b, a, c], []).map(p => p.nombre)).to.deep.equal(["Consulta", "Triaje", "Cierre"]);
+    });
+    it("con cadena AFTER el paso actual de una consulta nueva le toca al primer rol", () => {
+        // a = Triaje (rec = Atencion al publico), b = Consulta (med); la secuencia del backend
+        const cadena = FlujoPasos.ordenar([b, a], [sec("b", "a", "AFTER")]);
+        expect(cadena.map(p => p.nombre)).to.deep.equal(["Triaje", "Consulta"]);
+        const e = FlujoPasos.estado(cadena, []);
+        expect(e.actual).to.equal(0);
+        expect(FlujoPasos.loAtiende(e, "rec")).to.equal(true);      // "Atencion al publico"
+        expect(FlujoPasos.loAtiende(e, "med")).to.equal(false);
+    });
     it("los pasos sin secuencia quedan al final y un ciclo no se cuelga", () => {
         expect(FlujoPasos.ordenar([c, a, b], [sig("a", "b")]).map(p => p.nombre)).to.have.length(3);
         expect(FlujoPasos.ordenar([a, b], [sig("a", "b"), sig("b", "a")])).to.have.length(2);
+        // un ciclo con AFTER tampoco se cuelga (sale de la proteccion y completa los 2 pasos)
+        expect(FlujoPasos.ordenar([a, b], [sec("a", "b", "AFTER"), sec("b", "a", "AFTER")])).to.have.length(2);
     });
     it("definidos filtra por procedimiento", () => {
         const otro = { ...paso("z", "Otro"), idProcedimiento: { idProcedimiento: "otro" } };
