@@ -1,48 +1,67 @@
 /* ============================================================
    GalenoSV · estilos base y tokens (hechos a mano, sin librerias)
-   Concepto "consultorio sereno": calido, limpio y profesional.
+   Concepto "consultorio sereno": celestes y salvia, limpio y profesional.
    Primero celular; con @media se amplía a pantallas grandes.
+   El modo oscuro usa la MISMA paleta en version nocturna y se activa
+   con prefers-color-scheme o con el interruptor <galeno-tema>
+   (que pone data-tema="claro"/"oscuro" en <html>).
    ============================================================ */
 
 :root{
-    /* ---- paleta ---- */
+    color-scheme:light dark;
+
+    /* ---- paleta clara (alineada con el backend) ---- */
     --tinta:#1D3461;            /* azul marino: titulos, marca, iconos */
     --tinta-suave:#44577B;      /* texto secundario sobre blanco */
     --texto:#26354E;            /* texto principal, contraste alto */
     --fondo:#F5F8F8;            /* crema azulado muy claro */
     --superficie:#FFFFFF;       /* tarjetas y paneles */
-    --borde:#E3EAEA;            /* borde sutil de superficies */
+    --borde:#DCE9F0;            /* borde sutil de superficies (celeste) */
     --borde-fuerte:#9FB0B8;     /* controles de formulario */
     --inactivo:#8CA0A8;
 
+    /* celestes del sistema (menu, acentos suaves) */
+    --celeste-claro:#F1F8FB;
+    --celeste:#E3F1F7;
+    --celeste-medio:#CFE6F0;
+    --celeste-fuerte:#B5D8E8;
+
+    /* menu lateral: degradado celeste con borde */
+    --menu-fondo:linear-gradient(180deg, #E8F4F9, #D5EAF3);
+    --menu-borde:#C5DEE9;
+
+    /* cabecera translucida con desenfoque */
+    --cabecera-fondo:rgba(245, 248, 248, .82);
+
     --primario:#2F6F73;         /* verde azulado apagado */
-    --primario-oscuro:#25585B;
+    --primario-oscuro:#0F6461;
     --primario-suave:#E9F1EF;
     --sobre-primario:#FFFFFF;
 
     --secundario:#CFE3DD;       /* salvia suave */
     --secundario-borde:#AECFC6;
 
-    --acento:#C9775B;           /* terracota apagado: solo la accion principal */
+    --acento:#C9775B;           /* terracota apagado: solo la accion principal y detalles */
     --acento-oscuro:#B05F44;
     --sobre-acento:#FFFFFF;
 
-    --exito:#3E7C59;      --exito-fondo:#E9F3ED;
-    --aviso:#96662C;      --aviso-fondo:#F7F0E3;
-    --error:#A8402F;      --error-fondo:#F9EAE6;
-    --info-fondo:#EDF3F2;
+    --exito:#4F8A6B;      --exito-fondo:#E9F3ED;
+    --aviso:#B98A3E;      --aviso-fondo:#F7F0E3;
+    --error:#B5524A;      --error-fondo:#F9EAE6;
+    --info:#3F78A8;       --info-fondo:#EDF3F2;
 
-    /* textos y estados sobre fondos oscuros (menu lateral, panel de marca) */
+    /* textos y estados sobre fondos oscuros (panel de marca del login) */
     --sobre-tinta:#F2F6F9;          /* texto claro sobre azul marino (contraste > 12:1) */
     --sobre-tinta-suave:#C7D3E1;    /* texto secundario sobre azul marino (contraste > 7:1) */
-    --tinta-hover:#254370;          /* azul marino apenas mas claro, para hover del menu */
+    --tinta-hover:#254370;          /* azul marino apenas mas claro, para hover */
 
     --foco:#2F6F73;             /* anillo de foco visible */
 
     /* ---- elevacion y forma ---- */
     --sombra-1:0 1px 2px rgba(29,52,97,.05), 0 2px 10px rgba(29,52,97,.05);
     --sombra-2:0 6px 18px rgba(29,52,97,.10);
-    --radio-tarjeta:.875rem;    /* 14px: tarjetas (12–16px) */
+    --radio-tarjeta:.875rem;    /* 14px: tarjetas */
+    --radio-item:.75rem;        /* 12px: items del menu */
     --radio-control:.625rem;    /* 10px: botones y campos */
 
     /* ---- ritmo ---- */
@@ -52,7 +71,69 @@
 
     /* ---- escala tipografica 12/14/16/20/28 ---- */
     --fs-0:.75rem;  --fs-1:.875rem;  --fs-2:1rem;  --fs-3:1.25rem;  --fs-4:1.75rem;
+
+    /* barra inferior del menu en celular (para que no tape el contenido) */
+    --barra-movil:4.4rem;
+
+    /* constantes del panel de marca del login (siempre azul marino, en claro y en oscuro) */
+    --tinta-marca:#1D3461;
+    --salvia-marca:#CFE3DD;
+    --celeste-marca:#B5D8E8;
 }
+
+/* ---- modo oscuro automatico (prefiere el sistema) ----
+   El interruptor <galeno-tema> fija data-tema="claro"/"oscuro" en <html>,
+   que manda sobre la preferencia del sistema. */
+@media (prefers-color-scheme: dark){
+    :root:not([data-tema="claro"]):not([data-tema="oscuro"]){
+        color-scheme:dark;
+        --tinta:#E4EFF4;  --tinta-suave:#A8BFCC;  --texto:#DCE8EE;
+        --fondo:#0F1E26;  --superficie:#162A34;
+        --borde:#24404E;  --borde-fuerte:#3D5B6B;  --inactivo:#7A94A2;
+        --celeste-claro:#14262F;  --celeste:#182E39;
+        --celeste-medio:#1E3946;  --celeste-fuerte:#2A4B5B;
+        --menu-fondo:linear-gradient(180deg, #13262F, #10202A);
+        --menu-borde:#24404E;
+        --cabecera-fondo:rgba(15, 30, 38, .82);
+        --primario:#2F6F73;  --primario-oscuro:#3E8A85;  --primario-suave:#1E3A42;
+        --secundario:#2A4A52;  --secundario-borde:#3A5F66;
+        --acento:#D08A6F;  --acento-oscuro:#B05F44;
+        --exito:#7DB894;      --exito-fondo:#173226;
+        --aviso:#D4A95C;      --aviso-fondo:#332A14;
+        --error:#D97B6E;      --error-fondo:#3A1D19;
+        --info:#7FB0DC;       --info-fondo:#132C40;
+        --sobre-tinta:#F2F6F9;  --sobre-tinta-suave:#C7D3E1;  --tinta-hover:#254370;
+        --foco:#7FC4C8;
+        --sombra-1:0 1px 2px rgba(0,0,0,.30), 0 2px 10px rgba(0,0,0,.25);
+        --sombra-2:0 6px 18px rgba(0,0,0,.40);
+    }
+}
+
+/* ---- modo oscuro manual (data-tema="oscuro" en <html>) ---- */
+[data-tema="oscuro"]{
+    color-scheme:dark;
+    --tinta:#E4EFF4;  --tinta-suave:#A8BFCC;  --texto:#DCE8EE;
+    --fondo:#0F1E26;  --superficie:#162A34;
+    --borde:#24404E;  --borde-fuerte:#3D5B6B;  --inactivo:#7A94A2;
+    --celeste-claro:#14262F;  --celeste:#182E39;
+    --celeste-medio:#1E3946;  --celeste-fuerte:#2A4B5B;
+    --menu-fondo:linear-gradient(180deg, #13262F, #10202A);
+    --menu-borde:#24404E;
+    --cabecera-fondo:rgba(15, 30, 38, .82);
+    --primario:#2F6F73;  --primario-oscuro:#3E8A85;  --primario-suave:#1E3A42;
+    --secundario:#2A4A52;  --secundario-borde:#3A5F66;
+    --acento:#D08A6F;  --acento-oscuro:#B05F44;
+    --exito:#7DB894;      --exito-fondo:#173226;
+    --aviso:#D4A95C;      --aviso-fondo:#332A14;
+    --error:#D97B6E;      --error-fondo:#3A1D19;
+    --info:#7FB0DC;       --info-fondo:#132C40;
+    --sobre-tinta:#F2F6F9;  --sobre-tinta-suave:#C7D3E1;  --tinta-hover:#254370;
+    --foco:#7FC4C8;
+    --sombra-1:0 1px 2px rgba(0,0,0,.30), 0 2px 10px rgba(0,0,0,.25);
+    --sombra-2:0 6px 18px rgba(0,0,0,.40);
+}
+
+/* modo claro fijo por el interruptor: nada que cambiar (los tokens base son claros) */
 
 *, *::before, *::after { box-sizing:border-box; }
 
@@ -65,10 +146,10 @@ body{
     line-height:1.5;
     color:var(--texto);
     background-color:var(--fondo);
-    /* decoracion propia: manchas organicas apenas visibles, sin imagenes externas */
+    /* decoracion propia: manchas organicas celestes apenas visibles, sin imagenes externas */
     background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' aria-hidden='true'%3E%3Cpath d='M760 120c90 60 110 200 30 280S590 500 530 400s30-220 130-260 120-60 100-20z' fill='%232F6F73' opacity='.045'/%3E%3C/svg%3E") top right / min(46rem, 60vw) auto no-repeat,
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' aria-hidden='true'%3E%3Cpath d='M120 700c-70-80-60-210 40-260s230-10 280 80-10 210-130 240-140 10-190-60z' fill='%23C9775B' opacity='.04'/%3E%3C/svg%3E") bottom left / min(40rem, 55vw) auto no-repeat;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' aria-hidden='true'%3E%3Cpath d='M760 120c90 60 110 200 30 280S590 500 530 400s30-220 130-260 120-60 100-20z' fill='%23CFE6F0' opacity='.35'/%3E%3C/svg%3E") top right / min(46rem, 60vw) auto no-repeat,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' aria-hidden='true'%3E%3Cpath d='M120 700c-70-80-60-210 40-260s230-10 280 80-10 210-130 240-140 10-190-60z' fill='%23B5D8E8' opacity='.3'/%3E%3C/svg%3E") bottom left / min(40rem, 55vw) auto no-repeat;
     background-attachment:fixed;
 }
 
@@ -76,37 +157,47 @@ h1, h2, h3 { line-height:1.25; color:var(--tinta); }
 h2 { font-size:var(--fs-4); margin:.2rem 0 .3rem; }
 h3 { font-size:var(--fs-3); }
 
-/* ---- estructura: celular = una columna (cabecera, menu, contenido, pie) ---- */
+/* ---- estructura ----
+   Una sola fuente de altura: html/body al 100% y .app con min-height:100dvh.
+   Rejilla de 3 filas (cabecera auto / contenido 1fr / pie auto): la cabecera arriba,
+   la pantalla justo debajo y el pie al fondo, dentro de la columna de contenido.
+   El nav es barra inferior fija en celular (fuera del flujo) y panel lateral en escritorio:
+   el MISMO breakpoint (48em) define el menu lateral y la rejilla de 2 columnas. */
+html, body{ height:100%; }
+
 .app{
     display:grid;
-    min-height:100vh;
-    min-height:100dvh;
+    /* altura DEFINIDA (no min-height): con ella la fila 1fr queda fijada al viewport y
+       la pantalla scrollea por dentro (#pantalla{overflow:auto}); con min-height la fila
+       crece con el contenido y sobra scroll de pagina (medido: docH 999 vs clientH 813) */
+    height:100vh;
+    height:100dvh;
     grid-template-columns:minmax(0, 1fr);
-    grid-template-rows:auto auto 1fr auto;
-    grid-template-areas:"cabecera" "menu" "centro" "pie";
+    grid-template-rows:auto 1fr auto;
+    grid-template-areas:"cabecera" "centro" "pie";
+    /* deja sitio a la barra inferior de navegacion en celular (que no tape el pie) */
+    padding-bottom:calc(var(--barra-movil) + env(safe-area-inset-bottom, 0px));
 }
 
 header{
     grid-area:cabecera;
-    background:var(--superficie);
+    position:sticky; top:0; z-index:30;
+    background:var(--cabecera-fondo);
+    -webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);
     border-bottom:1px solid var(--borde);
     color:var(--tinta);
 }
 
-nav{
-    grid-area:menu;
-    background:var(--tinta);       /* el menu es la unica franja oscura de la pagina */
-}
-
 main{
     grid-area:centro;
-    background:transparent;
+    min-height:0;              /* deja que el contenido scrollee dentro de la pantalla */
     min-width:0;               /* deja que tablas anchas hagan scroll en vez de ensanchar la pagina */
 }
 
 footer{
     grid-area:pie;
-    background:var(--superficie);
+    background:none;
     border-top:1px solid var(--borde);
     color:var(--tinta-suave);
     padding:.8rem var(--espacio);
@@ -114,28 +205,51 @@ footer{
     text-align:center;
 }
 
-/* ---- pantallas medianas y grandes: menu a la izquierda ---- */
+nav{
+    /* celular: barra inferior tipo app, FUERA del flujo de la rejilla (sin grid-area) */
+    position:fixed; inset:auto 0 0 0; z-index:50;
+    background:var(--menu-fondo);
+    border-top:1px solid var(--menu-borde);
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+
+/* los avisos flotantes viven FUERA de la rejilla (hijos de body): sus hosts estan vacios
+   (la tarjeta/caja real es position:fixed) pero igual forman una caja de linea anonima
+   que anade ~24px de scroll sobrante; los aplanamos (las reglas del documento mandan
+   sobre :host y no afectan a los componentes cuando se usan sueltos en las pruebas) */
+body > galeno-instalar,
+body > galeno-notificacion-emergente{ display:block; height:0; margin:0; }
+
+/* ---- pantallas medianas y grandes: menu celeste a la izquierda ---- */
 @media screen and (min-width: 48em){
     .app{
-        grid-template-columns:minmax(13rem, 16rem) minmax(0, 1fr);
+        grid-template-columns:16rem minmax(0, 1fr);
         grid-template-rows:auto 1fr auto;
-        grid-template-areas:"menu cabecera" "menu centro" "pie pie";
+        grid-template-areas:"menu cabecera" "menu centro" "menu pie";
+        padding-bottom:0;
     }
-    /* la barra lateral se estira de arriba abajo para que galeno-menu pueda
-       llevar la marca arriba y "Cerrar sesion" al fondo */
-    nav{ display:flex; flex-direction:column; }
+    /* el nav SIEMPRE se coloca con grid-area:menu (span de las 3 filas): si quedara
+       auto-colocado ocuparia una sola celda y su altura 100dvh romperla la rejilla */
+    nav{
+        grid-area:menu;
+        position:sticky; top:0; inset:auto;
+        height:100vh; height:100dvh; align-self:start; overflow-y:auto;
+        display:flex; flex-direction:column;
+        border-top:0; border-right:1px solid var(--menu-borde);
+        padding-bottom:0;
+    }
     nav > galeno-menu{ flex:1 1 auto; min-height:0; }
 }
 
 /* ---- accesibilidad ---- */
-/* visualmente oculto pero disponible para lectores de pantalla (marca h1, titulos de pagina) */
+/* visualmente oculto pero disponible para lectores de pantalla (marca h1, titulos, anuncios) */
 .sr{
     position:absolute; width:1px; height:1px; padding:0; margin:-1px;
     overflow:hidden; clip-path:inset(50%); white-space:nowrap;
 }
 .saltar{
     position:absolute; left:.5rem; top:-4rem; z-index:100;
-    background:var(--tinta); color:#fff; padding:.6rem 1rem; border-radius:var(--radio-control);
+    background:var(--tinta); color:var(--fondo); padding:.6rem 1rem; border-radius:var(--radio-control);
 }
 .saltar:focus{ top:.5rem; }
 
@@ -148,7 +262,7 @@ main:focus{ outline:none; }
 
 /* ---- al imprimir solo se ve el contenido ---- */
 @media print{
-    nav, header, footer, galeno-conexion, .saltar{ display:none !important; }
+    nav, header, footer, galeno-conexion, galeno-tema, .saltar{ display:none !important; }
     .app{ display:block; }
     body{ background:none; }
 }

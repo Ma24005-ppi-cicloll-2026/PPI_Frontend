@@ -35,7 +35,7 @@ class CitasModel {
                 </header>
                 <form id="formulario" class="tarjeta" novalidate>
                     <ol class="pasos">
-                        <li class="paso"><span class="num" aria-hidden="true">1</span><span class="txt">Identificación</span></li>
+                        <li class="paso"><span class="num" aria-hidden="true">1</span><span class="txt">Documento</span></li>
                         <li class="paso"><span class="num" aria-hidden="true">2</span><span class="txt">Clínica</span></li>
                         <li class="paso"><span class="num" aria-hidden="true">3</span><span class="txt">Fechas</span></li>
                     </ol>
@@ -204,7 +204,7 @@ class CitasModel {
             const mias = consultas
                 .filter(c => idsPaciente.includes(c.idPersonaRol?.idPersonaRol) && Agenda.enRango(c.fechaInicio, rango))
                 .sort((a, b) => DatosClinica.milisegundos(a.fechaInicio) - DatosClinica.milisegundos(b.fechaInicio));
-            if (!mias.length) { this.estado.mostrar("vacio", "No encontramos citas en esa clínica para esas fechas. Pruebe ajustando el rango."); return; }
+            if (!mias.length) { this.estado.mostrar("vacio", "No encontramos citas en esa clínica para esas fechas. Pruebe ajustando el rango.", { arte: true }); return; }
             const cp = await new ConsultaProcedimientoService().listar(0, 5000);
             const procs = await new ProcedimientoService().listar(0, 1000);
             const nombres = new Map(procs.map(p => [p.idProcedimiento, p.nombre]));

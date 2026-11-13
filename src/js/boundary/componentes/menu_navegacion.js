@@ -45,26 +45,29 @@ class GalenoMenu extends HTMLElement {
             :host { display:block; }
             .marca { display:none; margin:0; align-items:center; gap:.55rem;
                      padding:1.05rem 1.1rem .55rem;
-                     color:var(--sobre-tinta, #F2F6F9); font-weight:700; font-size:var(--fs-2, 1rem); letter-spacing:.02em; }
-            .marca svg { width:1.45rem; height:1.45rem; flex:0 0 auto; }
+                     color:var(--tinta, #1D3461); font-weight:700; font-size:var(--fs-2, 1rem); letter-spacing:.02em; }
+            .marca svg { width:1.45rem; height:1.45rem; flex:0 0 auto; color:var(--primario, #2F6F73); }
             ul { list-style:none; margin:0; padding:.35rem .55rem .7rem;
                  display:flex; gap:.2rem; overflow-x:auto; scrollbar-width:none; }
             ul::-webkit-scrollbar { display:none; }
             li { flex:0 0 auto; }
             button { position:relative; display:inline-flex; flex-direction:column; align-items:center; gap:.25rem;
                      min-width:4.25rem; min-height:3.25rem; padding:.45rem .7rem .6rem;
-                     border:1px solid transparent; border-radius:var(--radio-control, .625rem);
-                     background:transparent; color:var(--sobre-tinta, #F2F6F9);
+                     border:1px solid transparent; border-radius:var(--radio-item, .75rem);
+                     background:transparent; color:var(--tinta, #1D3461);
                      font:inherit; font-size:var(--fs-0, .75rem); font-weight:600; line-height:1.15;
                      text-align:center; white-space:nowrap; cursor:pointer;
-                     transition:background-color 150ms ease, color 150ms ease; }
-            button svg { width:1.25rem; height:1.25rem; flex:0 0 auto; }
-            button:hover { background:var(--tinta-hover, #254370); }
-            button:focus-visible { outline:3px solid var(--secundario, #CFE3DD); outline-offset:2px; }
-            button[aria-current=page] { background:var(--secundario, #CFE3DD); color:var(--tinta, #1D3461); font-weight:700; }
-            /* movil: linea inferior terracota bajo la pildora activa */
-            button[aria-current=page]::after { content:""; position:absolute; left:22%; right:22%; bottom:.22rem;
-                                               height:3px; border-radius:2px; background:var(--acento, #C9775B); }
+                     transition:background-color 150ms ease, color 150ms ease, transform 150ms ease; }
+            button svg { width:1.25rem; height:1.25rem; flex:0 0 auto; color:var(--primario, #2F6F73); }
+            button:hover { background:rgba(255,255,255,.70); }
+            button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+            /* activo: pildora verde azulado con texto e icono BLANCOS (contraste >= 4.5:1)
+               y un indicador lateral terracota */
+            button[aria-current=page] { background:var(--primario, #2F6F73); color:var(--sobre-primario, #FFFFFF); font-weight:700; }
+            button[aria-current=page] svg { color:var(--sobre-primario, #FFFFFF); }
+            /* movil: punto terracota bajo la etiqueta del item activo */
+            button[aria-current=page]::after { content:""; position:absolute; left:44%; right:44%; bottom:.28rem;
+                                               height:4px; border-radius:2px; background:var(--acento, #C9775B); }
             /* escritorio: barra lateral vertical con la marca arriba */
             @media (min-width: 48em) {
                 :host { display:flex; flex-direction:column; height:100%; }
@@ -73,6 +76,7 @@ class GalenoMenu extends HTMLElement {
                 li { flex:none; }
                 button { flex-direction:row; gap:.65rem; width:100%; min-width:0; min-height:2.75rem;
                          padding:.55rem .8rem; text-align:left; font-size:var(--fs-1, .875rem); }
+                button:hover { transform:translateX(3px); }
                 /* escritorio: barra lateral terracota junto a la pildora activa */
                 button[aria-current=page]::after { left:-.7rem; right:auto; top:22%; bottom:22%; width:4px; height:auto; }
             }

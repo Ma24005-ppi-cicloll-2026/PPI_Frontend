@@ -20,10 +20,12 @@ class LoginModel {
             <section class="login" aria-labelledby="titulo-login">
                 <div class="login-marco">
                     <div class="panel-marca">
+                        <!-- formas organicas celeste y salvia, hechas a mano (sin imagenes externas) -->
                         <svg class="forma" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
                             <path d="M310 60c60 40 80 130 20 190s-160 60-210 0-30-160 50-200 110-30 140 10z"
-                                  fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3"/>
-                            <path d="M260 170h-60v-60h-40v60h-60v40h60v60h40v-60h60z" fill="rgba(255,255,255,.10)"/>
+                                  fill="none" style="stroke:var(--celeste-marca, #B5D8E8)" stroke-width="3" opacity=".55"/>
+                            <path d="M260 170h-60v-60h-40v60h-60v40h60v60h40v-60h60z"
+                                  style="fill:var(--salvia-marca, #CFE3DD)" opacity=".28"/>
                         </svg>
                         <p class="marca-nombre">
                             <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" focusable="false">
@@ -33,6 +35,12 @@ class LoginModel {
                             GalenoSV
                         </p>
                         <p class="marca-lema">Atención serena, registro claro.</p>
+                        <!-- trazo de electrocardiograma: se dibuja en bucle con stroke-dashoffset -->
+                        <svg class="ecg" viewBox="0 0 240 80" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
+                            <path class="trazo" d="M0 44 H46 l7 -18 9 34 8 -26 7 10 h28 l9 -12 11 20 9 -34 9 30 7 -14 H240"
+                                  fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                  style="stroke:var(--celeste-marca, #B5D8E8)"/>
+                        </svg>
                         <p class="marca-nota">Portal de empleados: sus consultas, paso a paso.</p>
                     </div>
                     <div class="tarjeta login-tarjeta">

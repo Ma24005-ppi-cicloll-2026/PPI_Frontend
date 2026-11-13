@@ -94,6 +94,19 @@ class DashboardModel {
         this.conteo.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => this.elegirChip(b.dataset.estado)));
         this.lista.addEventListener("galeno-atender", ev => this.irA("consulta", ev.detail.idConsulta));
         this.lista.addEventListener("galeno-ver-registro", ev => this.verRegistro(ev.detail.idPaso));
+        // atajo "/": enfoca el buscador de paciente (ayuda visible en title y aria-keyshortcuts;
+        // no interfiere cuando el foco ya esta en un campo de texto)
+        this.campoPaciente.title = "Atajo: pulsa / para buscar un paciente";
+        this.campoPaciente.entrada?.setAttribute("aria-keyshortcuts", "/");
+        document.addEventListener("keydown", this.alTecla = ev => {
+            if (ev.key !== "/" || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+            const activo = document.activeElement;
+            if (activo && (activo.tagName === "INPUT" || activo.tagName === "TEXTAREA" ||
+                           activo.tagName === "SELECT" || activo.isContentEditable)) return;
+            if (!this.campoPaciente?.isConnected) return;
+            ev.preventDefault();
+            this.campoPaciente.focus();
+        });
         if (clinicas.size === 1) { this.selClinica.seleccionar(this.selClinica.opciones[0]); this.alElegirClinica(this.selClinica.opciones[0]); }
     }
 
@@ -187,7 +200,28 @@ class DashboardModel {
     pintarChips(consultas) {
         const n = estado => consultas.filter(c =>
             estado === "curso" ? Expediente.abierta(c) : estado === "finalizadas" ? !Expediente.abierta(c) : true).length;
-        this.conteo.querySelectorAll(".n").forEach(s => { s.textContent = String(n(s.dataset.conteo)); });
+        this.conteo.querySelectorAll(".n").forEach(s => {
+            const hasta = n(s.dataset.conteo);
+            const desde = Number(s.dataset.valor ?? 0);
+            s.dataset.valor = String(hasta);
+            this.contar(s, desde, hasta);
+        });
+    }
+
+    // count-up de 400ms: el valor FINAL queda escrito de una vez (las pruebas lo leen al tiro)
+    // y la animacion solo lo recorre en pantalla; con prefers-reduced-motion no anima
+    contar(s, desde, hasta) {
+        if (desde === hasta) { s.textContent = String(hasta); return; }
+        s.textContent = String(hasta);
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const t0 = performance.now();
+        const paso = t => {
+            const k = Math.min((t - t0) / 400, 1);
+            const v = Math.round(desde + (hasta - desde) * k);
+            if (v !== hasta) s.textContent = String(v);      // el final no se toca: queda estable
+            if (k < 1) requestAnimationFrame(paso);
+        };
+        requestAnimationFrame(paso);
     }
 
     // tarjeta de consulta enriquecida SIN tocar control: el total de pasos definidos de cada

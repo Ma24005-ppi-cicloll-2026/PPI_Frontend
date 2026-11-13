@@ -2,8 +2,9 @@
    todo color sale de los tokens de :root en principal.css. */
 
 /* ---------------- cabecera (franja compacta de ~4rem) ----------------
-   Izquierda: marca (sr) + titulo de la seccion actual; derecha: tarjeta de usuario. */
-header{
+   La cabecera es un BLOQUE sticky: arriba la fila de acciones (flex) y debajo,
+   cuando toca, la franja de conexion (sin ocupar fila en la rejilla). */
+.cabecera-fila{
     display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
     gap:.5rem 1rem; padding:.5rem .8rem;
 }
@@ -55,7 +56,7 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
 #sesion button svg{ width:1rem; height:1rem; flex:0 0 auto; }
 #sesion button:hover{ color:var(--error); }
 #sesion button:focus-visible{ outline:3px solid var(--foco); outline-offset:2px; }
-/* el fondo del <nav> (azul marino) se define en principal.css;
+/* el fondo del <nav> (degradado celeste) se define en principal.css;
    el scroll del menu en celular vive dentro del shadow de galeno-menu */
 
 /* ---------------- zona de pantallas ---------------- */
@@ -63,6 +64,25 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
     overflow:auto; padding:.8rem; color:var(--texto);
 }
 #pantalla > section{ max-width:66rem; margin:0 auto; }
+
+/* transicion de entrada de cada pantalla (respaldo cuando no hay view transitions):
+   al montarse una seccion nueva, la animacion corre sola porque el nodo es nuevo */
+@keyframes aparecer{
+    from{ opacity:0; transform:translateY(.45rem); }
+    to{ opacity:1; transform:none; }
+}
+#pantalla > section{ animation:aparecer var(--velocidad, 180ms) ease-out; }
+
+/* micro-interaccion "ripple" en los botones del contenido (solo CSS, sin librerias):
+   un destello radial desde el centro al presionar */
+#pantalla button{ position:relative; overflow:hidden; }
+#pantalla button::after{
+    content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:radial-gradient(circle at center, rgba(255,255,255,.35), rgba(255,255,255,0) 62%);
+    opacity:0; transition:opacity .35s ease;
+}
+#pantalla button:active::after{ opacity:1; transition:none; }
+#pantalla button.enlace::after{ content:none; }   /* los enlaces no destellan */
 #pantalla h2, #pantalla h3{ margin-top:0; }
 #pantalla .cabecera-pantalla{ margin-bottom:.8rem; }
 #pantalla .cabecera-pantalla h2{ font-size:clamp(1.25rem, 2.2vw, 1.75rem); }
@@ -108,6 +128,21 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
 #pantalla #confirmacion{
     margin-top:1rem; padding:1rem; border:1px solid var(--exito); border-left:6px solid var(--exito);
     background:var(--exito-fondo); color:var(--tinta); border-radius:var(--radio-control);
+    display:flex; align-items:flex-start; gap:.65rem;
+    animation:aparecer var(--velocidad, 180ms) ease-out;
+}
+/* insignia de check que aparece al guardar (micro-interaccion, desactivable) */
+#pantalla #confirmacion::before{
+    content:"✓"; flex:0 0 auto;
+    width:1.35rem; height:1.35rem; margin-top:.05rem;
+    display:grid; place-items:center;
+    border-radius:50%; background:var(--exito); color:var(--sobre-primario, #fff);
+    font-weight:700; font-size:var(--fs-1); line-height:1;
+    animation:marca-check .3s cubic-bezier(.2,.9,.3,1.4);
+}
+@keyframes marca-check{
+    from{ transform:scale(.4); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
 }
 #pantalla .mensaje-error{ color:var(--error); font-weight:600; min-height:1.2em; font-size:var(--fs-1); }
 /* sin mensaje no queda fila reservada: el error solo ocupa cuando hay algo que mostrar */
@@ -134,11 +169,11 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
     }
 }
 
-/* panel de marca (solo escritorio) */
+/* panel de marca (solo escritorio): azul marino CONSTANTE en claro y oscuro (tokens -marca) */
 #pantalla .panel-marca{
     display:none;
     flex-direction:column; justify-content:flex-end;
-    background:var(--tinta); color:var(--sobre-tinta, #F2F6F9);
+    background:var(--tinta-marca, #1D3461); color:var(--sobre-tinta, #F2F6F9);
     border-radius:var(--radio-tarjeta); box-shadow:var(--sombra-2);
     padding:2rem; position:relative; overflow:hidden;
 }
@@ -146,9 +181,24 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
     font-size:var(--fs-4); font-weight:700; margin:0 0 .2rem;
     display:flex; align-items:center; gap:.6rem; color:inherit;
 }
-#pantalla .panel-marca .marca-lema{ margin:.2rem 0 0; color:var(--secundario); font-size:var(--fs-2); }
+#pantalla .panel-marca .marca-lema{ margin:.2rem 0 0; color:var(--salvia-marca, #CFE3DD); font-size:var(--fs-2); }
 #pantalla .panel-marca .forma{ position:absolute; right:-4rem; top:-4rem; width:16rem; height:16rem; opacity:.5; }
-#pantalla .panel-marca .marca-nota{ margin-top:2rem; font-size:var(--fs-1); color:var(--secundario); }
+/* electrocardiograma del panel de marca: el trazo se dibuja y borra en bucle suave */
+#pantalla .panel-marca .ecg{ width:100%; height:auto; margin-top:1.4rem; opacity:.9; }
+#pantalla .panel-marca .ecg .trazo{
+    stroke-dasharray:470; stroke-dashoffset:470;
+    animation:ecg 3.4s linear infinite;
+}
+@keyframes ecg{
+    0%{ stroke-dashoffset:470; }
+    62%{ stroke-dashoffset:0; }
+    100%{ stroke-dashoffset:-470; }
+}
+/* sin animacion (prefiere menos movimiento): el trazo queda dibujado completo y quieto */
+@media (prefers-reduced-motion: reduce){
+    #pantalla .panel-marca .ecg .trazo{ stroke-dasharray:none; stroke-dashoffset:0; animation:none; }
+}
+#pantalla .panel-marca .marca-nota{ margin-top:2rem; font-size:var(--fs-1); color:var(--salvia-marca, #CFE3DD); }
 
 #pantalla .login-tarjeta{ align-self:start; }
 #pantalla .login-cabecera{ display:flex; align-items:center; gap:.6rem; margin-bottom:.2rem; }
@@ -179,10 +229,12 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
     #pantalla .citas .banner-arte{ width:4.5rem; }
 }
 
-/* la tarjeta del formulario es el CONTENEDOR: el layout responde al ancho real de la
-   tarjeta (el menu lateral lo reduce) y no al de la ventana */
+/* la SECCION de citas es el CONTENEDOR: el layout responde al ancho real de la tarjeta
+   (el menu lateral lo reduce) y no al de la ventana. El contenedor debe ser un ANCESTRO
+   de #formulario: un elemento no puede consultar su propio @container y si el contenedor
+   fuera la propia tarjeta, su grid-template-columns condicional nunca aplicaria. */
+#pantalla .citas{ container-type:inline-size; }
 #pantalla .citas #formulario{
-    container-type:inline-size;
     display:grid; gap:.8rem; align-items:start;
     padding:1rem; border-radius:1rem;
 }
@@ -203,6 +255,9 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
 #pantalla .citas .paso .num{ width:.7rem; height:.7rem; font-size:0; }
 #pantalla .citas .paso .txt{ display:none; }
 #pantalla .citas .paso.activa .txt{ display:inline; color:var(--tinta); }
+/* celular: el paso activo ocupa el doble de la fila para que su etiqueta completa
+   quepa incluso en un telefono de 360px (las etiquetas de los demas pasos estan ocultas) */
+#pantalla .citas .paso.activa{ flex-grow:2; }
 #pantalla .citas .paso:not(:last-child)::after{
     content:""; flex:1 1 .6rem; min-width:.6rem; height:2px; margin:0 .45rem;
     background:var(--borde); border-radius:1px;
@@ -222,10 +277,12 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
    align-items:start mantiene etiquetas e inputs a la MISMA altura: ayuda y errores cuelgan
    hacia abajo en filas reservadas sin mover el resto de la fila. */
 @container (min-width:40rem){
-    #pantalla .citas #formulario{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+    #pantalla .citas #formulario{ grid-template-columns:.9fr 1.2fr 1.4fr; }
     #pantalla .citas .pasos{ grid-column:1 / -1; grid-row:1; }
     #pantalla .citas .paso .num{ width:1.25rem; height:1.25rem; font-size:var(--fs-0); }
     #pantalla .citas .paso .txt{ display:inline; }
+    /* escritorio: todos los pasos pesan igual (el refuerzo del paso activo es solo movil) */
+    #pantalla .citas .paso.activa{ flex-grow:1; }
     #pantalla .citas .asistente, #pantalla .citas .seccion-asistente, #pantalla .citas .fila-fechas{ display:contents; }
     #pantalla .citas #tipo{ grid-column:1; grid-row:2; min-width:0; }
     #pantalla .citas #numero{ grid-column:2; grid-row:2; min-width:0; }
@@ -239,7 +296,7 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
 
 /* tarjeta ancha (≥72rem): una sola fila con el ancho que pide cada campo */
 @container (min-width:72rem){
-    #pantalla .citas #formulario{ grid-template-columns:1fr 1.3fr 1.3fr .9fr .9fr auto; gap:.7rem 1rem; }
+    #pantalla .citas #formulario{ grid-template-columns:.8fr 1.2fr 1.4fr .9fr .9fr auto; gap:.7rem 1rem; }
     #pantalla .citas #tipo{ grid-column:1; grid-row:2; }
     #pantalla .citas #numero{ grid-column:2; grid-row:2; }
     #pantalla .citas #clinica{ grid-column:3; grid-row:2; }
@@ -381,7 +438,7 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
 
 @media screen and (min-width: 48em){
     #pantalla{ padding:1.2rem 1.6rem; }
-    header{ padding:.5rem 1.2rem; }
+    .cabecera-fila{ padding:.5rem 1.2rem; }
     #pantalla .consulta-grid{ grid-template-columns:minmax(0, 3fr) minmax(0, 2fr); }
 }
 

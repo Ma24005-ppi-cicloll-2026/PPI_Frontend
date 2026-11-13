@@ -9,6 +9,7 @@ class AppModel {
         this.zona = document.querySelector("#pantalla");
         this.textoSesion = document.querySelector("#sesion");
         this.tituloSeccion = document.querySelector("#titulo-seccion-texto");
+        this.anuncio = document.querySelector("#anuncio");   // region aria-live para anunciar la pantalla
         // Para agregar una pantalla: una entrada aqui (y su regla en control/sesion.js).
         // `enMenu: false` = se llega desde otra pantalla (la consulta se abre desde el Dashboard).
         this.pantallas = {
@@ -111,11 +112,34 @@ class AppModel {
         this.param = destino === "consulta" ? param : null;
         const ruta = "/" + destino + (this.param ? "/" + this.param : "");
         if (window.location.hash !== "#" + ruta) window.location.hash = ruta;   // la URL refleja la pantalla
-        this.zona.replaceChildren();          // limpiar la pantalla anterior
-        this.menu.activo = destino === "consulta" ? "dashboard" : destino;
-        document.title = `${this.pantallas[destino].texto} · GalenoSV`;
-        // la cabecera compacta muestra a la izquierda el titulo de la seccion actual
-        if (this.tituloSeccion) this.tituloSeccion.textContent = this.pantallas[destino].texto;
-        this.pantallas[destino].crear(this.zona, this.param);
+        const pintar = () => {
+            this.zona.replaceChildren();          // limpiar la pantalla anterior
+            this.menu.activo = destino === "consulta" ? "dashboard" : destino;
+            document.title = `${this.pantallas[destino].texto} · GalenoSV`;
+            // la cabecera compacta muestra a la izquierda el titulo de la seccion actual
+            if (this.tituloSeccion) this.tituloSeccion.textContent = this.pantallas[destino].texto;
+            this.pantallas[destino].crear(this.zona, this.param);
+            this.zona.scrollTop = 0;              // la pantalla nueva empieza arriba
+            this.enfocarPantalla();
+        };
+        // transicion de vista nativa (view transitions) si existe y el usuario no pide menos movimiento;
+        // si no hay API, el respaldo es la animacion CSS "aparecer" de #pantalla > section (nodo nuevo = se anima)
+        const reducir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (typeof document.startViewTransition === "function" && !reducir) {
+            const transicion = document.startViewTransition(pintar);
+            transicion && transicion.finished && transicion.finished.catch(() => {});
+        } else {
+            pintar();
+        }
+    }
+
+    // al cambiar de pantalla: el foco va al titulo de la nueva pantalla y un region aria-live lo anuncia
+    enfocarPantalla() {
+        const titulo = this.zona.querySelector("h2");
+        if (titulo) {
+            titulo.setAttribute("tabindex", "-1");
+            titulo.focus({ preventScroll: true });
+        }
+        if (this.anuncio) this.anuncio.textContent = `Pantalla: ${this.pantallas[this.actual].texto}`;
     }
 }

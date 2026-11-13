@@ -2,16 +2,19 @@
 {
 const { expect } = chai;
 describe("AppModel", () => {
-    let api, app, cont;
+    let api, app, cont, transicionStub;
     const empleado = { idPersona: "p-ana", nombre: "Ana Mejía", contextos: [{ idPersonaRol: "pr-ana-med-sa", idRol: "r-med", rol: "Médico", idClinica: "c-sa", clinica: "Santa Ana" }] };
     beforeEach(() => {
         Sesion.cerrar(); window.location.hash = "";
         api = new ApiFalsa(Datos.bd());
+        // view transitions: se ejecuta el cambio AL TIRO para que las pruebas sean sincronas
+        transicionStub = sinon.stub(document, "startViewTransition")
+            .callsFake(fn => { fn(); return { finished: Promise.resolve() }; });
         cont = document.createElement("div");
-        cont.innerHTML = '<header><p id="titulo-seccion"><span id="titulo-seccion-texto"></span></p><span id="sesion"></span></header><galeno-menu id="menu"></galeno-menu><main id="pantalla"></main><galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>';
+        cont.innerHTML = '<p id="anuncio" class="sr" aria-live="polite"></p><header><p id="titulo-seccion"><span id="titulo-seccion-texto"></span></p><span id="sesion"></span></header><galeno-menu id="menu"></galeno-menu><main id="pantalla"></main><galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>';
         document.body.append(cont);
     });
-    afterEach(() => { app?.destruir(); api.restaurar(); cont.remove(); Sesion.cerrar(); window.location.hash = ""; });
+    afterEach(() => { transicionStub.restore(); app?.destruir(); api.restaurar(); cont.remove(); Sesion.cerrar(); window.location.hash = ""; });
     const arrancar = async () => { app = new AppModel(); app.iniciar(); await Ayuda.esperar(); };
     const menu = () => app.menu.items.map(i => i.texto);
     const titulo = () => cont.querySelector("#pantalla h2")?.textContent;
@@ -102,6 +105,29 @@ describe("AppModel", () => {
             await Ayuda.esperar();
             expect(titulo()).to.equal("Buscar citas");
             expect(menu()).to.deep.equal(["Buscar citas", "Iniciar sesión"]);
+        });
+    });
+
+    describe("transicion de pantallas (view transitions)", () => {
+        beforeEach(() => Sesion.iniciar(empleado));
+        it("usa document.startViewTransition al cambiar de pantalla", async () => {
+            await arrancar();
+            expect(transicionStub.calledOnce).to.equal(true);
+            expect(titulo()).to.equal("Dashboard");
+        });
+        it("con prefers-reduced-motion no la usa (queda el respaldo CSS)", async () => {
+            const mm = sinon.stub(window, "matchMedia").returns({ matches: true, addEventListener() {}, removeEventListener() {} });
+            await arrancar();
+            expect(transicionStub.called).to.equal(false);
+            expect(titulo()).to.equal("Dashboard");
+            mm.restore();
+        });
+        it("anuncia la pantalla nueva en la region aria-live y enfoca su titulo", async () => {
+            await arrancar();
+            expect(cont.querySelector("#anuncio").textContent).to.equal("Pantalla: Dashboard");
+            expect(document.activeElement).to.equal(cont.querySelector("#pantalla h2"));
+            app.irA("citas"); await Ayuda.esperar();
+            expect(cont.querySelector("#anuncio").textContent).to.equal("Pantalla: Buscar citas");
         });
     });
 
