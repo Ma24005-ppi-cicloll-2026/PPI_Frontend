@@ -12,19 +12,26 @@ class Pwa {
         this.navegador = navegador;
         this.eventoInstalacion = null;        // lo entrega el navegador; sirve para abrir el dialogo de instalar
         this.registro = null;
+        this.alInstalable = e => {
+            e.preventDefault();
+            this.eventoInstalacion = e;
+            this.ventana.dispatchEvent(new CustomEvent("galeno-instalable"));
+        };
+        this.alInstalada = () => {
+            this.eventoInstalacion = null;
+            this.ventana.dispatchEvent(new CustomEvent("galeno-instalada"));
+        };
     }
 
     iniciar() {
-        this.ventana.addEventListener("beforeinstallprompt", e => {
-            e.preventDefault();                // evita el mini-aviso del navegador: la instalacion la pide nuestro boton
-            this.eventoInstalacion = e;
-            this.ventana.dispatchEvent(new CustomEvent("galeno-instalable"));
-        });
-        this.ventana.addEventListener("appinstalled", () => {
-            this.eventoInstalacion = null;
-            this.ventana.dispatchEvent(new CustomEvent("galeno-instalada"));
-        });
+        this.ventana.addEventListener("beforeinstallprompt", this.alInstalable);
+        this.ventana.addEventListener("appinstalled", this.alInstalada);
         return this.registrar();
+    }
+
+    destruir() {
+        this.ventana.removeEventListener("beforeinstallprompt", this.alInstalable);
+        this.ventana.removeEventListener("appinstalled", this.alInstalada);
     }
 
     // Registra sw.js. Devuelve el registro, o null si el navegador no soporta service workers o falla.

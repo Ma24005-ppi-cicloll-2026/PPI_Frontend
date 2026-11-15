@@ -1,4 +1,6 @@
 /* Ajustes para las pantallas con componentes. No reemplaza a principal.css. */
+galeno-app, galeno-pantalla-citas, galeno-pantalla-login,
+galeno-pantalla-dashboard, galeno-pantalla-consulta{ display:block; }
 header{
     display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
     gap:.5rem 1rem; padding:.6rem 1rem;

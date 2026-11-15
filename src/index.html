@@ -13,23 +13,7 @@
     <link rel="stylesheet" href="./recursos/galeno.css">
 </head>
 <body>
-    <a class="saltar" href="#/" id="saltar">Saltar al contenido</a>
-    <galeno-conexion></galeno-conexion>
-    <div class="app">
-        <header>
-            <h1>GalenoSV</h1>
-            <span id="sesion" aria-live="polite"></span>
-            <galeno-instalar id="instalar"></galeno-instalar>
-        </header>
-        <nav aria-label="Menú principal">
-            <galeno-menu id="menu"></galeno-menu>
-        </nav>
-        <main id="pantalla" tabindex="-1"></main>
-        <footer>
-            GalenoSV · Sistema de gestión médica
-        </footer>
-    </div>
-    <galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>
+    <galeno-app></galeno-app>
 
     <!-- 1. Services (control) -->
     <script src="js/control/default_service.js"></script>
@@ -80,23 +64,13 @@
     <script src="js/boundary/componentes/indicador_pasos.js"></script>
     <script src="js/boundary/componentes/lista_examenes.js"></script>
 
-    <!-- 3. Models (boundary): los auxiliares primero, app_model.js al final -->
+    <!-- 3. Modelos de pantalla, envolturas de ruta y componente raíz -->
     <script src="js/boundary/login_model.js"></script>
     <script src="js/boundary/citas_model.js"></script>
     <script src="js/boundary/dashboard_model.js"></script>
     <script src="js/boundary/seguimiento_model.js"></script>
     <script src="js/boundary/app_model.js"></script>
-    <script>
-        new AppModel().iniciar();
-        // PWA: registra el service worker (funciona sin conexion) y conecta el boton "Instalar app"
-        const pwa = new Pwa();
-        pwa.iniciar();
-        document.querySelector("#instalar").pwa = pwa;
-        // "Saltar al contenido": mueve el foco a la pantalla sin tocar la direccion (#/...) de la SPA
-        document.querySelector("#saltar").addEventListener("click", e => {
-            e.preventDefault();
-            document.querySelector("#pantalla").focus();
-        });
-    </script>
+    <script src="js/boundary/pantallas.js"></script>
+    <script src="js/boundary/app.js"></script>
 </body>
 </html>

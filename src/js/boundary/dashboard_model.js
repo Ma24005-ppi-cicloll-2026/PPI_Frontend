@@ -10,6 +10,7 @@ class DashboardModel {
         this.contenedor = contenedor;
         this.irA = irA;
         this.datos = null;
+        this._carga = 0;
     }
 
     iniciar() {
@@ -62,6 +63,8 @@ class DashboardModel {
         if (clinicas.size === 1) { this.selClinica.seleccionar(this.selClinica.opciones[0]); this.alElegirClinica(this.selClinica.opciones[0]); }
     }
 
+    destruir() { this._carga++; }
+
     static esc(t) { return String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
     alElegirClinica(clinica) {
@@ -77,6 +80,7 @@ class DashboardModel {
     }
 
     async cargar() {
+        const carga = ++this._carga;
         this.mensaje.textContent = "";
         const clinica = this.selClinica.seleccionado, ctx = this.selRol.seleccionado;
         if (!clinica) { this.selClinica.error("Elija la clínica"); return; }
@@ -87,10 +91,13 @@ class DashboardModel {
         this.estado.mostrar("cargando");
         this.lista.replaceChildren();
         try {
-            this.datos = await Expediente.cargar();
+            const datos = await Expediente.cargar();
+            if (carga !== this._carga) return;
+            this.datos = datos;
             this.filtros.hidden = false;
             this.pintar();
         } catch (e) {
+            if (carga !== this._carga) return;
             this.estado.mostrar("error", "No se pudieron cargar las consultas.");
         }
     }
