@@ -12,6 +12,8 @@ class SeguimientoModel {
         this.irA = irA;
         this.indiceProc = 0;
         this.vista = 0;
+        this.ocupado = false;
+        this._carga = 0;
     }
 
     static ahora() { return new Date().toISOString(); }
@@ -59,9 +61,13 @@ class SeguimientoModel {
         ["estado", "cuerpo", "iniciales", "paciente", "procedimiento", "pasos", "paso", "lectura",
          "notas", "examenes", "mensaje", "anterior", "avanzar", "finalizar", "volver"]
             .forEach(id => this[id] = $(id));
+
+        this.aviso = this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
+=======
         this.bloquePaso = $("bloque-paso");
         this.notaFinalizar = $("nota-finalizar");
         this.aviso = document.querySelector("#aviso");
+
         this.procedimiento.formatoTexto = o => o.nombre;
         this.estado.addEventListener("galeno-reintentar", () => this.iniciar());
         this.procedimiento.addEventListener("galeno-seleccion", e => {
@@ -77,18 +83,25 @@ class SeguimientoModel {
         return this.cargar();
     }
 
+    destruir() { this._carga++; }
+
     async cargar() {
+        const carga = ++this._carga;
         this.estado.mostrar("cargando");
         try {
-            this.datos = await Expediente.cargar();
+            const datos = await Expediente.cargar();
             const [examenes, relaciones, cats, tipos] = await Promise.all([
                 new ExamenService().listar(0, 2000), new ProcedimientoPasoExamenService().listar(0, 5000),
                 new ExamenTipoExamenService().listar(0, 5000), new TipoExamenService().listar(0, 500)]);
+            if (carga !== this._carga) return false;
+            this.datos = datos;
             this.catalogo = { examenes, relaciones, cats, tipos };
         } catch (e) {
+            if (carga !== this._carga) return false;
             this.estado.mostrar("error", "No se pudo cargar la consulta.");
             return false;
         }
+        if (carga !== this._carga) return false;
         this.consulta = this.datos.consultas.find(c => c.idConsulta === this.idConsulta);
         if (!this.consulta) { this.estado.mostrar("error", "La consulta no existe."); return false; }
         this.estado.mostrar("contenido");
@@ -133,7 +146,13 @@ class SeguimientoModel {
         this.anterior.hidden = this.vista === 0;
         this.avanzar.hidden = !editable || ultimo;
         this.finalizar.hidden = !(editable && ultimo);
+
+        this.anterior.disabled = this.ocupado;
+        this.avanzar.disabled = this.ocupado;
+        this.finalizar.disabled = this.ocupado;
+=======
         this.notaFinalizar.hidden = this.finalizar.hidden;   // la nota de confirmacion acompana al boton
+
     }
 
     // examenes disponibles para el paso definido que se esta viendo
@@ -149,7 +168,7 @@ class SeguimientoModel {
         const paso = this.pasoRealizado(this.vista);
         const pedidos = paso ? this.datos.ordenes.filter(o => o.idConsultaProcedimientoPaso?.idConsultaProcedimientoPaso === paso.idConsultaProcedimientoPaso) : [];
         this.examenes.asignados = lista.filter(x => pedidos.some(o => o.indicaciones === x.nombre)).map(x => x.id);
-        this.examenes.deshabilitada = !editable;
+        this.examenes.deshabilitada = !editable || this.ocupado;
     }
 
     pasoRealizado(i) { return this.proc.estado.realizados[i] ?? null; }
@@ -177,7 +196,10 @@ class SeguimientoModel {
     }
 
     async asignar(ids) {
+        if (this.ocupado) return;
         if (!ids.length) { this.mensaje.textContent = "Marque al menos un examen"; return; }
+        this.ocupado = true;
+        this.pintar();
         try {
             const paso = await this.asegurarPaso();
             for (const id of ids) {
@@ -190,6 +212,7 @@ class SeguimientoModel {
             this.pintarExamenes(true);
             this.aviso?.mostrar("Exámenes asignados", "exito");
         } catch (e) { this.aviso?.mostrar("No se pudieron asignar los exámenes", "error"); }
+        finally { this.ocupado = false; this.pintar(); }
     }
 
     async completarPaso() {
@@ -206,6 +229,9 @@ class SeguimientoModel {
     }
 
     async guardarYAvanzar() {
+        if (this.ocupado) return;
+        this.ocupado = true;
+        this.pintar();
         try {
             await this.completarPaso();
             this.recalcular();
@@ -213,9 +239,13 @@ class SeguimientoModel {
             this.pintar();
             this.aviso?.mostrar("Paso guardado", "exito");
         } catch (e) { this.aviso?.mostrar("No se pudo guardar el paso", "error"); }
+        finally { this.ocupado = false; this.pintar(); }
     }
 
     async finalizarConsulta() {
+        if (this.ocupado) return;
+        this.ocupado = true;
+        this.pintar();
         try {
             await this.completarPaso();
             this.recalcular();
@@ -227,5 +257,6 @@ class SeguimientoModel {
             this.aviso?.mostrar("Consulta finalizada", "exito");
             this.irA("dashboard");
         } catch (e) { this.aviso?.mostrar("No se pudo finalizar la consulta", "error"); }
+        finally { this.ocupado = false; this.pintar(); }
     }
 }

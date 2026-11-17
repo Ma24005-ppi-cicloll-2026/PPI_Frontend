@@ -20,6 +20,7 @@ class GalenoInstalar extends HTMLElement {
         this.attachShadow({ mode: "open" });
         this._pwa = null;
         this._ayuda = false;
+        this._ocupada = false;
         this.alCambiar = () => this.pintar();
     }
 
@@ -57,16 +58,24 @@ class GalenoInstalar extends HTMLElement {
 
     async pulsar() {
         const pwa = this._pwa;
-        if (!pwa) return;
+        if (!pwa || this._ocupada) return;
         if (!pwa.puedeInstalar && pwa.requiereInstruccionManual) {
             this._ayuda = !this._ayuda;
             this.pintar();
             this.emitir("manual");
             return;
         }
-        const resultado = await pwa.instalar();
+        this._ocupada = true;
         this.pintar();
-        this.emitir(resultado);
+        try {
+            const resultado = await pwa.instalar();
+            this.emitir(resultado);
+        } catch (error) {
+            this.emitir("error");
+        } finally {
+            this._ocupada = false;
+            this.pintar();
+        }
     }
 
     emitir(resultado) {
@@ -82,6 +91,17 @@ class GalenoInstalar extends HTMLElement {
           <style>
             :host { display:inline-block; }
             :host([hidden]), .oculto { display:none; }
+
+            button { padding:.45rem .9rem; border:0; border-radius:.4rem; background:#1D3461; color:#fff;
+                     cursor:pointer; font:inherit; min-height:2.5rem; }
+            button:disabled { opacity:.65; cursor:wait; }
+            button:hover { background:#27498A; }
+            button:focus-visible { outline:3px solid #629DCB; outline-offset:2px; }
+            p { margin:.5rem 0 0; font-size:.85rem; max-width:18rem; }
+          </style>
+          <div class="${visible ? "" : "oculto"}">
+            <button id="instalar" type="button" aria-label="Instalar la aplicación GalenoSV" ${this._ocupada ? "disabled" : ""}>${this._ocupada ? "Abriendo instalación…" : "Instalar app"}</button>
+=======
             /* tarjeta amable flotante: sale del flujo de la cabecera y no la desborda */
             .tarjeta { position:fixed; right:.9rem; bottom:calc(var(--barra-movil, 0rem) + env(safe-area-inset-bottom, 0px) + 1rem);
                        z-index:60; max-width:19rem;

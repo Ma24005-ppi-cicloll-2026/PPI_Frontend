@@ -3,6 +3,11 @@
 PWA + SPA hecha solo con ECMAScript y Web Components (sin librerías, sin estilos de terceros).
 Consume el API REST de GalenoSV (`http://localhost:9080/GalenoSV-1.0-SNAPSHOT/resources/`).
 
+La interfaz completa se monta en `<galeno-app>` y cada ruta (`galeno-pantalla-*`) es un Web Component propio.
+Los modelos de pantalla coordinan eventos y datos; los controles reutilizables viven en `boundary/componentes`.
+Las cargas asíncronas ignoran respuestas obsoletas cuando se inicia una búsqueda más reciente, y las acciones
+de guardado evitan envíos simultáneos.
+
 ## Historias de usuario (en el orden de la rúbrica)
 
 | HU | Pantalla | Ruta | Quién |

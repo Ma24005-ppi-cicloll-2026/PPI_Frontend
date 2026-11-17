@@ -15,6 +15,7 @@ class CitasModel {
         this.documentos = [];
         this.pacienteEn = [];             // PersonaRol de paciente de la persona identificada
         this.datos = null;
+        this._busqueda = 0;
     }
 
     iniciar() {
@@ -91,10 +92,14 @@ class CitasModel {
         this.buscaTipo = $("tipo"); this.campoNumero = $("numero"); this.selClinica = $("clinica");
         this.campoDesde = $("desde"); this.campoHasta = $("hasta");
         this.mensaje = $("mensaje"); this.estado = $("estado"); this.resultado = $("resultado");
+
+        this.aviso = this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
+
         this.boton = $("buscar"); this.bienvenida = $("bienvenida");
         this.secciones = [...this.contenedor.querySelectorAll(".seccion-asistente")];
         this.pasos = [...this.contenedor.querySelectorAll(".paso")];
         this.aviso = document.querySelector("#aviso");
+
         this.campoNumero.deshabilitado = true;
         this.selClinica.deshabilitado = true;
         this.campoNumero.ayuda = "";   // la ayuda del numero solo se ve con el campo habilitado
@@ -117,6 +122,9 @@ class CitasModel {
         return this.datos;
     }
 
+
+    destruir() { this._busqueda++; }
+=======
     // Aspecto del asistente: cada paso y cada seccion se ven bloqueados, activos o completos segun el estado real
     pintarSecciones() {
         const tipo = this.buscaTipo.seleccionado;
@@ -138,6 +146,7 @@ class CitasModel {
             if (estados[i] === "activa") p.setAttribute("aria-current", "step"); else p.removeAttribute("aria-current");
         });
     }
+
 
     async cargarDatos() {
         try {
@@ -186,12 +195,15 @@ class CitasModel {
     }
 
     async buscar() {
+
+        const busqueda = ++this._busqueda;
         this.bienvenida.hidden = true;   // el panel de bienvenida solo se ve antes de la primera busqueda
         this.mensaje.textContent = "";
         this.campoHasta.error(""); this.selClinica.error("");
         this.resultado.replaceChildren();
         if (!(await this.datos)) this.datos = this.cargarDatos();
         if (!(await this.datos)) return;
+        if (busqueda !== this._busqueda) return;
         if (!this.pacienteEn.length) this.identificar();   // por si escribio antes de que llegaran los datos
         if (!this.validar()) return;
         const clinica = this.selClinica.seleccionado;
@@ -201,12 +213,15 @@ class CitasModel {
         this.boton.disabled = true; this.boton.textContent = "Buscando citas...";
         try {
             const consultas = await new ConsultaService().listar(0, 5000);
+            if (busqueda !== this._busqueda) return;
             const mias = consultas
                 .filter(c => idsPaciente.includes(c.idPersonaRol?.idPersonaRol) && Agenda.enRango(c.fechaInicio, rango))
                 .sort((a, b) => DatosClinica.milisegundos(a.fechaInicio) - DatosClinica.milisegundos(b.fechaInicio));
             if (!mias.length) { this.estado.mostrar("vacio", "No encontramos citas en esa clínica para esas fechas. Pruebe ajustando el rango.", { arte: true }); return; }
             const cp = await new ConsultaProcedimientoService().listar(0, 5000);
+            if (busqueda !== this._busqueda) return;
             const procs = await new ProcedimientoService().listar(0, 1000);
+            if (busqueda !== this._busqueda) return;
             const nombres = new Map(procs.map(p => [p.idProcedimiento, p.nombre]));
             this.estado.mostrar("contenido");
             for (const c of mias) {
@@ -219,6 +234,7 @@ class CitasModel {
                 this.resultado.append(tarjeta);
             }
         } catch (e) {
+            if (busqueda !== this._busqueda) return;
             this.estado.mostrar("error", "No se pudieron cargar las citas.");
         } finally {
             this.boton.disabled = false; this.boton.innerHTML = CitasModel.BOTON;

@@ -1,3 +1,9 @@
+
+/* Ajustes para las pantallas con componentes. No reemplaza a principal.css. */
+galeno-app, galeno-pantalla-citas, galeno-pantalla-login,
+galeno-pantalla-dashboard, galeno-pantalla-consulta{ display:block; }
+header{
+=======
 /* Ajustes para las pantallas con componentes. No reemplaza a principal.css;
    todo color sale de los tokens de :root en principal.css. */
 
@@ -5,6 +11,7 @@
    La cabecera es un BLOQUE sticky: arriba la fila de acciones (flex) y debajo,
    cuando toca, la franja de conexion (sin ocupar fila en la rejilla). */
 .cabecera-fila{
+
     display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
     gap:.5rem 1rem; padding:.5rem .8rem;
 }

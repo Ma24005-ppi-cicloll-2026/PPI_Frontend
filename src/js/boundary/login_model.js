@@ -13,6 +13,7 @@ class LoginModel {
         this.personasRoles = [];
         this.documentos = [];
         this.datos = null;                    // promesa: true si el backend ya respondio bien
+        this._ingresando = false;
     }
 
     iniciar() {
@@ -66,7 +67,7 @@ class LoginModel {
                 </div>
             </section>`;
         const $ = id => this.contenedor.querySelector("#" + id);
-        this.aviso = document.querySelector("#aviso");
+        this.aviso = this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
         this.buscaTipo = $("tipo"); this.campoNumero = $("numero");
         this.mensaje = $("mensaje"); this.boton = $("ingresar");
         this.campoNumero.deshabilitado = true;
@@ -120,6 +121,7 @@ class LoginModel {
     }
 
     async ingresar() {
+        if (this._ingresando) return;
         const tipo = this.buscaTipo.seleccionado;
         const numero = this.campoNumero.value.trim();
         this.limpiarErrores();
@@ -130,6 +132,7 @@ class LoginModel {
             this.campoNumero.focus();
             return;
         }
+        this._ingresando = true;
         this.boton.disabled = true; this.boton.textContent = "Verificando...";
         try {
             if (!(await this.datos)) this.datos = this.cargarDatos();
@@ -144,6 +147,7 @@ class LoginModel {
             Sesion.iniciar(sesion);                 // el AppModel lleva al Dashboard
             this.aviso?.mostrar("Sesión iniciada", "exito");
         } finally {
+            this._ingresando = false;
             this.boton.disabled = false; this.boton.textContent = "Iniciar sesión";
         }
     }
