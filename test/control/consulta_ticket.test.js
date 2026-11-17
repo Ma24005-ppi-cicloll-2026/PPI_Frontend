@@ -2,7 +2,8 @@
 const { expect } = chai;
 describe("ConsultaService · ticket PDF del backend", () => {
     let stub;
-    afterEach(() => stub?.restore());
+    let leerCache;
+    afterEach(() => { stub?.restore(); stub = null; leerCache?.restore(); leerCache = null; });
     const respuesta = (estado = 200, nombre = 'attachment; filename="ticket-cita-2026-11-11-abc.pdf"') =>
         new Response(new Blob(["%PDF-1.4"], { type: "application/pdf" }), { status: estado, headers: { "Content-Disposition": nombre } });
 
@@ -27,6 +28,13 @@ describe("ConsultaService · ticket PDF del backend", () => {
         stub = sinon.stub(window, "fetch").resolves(respuesta(500));
         try { await new ConsultaService().ticket("k1"); expect.fail("debia fallar"); }
         catch (e) { expect(e.message).to.contain("500"); }
+    });
+    it("sin conexión devuelve el ticket guardado previamente", async () => {
+        const guardado = { blob: new Blob(["%PDF guardado"], { type: "application/pdf" }), nombre: "ticket-previo.pdf" };
+        stub = sinon.stub(window, "fetch").rejects(new TypeError("Failed to fetch"));
+        leerCache = sinon.stub(ApiCache, "leer").resolves(guardado);
+        expect(await new ConsultaService().ticket("k1")).to.equal(guardado);
+        expect(leerCache.calledOnce).to.equal(true);
     });
     it("descargarTicket baja el archivo con un enlace temporal", async () => {
         stub = sinon.stub(window, "fetch").resolves(respuesta());

@@ -211,26 +211,15 @@ class DashboardModel {
             estado === "curso" ? Expediente.abierta(c) : estado === "finalizadas" ? !Expediente.abierta(c) : true).length;
         this.conteo.querySelectorAll(".n").forEach(s => {
             const hasta = n(s.dataset.conteo);
-            const desde = Number(s.dataset.valor ?? 0);
             s.dataset.valor = String(hasta);
-            this.contar(s, desde, hasta);
+            this.contar(s, hasta);
         });
     }
 
-    // count-up de 400ms: el valor final tambien queda en dataset.valor (las pruebas lo leen al tiro);
-    // con prefers-reduced-motion no anima y el texto es el final de una vez
-    contar(s, desde, hasta) {
-        if (desde === hasta) { s.textContent = String(hasta); return; }
-        s.textContent = String(hasta);
-        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        const t0 = performance.now();
-        const paso = t => {
-            const k = Math.min((t - t0) / 400, 1);
-            const v = Math.round(desde + (hasta - desde) * k);
-            s.textContent = String(v);                       // el ultimo cuadro (k = 1) escribe el valor final
-            if (k < 1) requestAnimationFrame(paso);
-        };
-        requestAnimationFrame(paso);
+    // El valor se actualiza en el mismo ciclo que los filtros. Evita que una animacion anterior
+    // reescriba un conteo nuevo si el usuario cambia varios filtros rapidamente.
+    contar(s, valor) {
+        s.textContent = String(valor);
     }
 
     // tarjeta de consulta enriquecida SIN tocar control: el total de pasos definidos de cada

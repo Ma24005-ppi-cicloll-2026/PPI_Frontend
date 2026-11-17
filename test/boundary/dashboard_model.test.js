@@ -78,9 +78,8 @@ describe("DashboardModel (HU3)", () => {
         Ayuda.escribir(q("paciente"), "perez");
         expect(ids()).to.deep.equal(["k-ayer", "k-cerrada"]);
     });
-    it("al terminar la animacion los chips muestran el conteo real (no un numero a medio camino)", async () => {
+    it("los chips reflejan el conteo actualizado sin valores intermedios", async () => {
         await elegir("Santa Ana", "Médico");
-        await new Promise(r => setTimeout(r, 600));
         const visto = {};
         q("conteo").querySelectorAll(".chip").forEach(b => visto[b.dataset.estado] = b.querySelector(".n").textContent);
         expect(visto).to.deep.equal({ total: "2", curso: "1", finalizadas: "1" });

@@ -6,7 +6,9 @@ Consume el API REST de GalenoSV (`http://localhost:9080/GalenoSV-1.0-SNAPSHOT/re
 La interfaz completa se monta en `<galeno-app>` y cada ruta (`galeno-pantalla-*`) es un Web Component propio.
 Los modelos de pantalla coordinan eventos y datos; los controles reutilizables viven en `boundary/componentes`.
 Las cargas asíncronas ignoran respuestas obsoletas cuando se inicia una búsqueda más reciente, y las acciones
-de guardado evitan envíos simultáneos.
+de guardado evitan envíos simultáneos. Las respuestas GET y los tickets consultados se guardan por hasta siete días
+en IndexedDB y pueden volver a leerse sin conexión; cerrar sesión borra esa copia local. Las operaciones que escriben
+datos clínicos requieren conexión con Liberty y muestran error si el servidor no está disponible.
 
 ## Historias de usuario (en el orden de la rúbrica)
 
@@ -26,7 +28,8 @@ de guardado evitan envíos simultáneos.
 
 ## Correr
 - App: `browser-sync start --server src -f "**/*" --no-open` y el backend en Liberty (9080).
-- Pruebas: `browser-sync start --server . --startPath test/index.html --no-open`.
+- Pruebas (los scripts y herramientas están incluidos en `test/js/lib`, no requieren CDN):
+  `browser-sync start --server . --startPath test/index.html --no-open`.
 
 ## Al agregar un archivo a `src/`
 Anotarlo en `ARCHIVOS` de `src/sw.js` y subir `VERSION`, para que también funcione sin conexión.

@@ -18,6 +18,8 @@ class GalenoConexion extends HTMLElement {
         this.temporizador = null;
         this.alPerder = () => this.perder();
         this.alVolver = () => this.volver();
+        this.alCache = () => this.mostrarCache();
+        this.alApiDisponible = () => { if (this._estado === "sin-conexion") this.volver(); };
     }
 
     get estado() { return this._estado; }
@@ -25,33 +27,46 @@ class GalenoConexion extends HTMLElement {
     connectedCallback() {
         window.addEventListener("offline", this.alPerder);
         window.addEventListener("online", this.alVolver);
-        if (navigator.onLine === false) this._estado = "sin-conexion";
+        window.addEventListener("galeno-api-cache", this.alCache);
+        window.addEventListener("galeno-api-disponible", this.alApiDisponible);
+        if (navigator.onLine === false) this.perder();
         this.pintar();
     }
 
     disconnectedCallback() {
         window.removeEventListener("offline", this.alPerder);
         window.removeEventListener("online", this.alVolver);
+        window.removeEventListener("galeno-api-cache", this.alCache);
+        window.removeEventListener("galeno-api-disponible", this.alApiDisponible);
         clearTimeout(this.temporizador);
     }
 
     perder() {
         clearTimeout(this.temporizador);
         this._estado = "sin-conexion";
+        this.textoEstado = "Sin conexión: se muestran los últimos datos guardados en este dispositivo. Las escrituras requieren conexión.";
+        this.pintar();
+    }
+
+    mostrarCache() {
+        clearTimeout(this.temporizador);
+        this._estado = "sin-conexion";
+        this.textoEstado = "El servidor no responde: se muestran los últimos datos guardados en este dispositivo. Las escrituras requieren conexión.";
         this.pintar();
     }
 
     volver() {
         clearTimeout(this.temporizador);
         this._estado = "restablecida";
+        this.textoEstado = "Conexión restablecida";
         this.pintar();
         this.temporizador = setTimeout(() => { this._estado = "oculto"; this.pintar(); }, 3000);
     }
 
     pintar() {
         const textos = {
-            "sin-conexion": "Sin conexión: mostrando los datos guardados en este dispositivo.",
-            "restablecida": "Conexión restablecida"
+            "sin-conexion": this.textoEstado || "Sin conexión: mostrando los datos guardados en este dispositivo.",
+            "restablecida": this.textoEstado || "Conexión restablecida"
         };
         const iconos = { "sin-conexion": GalenoConexion.ICONOS.sin, "restablecida": GalenoConexion.ICONOS.ok };
         this.shadowRoot.innerHTML = `

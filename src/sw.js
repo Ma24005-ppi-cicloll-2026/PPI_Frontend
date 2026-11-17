@@ -3,7 +3,7 @@
 // (el numero nuevo hace que los usuarios descarguen la version actualizada).
 importScripts("js/control/sw_estrategias.js");
 
-const VERSION = "galeno-v11";
+const VERSION = "galeno-v12";
 
 const ARCHIVOS = [
     "./",
@@ -33,6 +33,7 @@ const ARCHIVOS = [
     "js/boundary/pantallas.js",
     "js/boundary/seguimiento_model.js",
     "js/control/agenda.js",
+    "js/control/api_cache.js",
     "js/control/clinica_service.js",
     "js/control/consulta_procedimiento_paso_service.js",
     "js/control/consulta_procedimiento_service.js",

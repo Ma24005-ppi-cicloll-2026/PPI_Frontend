@@ -21,12 +21,21 @@ async function esperarError(funcion) {
 describe("DefaultService", () => {
     let fetchFalso;
     let servicio;
+    let copias;
+    let guardarCache;
+    let leerCache;
 
     beforeEach(() => {
+        copias = new Map();
+        guardarCache = sinon.stub(ApiCache, "guardar").callsFake(async (url, valor) => { copias.set(url, valor); return true; });
+        leerCache = sinon.stub(ApiCache, "leer").callsFake(async url => copias.get(url) ?? null);
         fetchFalso = sinon.stub(window, "fetch");   // reemplaza fetch por uno falso
         servicio = new DefaultService("documento");
     });
-    afterEach(() => fetchFalso.restore());          // lo devuelve a la normalidad
+    afterEach(() => {
+        fetchFalso.restore();
+        guardarCache.restore(); leerCache.restore();
+    });
 
     it("arma la URL base con la ruta", () => {
         expect(servicio.url).to.equal("http://localhost:9080/GalenoSV-1.0-SNAPSHOT/resources/documento");
@@ -52,6 +61,15 @@ describe("DefaultService", () => {
         it("devuelve un arreglo vacio si no hay datos", async () => {
             fetchFalso.resolves(respuesta(200, []));
             expect(await servicio.listar()).to.deep.equal([]);
+        });
+        it("guarda la última respuesta correcta y la usa si se pierde la conexión", async () => {
+            fetchFalso.onFirstCall().resolves(respuesta(200, [{ idDocumento: "local" }]));
+            fetchFalso.onSecondCall().rejects(new TypeError("Failed to fetch"));
+            expect(await servicio.listar()).to.deep.equal([{ idDocumento: "local" }]);
+            expect(servicio.ultimaLecturaDesdeCache).to.equal(false);
+            await Promise.resolve();
+            expect(await servicio.listar()).to.deep.equal([{ idDocumento: "local" }]);
+            expect(servicio.ultimaLecturaDesdeCache).to.equal(true);
         });
         it("lanza error con el codigo si el servidor responde 500", async () => {
             fetchFalso.resolves(respuesta(500));

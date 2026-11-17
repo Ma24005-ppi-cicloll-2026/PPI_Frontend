@@ -31,6 +31,8 @@ class Sesion {
     static cerrar() {
         Sesion.memoria = null;
         try { sessionStorage.setItem("sesion", "null"); } catch (e) { /* se ignora */ }   // "null" = sin sesion
+        // Las copias contienen datos personales; se eliminan al cerrar la sesión.
+        if (typeof ApiCache !== "undefined") ApiCache.limpiar().catch(() => {});
         window.dispatchEvent(new CustomEvent("galeno-sesion"));
     }
 
