@@ -2,16 +2,19 @@
 {
 const { expect } = chai;
 describe("AppModel", () => {
-    let api, app, cont;
+    let api, app, cont, transicionStub;
     const empleado = { idPersona: "p-ana", nombre: "Ana Mejía", contextos: [{ idPersonaRol: "pr-ana-med-sa", idRol: "r-med", rol: "Médico", idClinica: "c-sa", clinica: "Santa Ana" }] };
     beforeEach(() => {
         Sesion.cerrar(); window.location.hash = "";
         api = new ApiFalsa(Datos.bd());
+        // view transitions: se ejecuta el cambio AL TIRO para que las pruebas sean sincronas
+        transicionStub = sinon.stub(document, "startViewTransition")
+            .callsFake(fn => { fn(); return { finished: Promise.resolve() }; });
         cont = document.createElement("div");
-        cont.innerHTML = '<header><span id="sesion"></span></header><galeno-menu id="menu"></galeno-menu><main id="pantalla"></main><galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>';
+        cont.innerHTML = '<p id="anuncio" class="sr" aria-live="polite"></p><header><p id="titulo-seccion"><span id="titulo-seccion-texto"></span></p><span id="sesion"></span></header><galeno-menu id="menu"></galeno-menu><main id="pantalla"></main><galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>';
         document.body.append(cont);
     });
-    afterEach(() => { app?.destruir(); api.restaurar(); cont.remove(); Sesion.cerrar(); window.location.hash = ""; });
+    afterEach(() => { transicionStub.restore(); app?.destruir(); api.restaurar(); cont.remove(); Sesion.cerrar(); window.location.hash = ""; });
     const arrancar = async () => { app = new AppModel(); app.iniciar(); await Ayuda.esperar(); };
     const menu = () => app.menu.items.map(i => i.texto);
     const titulo = () => cont.querySelector("#pantalla h2")?.textContent;
@@ -21,7 +24,14 @@ describe("AppModel", () => {
             await arrancar();
             expect(titulo()).to.equal("Buscar citas");
             expect(menu()).to.deep.equal(["Buscar citas", "Iniciar sesión"]);
-            expect(cont.querySelector("#sesion").textContent).to.equal("Sin sesión iniciada");
+            expect(cont.querySelector("#sesion .nombre").textContent).to.equal("Sin sesión iniciada");
+        });
+        it("el boton Iniciar sesión de la cabecera lleva al login", async () => {
+            await arrancar();
+            cont.querySelector("#sesion button.entrar").click();
+            await Ayuda.esperar();
+            expect(titulo()).to.equal("Iniciar sesión");
+            expect(window.location.hash).to.equal("#/login");
         });
         it("puede ir a Iniciar sesión", async () => {
             await arrancar(); app.irA("login");
@@ -46,11 +56,19 @@ describe("AppModel", () => {
         it("empieza en el Dashboard", async () => {
             await arrancar();
             expect(titulo()).to.equal("Dashboard");
-            expect(cont.querySelector("#sesion").textContent).to.equal("Ana Mejía");
+            expect(cont.querySelector("#sesion .nombre").textContent).to.equal("Ana Mejía");
         });
-        it("el menu: Buscar citas, Dashboard y Cerrar sesión (la consulta se abre desde una card)", async () => {
+        it("la cabecera compacta muestra el titulo de la seccion actual", async () => {
             await arrancar();
-            expect(menu()).to.deep.equal(["Buscar citas", "Dashboard", "Cerrar sesión"]);
+            expect(cont.querySelector("#titulo-seccion-texto").textContent).to.equal("Dashboard");
+            Sesion.cerrar();
+            await Ayuda.esperar();
+            expect(cont.querySelector("#titulo-seccion-texto").textContent).to.equal("Buscar citas");
+        });
+        it("el menu solo lleva pantallas; Cerrar sesión vive en la cabecera", async () => {
+            await arrancar();
+            expect(menu()).to.deep.equal(["Buscar citas", "Dashboard"]);
+            expect(cont.querySelector("#sesion button.salir").textContent).to.contain("Cerrar sesión");
         });
         it("no puede ir a Login", async () => {
             await arrancar(); app.irA("login");
@@ -75,17 +93,41 @@ describe("AppModel", () => {
             window.location.hash = "/citas"; await Ayuda.esperar(20);
             expect(titulo()).to.equal("Buscar citas");
         });
-        it("elegir clinica y rol actualiza el encabezado", async () => {
+        it("elegir clinica y rol actualiza el encabezado (nombre y linea rol · clinica)", async () => {
             await arrancar();
             Sesion.elegirContexto(empleado.contextos[0]);
-            expect(cont.querySelector("#sesion").textContent).to.equal("Ana Mejía · Médico · Santa Ana");
+            expect(cont.querySelector("#sesion .nombre").textContent).to.equal("Ana Mejía");
+            expect(cont.querySelector("#sesion .detalle").textContent).to.equal("Médico · Santa Ana");
         });
-        it("Cerrar sesión vuelve a Buscar citas", async () => {
+        it("Cerrar sesión (boton de la cabecera) vuelve a Buscar citas", async () => {
             await arrancar();
-            app.menu.dispatchEvent(new CustomEvent("galeno-navegar", { detail: { destino: "salir" } }));
+            cont.querySelector("#sesion button.salir").click();
             await Ayuda.esperar();
             expect(titulo()).to.equal("Buscar citas");
             expect(menu()).to.deep.equal(["Buscar citas", "Iniciar sesión"]);
+        });
+    });
+
+    describe("transicion de pantallas (view transitions)", () => {
+        beforeEach(() => Sesion.iniciar(empleado));
+        it("usa document.startViewTransition al cambiar de pantalla", async () => {
+            await arrancar();
+            expect(transicionStub.calledOnce).to.equal(true);
+            expect(titulo()).to.equal("Dashboard");
+        });
+        it("con prefers-reduced-motion no la usa (queda el respaldo CSS)", async () => {
+            const mm = sinon.stub(window, "matchMedia").returns({ matches: true, addEventListener() {}, removeEventListener() {} });
+            await arrancar();
+            expect(transicionStub.called).to.equal(false);
+            expect(titulo()).to.equal("Dashboard");
+            mm.restore();
+        });
+        it("anuncia la pantalla nueva en la region aria-live y enfoca su titulo", async () => {
+            await arrancar();
+            expect(cont.querySelector("#anuncio").textContent).to.equal("Pantalla: Dashboard");
+            expect(document.activeElement).to.equal(cont.querySelector("#pantalla h2"));
+            app.irA("citas"); await Ayuda.esperar();
+            expect(cont.querySelector("#anuncio").textContent).to.equal("Pantalla: Buscar citas");
         });
     });
 

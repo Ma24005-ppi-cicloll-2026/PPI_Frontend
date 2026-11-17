@@ -40,19 +40,33 @@ class GalenoListaExamenes extends HTMLElement {
         const bloqueada = Boolean(this._deshabilitada);
         this.shadowRoot.innerHTML = `
           <style>
-            :host { display:block; font-family:inherit; color:#1D3461; }
-            h3 { margin:0 0 .5rem; }
-            label.cat { display:block; font-weight:600; margin-bottom:.3rem; }
-            select { width:100%; box-sizing:border-box; padding:.5rem; border:1px solid #5D7899; border-radius:.4rem; font:inherit; min-height:2.5rem; }
-            ul { list-style:none; margin:.6rem 0; padding:0; border:1px solid #5D7899; border-radius:.4rem; max-height:16rem; overflow:auto; }
-            li { border-bottom:1px solid #DCE6F1; }
-            li label { display:flex; gap:.6rem; align-items:center; padding:.5rem .7rem; min-height:2.5rem; cursor:pointer; }
-            li small { color:#3A4F73; display:block; }
-            input { width:1.2rem; height:1.2rem; }
+            :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); }
+            h3 { margin:0 0 .5rem; font-size:var(--fs-2, 1rem); }
+            label.cat { display:block; font-weight:600; margin-bottom:.3rem; font-size:var(--fs-1, .875rem); }
+            select { width:100%; box-sizing:border-box; padding:.5rem .7rem; border:1px solid var(--borde-fuerte, #9FB0B8);
+                     border-radius:var(--radio-control, .625rem); font:inherit; min-height:2.5rem; background:var(--superficie, #fff);
+                     color:var(--texto, #26354E); }
+            select:disabled { background:var(--info-fondo, #EDF3F2); border-style:dashed; color:var(--inactivo, #8CA0A8); cursor:not-allowed; }
+            select:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+            ul { list-style:none; margin:.6rem 0; padding:0; border:1px solid var(--borde, #E3EAEA);
+                 border-radius:var(--radio-control, .625rem); max-height:16rem; overflow:auto; }
+            li { border-bottom:1px solid var(--borde, #E3EAEA); }
+            li:last-child { border-bottom:0; }
+            li label { display:flex; gap:.6rem; align-items:center; padding:.5rem .7rem; min-height:2.5rem; cursor:pointer;
+                       transition:background var(--velocidad, 180ms); }
+            li label:hover { background:var(--primario-suave, #E9F1EF); }
+            li small { color:var(--tinta-suave, #44577B); display:block; }
+            input { width:1.2rem; height:1.2rem; accent-color:var(--primario, #2F6F73); flex:0 0 auto; }
+            input:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
             .vacio { padding:.7rem; }
-            button { width:100%; min-height:2.75rem; border:0; border-radius:.5rem; background:#1D3461; color:#fff; font:inherit; cursor:pointer; }
-            button:disabled { background:#829CBC; cursor:not-allowed; }
-            :focus-visible { outline:3px solid #629DCB; outline-offset:2px; }
+            button { width:100%; min-height:2.75rem; border:0; border-radius:var(--radio-control, .625rem);
+                     background:var(--primario, #2F6F73); color:var(--sobre-primario, #fff); font:inherit; font-weight:600; cursor:pointer;
+                     transition:background var(--velocidad, 180ms); }
+            button:hover:not(:disabled) { background:var(--primario-oscuro, #25585B); }
+            button:disabled { background:var(--inactivo, #8CA0A8); cursor:not-allowed; }
+            button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
+            @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <h3>Lista de exámenes asignables</h3>
           <label class="cat" for="cat">Categoría</label>

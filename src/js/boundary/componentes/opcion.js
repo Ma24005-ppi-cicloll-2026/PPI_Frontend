@@ -56,17 +56,20 @@ class GalenoOpcion extends HTMLElement {
         this.shadowRoot.innerHTML = `
           <style>
             :host { display:block; }
-            button { width:100%; height:100%; text-align:center; font:inherit; color:#1D3461; background:#fff;
-                     border:2px solid #B9D3EA; border-radius:.6rem; padding:.8rem; cursor:pointer;
-                     display:grid; gap:.3rem; justify-items:center; align-content:start; position:relative; min-height:3rem; }
-            button:hover:not([disabled]) { border-color:#1D3461; }
-            button:focus-visible { outline:3px solid #629DCB; outline-offset:2px; }
-            button[aria-pressed=true] { border-color:#1D6B3A; background:#EAF6EE; }
-            button[disabled] { opacity:.55; cursor:not-allowed; background:#F1F1F1; }
-            svg { width:3.5rem; height:3.5rem; fill:#1D3461; color:#1D3461; }
+            button { width:100%; height:100%; text-align:center; font:inherit; color:var(--tinta, #1D3461); background:var(--superficie, #fff);
+                     border:1.5px solid var(--borde-fuerte, #9FB0B8); border-radius:var(--radio-tarjeta, .875rem); padding:.8rem; cursor:pointer;
+                     display:grid; gap:.3rem; justify-items:center; align-content:start; position:relative; min-height:3rem;
+                     transition:border-color var(--velocidad, 180ms), background var(--velocidad, 180ms), box-shadow var(--velocidad, 180ms); }
+            button:hover:not([disabled]) { border-color:var(--primario, #2F6F73); box-shadow:var(--sombra-1, none); }
+            button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+            button[aria-pressed=true] { border-color:var(--exito, #3E7C59); background:var(--exito-fondo, #E9F3ED); }
+            button[disabled] { opacity:.55; cursor:not-allowed; background:var(--fondo, #F5F8F8); }
+            svg { width:3.5rem; height:3.5rem; fill:var(--tinta, #1D3461); color:var(--tinta, #1D3461); }
             strong { font-size:1.05rem; }
-            small { color:#3A4F73; }
-            .marca { position:absolute; top:.4rem; right:.5rem; color:#1D6B3A; font-weight:700; }
+            small { color:var(--tinta-suave, #44577B); }
+            .marca { position:absolute; top:.4rem; right:.5rem; color:var(--exito, #3E7C59); font-weight:700; }
+          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
+            @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <button type="button" aria-pressed="${this._seleccionada}" ${activo ? "" : "disabled"}>
             ${this.hasAttribute("sin-icono") ? "" : `<svg viewBox="0 0 64 64" aria-hidden="true">${icono}</svg>`}

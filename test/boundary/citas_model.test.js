@@ -18,9 +18,20 @@ describe("CitasModel (HU1)", () => {
     const tarjetas = () => [...zona.querySelectorAll("galeno-tarjeta-cita")];
 
     it("es un asistente en orden: tipo, numero, clinica, fechas", () => {
-        const orden = [...zona.querySelectorAll("#formulario > *")].map(e => e.id).filter(Boolean);
-        expect(orden).to.deep.equal(["tipo", "numero", "clinica", "mensaje", "buscar"].filter(x => x !== "x"));
+        const orden = [...zona.querySelectorAll("#formulario [id]")].map(e => e.id)
+            .filter(id => id !== "desde" && id !== "hasta");
+        expect(orden).to.deep.equal(["tipo", "numero", "clinica", "mensaje", "buscar"]);
         expect(q("desde").getAttribute("type")).to.equal("date");
+    });
+    it("cada seccion del asistente se ve activa o bloqueada segun el estado", () => {
+        const secciones = [...zona.querySelectorAll(".seccion-asistente")];
+        expect(secciones).to.have.length(3);
+        expect(secciones[0].classList.contains("activa")).to.equal(true);
+        expect(secciones[1].classList.contains("bloqueada")).to.equal(true);
+        documento("DUI", "11111111-1");
+        expect(secciones[0].classList.contains("completa")).to.equal(true);
+        expect(secciones[1].classList.contains("activa")).to.equal(true);
+        expect(secciones[2].classList.contains("activa")).to.equal(true);
     });
     it("numero y clinica estan bloqueados al inicio", () => {
         expect(q("numero").deshabilitado).to.equal(true);

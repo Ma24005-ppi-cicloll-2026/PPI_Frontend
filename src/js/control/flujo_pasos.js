@@ -11,8 +11,12 @@
 class FlujoPasos {
 
     // Pasos definidos de UN procedimiento, en orden. secuencias = todas las ProcedimientoPasoSecuencia.
-    //   - tipoSecuencia que contiene "ant" o "prev": el paso de referencia va ANTES.
-    //   - cualquier otro ("siguiente", "despues"...): el paso de referencia va DESPUES.
+    // tipoSecuencia se compara sin mayusculas ni tildes:
+    //   - "after"/"despues"/"posterior" (el backend crea "AFTER"): el paso va DESPUES de la referencia,
+    //     o sea la referencia va ANTES (asi el primer paso es el que no depende de otro).
+    //   - "before": el paso va ANTES de la referencia.
+    //   - "anterior"/"previo" ("ant"/"prev"): la referencia va ANTES.
+    //   - cualquier otro ("siguiente"...): el paso de referencia va DESPUES (comportamiento de siempre).
     // Los pasos que no quedan ordenados por la secuencia se dejan al final, en el orden en que llegaron.
     static ordenar(pasos, secuencias = []) {
         const ids = new Set(pasos.map(p => p.idProcedimientoPaso));
@@ -26,7 +30,13 @@ class FlujoPasos {
         secuencias.forEach(s => {
             const paso = s.idProcedimientoPaso?.idProcedimientoPaso;
             const referencia = s.idProcedimientoPasoReferencia;
-            if (/ant|prev/i.test(s.tipoSecuencia ?? "")) unir(referencia, paso); else unir(paso, referencia);
+            // sin mayusculas ni tildes ("AFTER" -> "after", "Después" -> "despues")
+            const tipo = String(s.tipoSecuencia ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            // after/before primero, para que no los capturen las reglas viejas
+            if (/after|despues|posterior/.test(tipo)) unir(referencia, paso);   // la referencia va ANTES del paso
+            else if (/before/.test(tipo)) unir(paso, referencia);               // el paso va ANTES de la referencia
+            else if (/ant|prev/.test(tipo)) unir(referencia, paso);             // "anterior"/"previo": ref antes
+            else unir(paso, referencia);                                        // resto: como siempre
         });
         const orden = [];
         const pendientes = [...pasos];

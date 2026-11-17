@@ -28,6 +28,7 @@ describe("DashboardModel (HU3)", () => {
     it("primero pide clinica y rol, y no muestra consultas ni filtros", () => {
         expect(q("filtros").hidden).to.equal(true);
         expect(tarjetas()).to.have.length(0);
+        expect(q("estado").estado).to.equal("vacio");   // invita a elegir clinica y rol
     });
     it("solo ofrece SUS clinicas y, al elegir una, SUS roles en ella", () => {
         expect(q("clinica").opciones.map(c => c.nombre)).to.have.members(["Santa Ana", "San Miguel"]);
@@ -54,14 +55,14 @@ describe("DashboardModel (HU3)", () => {
     });
     it("Futuro y Pasado cambian la lista", async () => {
         await elegir("Santa Ana", "Recepcionista");
-        Ayuda.elegir(q("modo"), Agenda.MODOS.indexOf("Futuro"));
+        q("modo").seleccionar(q("modo").opciones[Agenda.MODOS.indexOf("Futuro")]);
         expect(ids()).to.deep.equal(["k-manana"]);
-        Ayuda.elegir(q("modo"), Agenda.MODOS.indexOf("Pasado"));
+        q("modo").seleccionar(q("modo").opciones[Agenda.MODOS.indexOf("Pasado")]);
         expect(ids()).to.deep.equal(["k-ayer"]);
     });
     it("Rango muestra los campos de fecha y filtra", async () => {
         await elegir("Santa Ana", "Recepcionista");
-        Ayuda.elegir(q("modo"), Agenda.MODOS.indexOf("Rango"));
+        q("modo").seleccionar(q("modo").opciones[Agenda.MODOS.indexOf("Rango")]);
         expect(q("desde").hidden).to.equal(false);
         q("desde").value = Datos.fechaLocal(1); q("hasta").value = Datos.fechaLocal(1);
         q("hasta").entrada.dispatchEvent(new Event("input"));
@@ -69,13 +70,53 @@ describe("DashboardModel (HU3)", () => {
     });
     it("filtra por paciente (nombre sin tildes o documento)", async () => {
         await elegir("Santa Ana", "Recepcionista");
-        Ayuda.elegir(q("modo"), Agenda.MODOS.indexOf("Rango"));
+        q("modo").seleccionar(q("modo").opciones[Agenda.MODOS.indexOf("Rango")]);
         Ayuda.escribir(q("paciente"), "jenni");
         expect(ids()).to.deep.equal(["k-manana"]);
         Ayuda.escribir(q("paciente"), "11111111");
         expect(ids()).to.deep.equal(["k-ayer", "k-cerrada"]);
         Ayuda.escribir(q("paciente"), "perez");
         expect(ids()).to.deep.equal(["k-ayer", "k-cerrada"]);
+    });
+    it("los chips de conteo filtran por estado sin recargar", async () => {
+        await elegir("Santa Ana", "Médico");
+        const conteos = {};
+        q("conteo").querySelectorAll(".chip").forEach(b => conteos[b.dataset.estado] = b.querySelector(".n").textContent);
+        expect(conteos).to.deep.equal({ total: "2", curso: "1", finalizadas: "1" });
+        q("conteo").querySelector('[data-estado="finalizadas"]').click();
+        expect(ids()).to.deep.equal(["k-cerrada"]);
+        q("conteo").querySelector('[data-estado="curso"]').click();
+        expect(ids()).to.deep.equal(["k-hoy"]);
+        q("conteo").querySelector('[data-estado="total"]').click();
+        expect(ids()).to.deep.equal(["k-hoy", "k-cerrada"]);
+    });
+    it("tras cargar el contexto se colapsa a un resumen con Cambiar", async () => {
+        await elegir("Santa Ana", "Médico");
+        expect(q("contexto").hidden).to.equal(true);
+        expect(q("resumen-contexto").hidden).to.equal(false);
+        expect(q("resumen-contexto-texto").textContent).to.contain("Santa Ana");
+        expect(q("resumen-contexto-texto").textContent).to.contain("Médico");
+        q("cambiar-contexto").click();
+        expect(q("contexto").hidden).to.equal(false);
+        expect(q("resumen-contexto").hidden).to.equal(true);
+    });
+    it("lista de a 12 tarjetas y agrega el resto con Mostrar más", async () => {
+        await elegir("Santa Ana", "Médico");
+        // 28 consultas clonadas (sin pasos: le toca atender a cualquiera) para pasar de 12
+        const base = modelo.datos.consultas.find(c => c.idConsulta === "k-hoy");
+        modelo.datos.consultas = modelo.datos.consultas.concat(
+            Array.from({ length: 28 }, (_, i) => ({ ...base, idConsulta: "k-clon-" + i })));
+        modelo.pintar();
+        expect(tarjetas()).to.have.length(12);
+        expect(q("mostrar-mas").textContent).to.contain("18 restantes");
+        q("mostrar-mas").click();
+        expect(tarjetas()).to.have.length(24);
+        q("mostrar-mas").click();
+        expect(tarjetas()).to.have.length(30);
+        expect(q("mostrar-mas")).to.equal(null);
+        // al cambiar un filtro vuelve a la primera pagina
+        Ayuda.escribir(q("paciente"), "luis");
+        expect(tarjetas().length).to.be.at.most(12);
     });
     it("sin resultados muestra el mensaje vacio", async () => {
         await elegir("Santa Ana", "Médico");

@@ -77,5 +77,21 @@ describe("galeno-notificacion-emergente", () => {
         aviso.mostrar("<b>x</b>", "error");
         expect(aviso.shadowRoot.querySelector("#caja b")).to.equal(null);
     });
+    it("se puede cerrar con el boton del toast y con Escape", () => {
+        aviso.mostrar("Hola");
+        aviso.shadowRoot.querySelector("#caja .cerrar").click();
+        expect(caja().hidden).to.equal(true);
+        aviso.mostrar("Otra vez");
+        aviso.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+        expect(caja().hidden).to.equal(true);
+    });
+    it("lleva barra de tiempo ajustada a la duracion y color por tipo", () => {
+        aviso.mostrar("Hola", "aviso", 2500);
+        const barra = aviso.shadowRoot.querySelector("#caja .barra");
+        expect(barra).to.not.equal(null);
+        expect(barra.style.animationDuration).to.equal("2500ms");
+        expect(caja().className).to.equal("aviso");
+        expect(aviso.shadowRoot.querySelector("#caja .icono")).to.not.equal(null);
+    });
 });
 }

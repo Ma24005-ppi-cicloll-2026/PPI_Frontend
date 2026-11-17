@@ -17,7 +17,11 @@ describe("<galeno-instalar>", () => {
     const boton = () => el.shadowRoot.querySelector("#instalar");
     const visible = () => !el.shadowRoot.querySelector("div").classList.contains("oculto");
     beforeEach(() => { el = document.createElement("galeno-instalar"); document.body.append(el); });
-    afterEach(() => el.remove());
+    afterEach(() => {
+        el.remove();
+        // limpiar el descarte de sesion para no afectar a las demas pruebas
+        try { sessionStorage.removeItem("galeno-instalar-descarte"); } catch (e) {}
+    });
 
     it("esta oculto mientras no se pueda instalar", () => {
         el.pwa = pwaFalso();
@@ -61,6 +65,18 @@ describe("<galeno-instalar>", () => {
     it("el boton tiene nombre accesible", () => {
         el.pwa = pwaFalso({ puede: true });
         expect(boton().getAttribute("aria-label")).to.contain("Instalar");
+    });
+    it("la tarjeta se descarta con Ahora no y no vuelve a molestar en la sesion", () => {
+        const pwa = pwaFalso({ puede: true }); el.pwa = pwa;
+        expect(visible()).to.equal(true);
+        el.shadowRoot.querySelector("#descartar").click();
+        expect(visible()).to.equal(false);
+        // aunque el navegador vuelva a avisar, no reaparece en esta sesion
+        pwa.ventana.dispatchEvent(new CustomEvent("galeno-instalable"));
+        expect(visible()).to.equal(false);
+        let marca = null;
+        try { marca = sessionStorage.getItem("galeno-instalar-descarte"); } catch (e) {}
+        expect(marca).to.equal("1");
     });
 });
 
