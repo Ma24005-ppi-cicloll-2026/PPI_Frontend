@@ -383,7 +383,9 @@ header h1{ margin:0; font-size:1.3rem; }
 }
 /* ≥60rem: los filtros entran en UNA fila (con Rango: paciente | fechas | desde | hasta) */
 @container (min-width:60rem){
-    #pantalla .dashboard #filtros{ grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,.7fr) minmax(0,.7fr); }
+    /* Fechas ocupa lo que miden sus 4 botones (max-content): sin Rango no deja columnas vacias y la pildora no se parte;
+       con Rango, desde y hasta caen en las columnas implicitas (grid-auto-columns) */
+    #pantalla .dashboard #filtros{ grid-template-columns:minmax(0,1.4fr) max-content; grid-auto-columns:minmax(9rem,.7fr); }
 }
 
 /* rejilla de tarjetas: 1/2/3/4 columnas segun el ancho real (min ~20rem por tarjeta);

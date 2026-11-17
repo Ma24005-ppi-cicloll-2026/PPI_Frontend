@@ -67,10 +67,7 @@ class GalenoConexion extends HTMLElement {
             .restablecida .icono { color:var(--exito, #4F8A6B); }
             .oculto { display:none; }
           </style>
-          <div role="status" aria-live="polite" class="${this._estado}">
-            ${iconos[this._estado] ?? ""}
-            <span class="texto">${textos[this._estado] ?? ""}</span>
-          </div>`;
+          <div role="status" aria-live="polite" class="${this._estado}">${iconos[this._estado] ?? ""}<span class="texto">${textos[this._estado] ?? ""}</span></div>`;
     }
 }
 

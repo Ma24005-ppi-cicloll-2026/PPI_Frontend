@@ -84,6 +84,26 @@ describe("SeguimientoModel (HU4)", () => {
         expect(api.enviados("PUT", "consulta_procedimiento")[0].cuerpo.observaciones).to.contain("Paso 1 (Triaje)");
         expect(api.enviados("PUT", "consulta")).to.have.length(0);   // la consulta sigue abierta
     });
+    it("asignar examenes no borra las notas que se estan escribiendo", async () => {
+        await abrir("k-hoy");
+        Ayuda.escribir(q("notas"), "Dolor de cabeza desde ayer");
+        q("examenes").dispatchEvent(new CustomEvent("galeno-asignar", { detail: { ids: ["e-rx"] } }));
+        await Ayuda.esperar(20);
+        expect(q("notas").value).to.equal("Dolor de cabeza desde ayer");
+    });
+    it("si falla el guardado al avanzar, las notas escritas se conservan en pantalla", async () => {
+        Sesion.elegirContexto({ idPersonaRol: "pr-ana-rec-sa", idRol: "r-rec", rol: "Recepcionista", idClinica: "c-sa", clinica: "Santa Ana" });
+        await abrir("k-manana");
+        Ayuda.escribir(q("notas"), "Presión normal");
+        api.restaurar();
+        const falla = sinon.stub(window, "fetch").callsFake(async (u, op) =>
+            (op && op.method) ? new Response("", { status: 500 }) : new Response("[]", { status: 200 }));
+        q("avanzar").click(); await Ayuda.esperar(20);
+        falla.restore();
+        api = new ApiFalsa(Datos.bd());
+        expect(q("notas").value).to.equal("Presión normal");
+        expect(q("avanzar").disabled).to.equal(false);
+    });
     it("una consulta ya finalizada es de solo lectura", async () => {
         await abrir("k-cerrada");
         expect(q("avanzar").hidden && q("finalizar").hidden).to.equal(true);

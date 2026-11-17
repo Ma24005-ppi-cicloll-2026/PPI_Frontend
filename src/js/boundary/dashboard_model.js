@@ -217,8 +217,8 @@ class DashboardModel {
         });
     }
 
-    // count-up de 400ms: el valor FINAL queda escrito de una vez (las pruebas lo leen al tiro)
-    // y la animacion solo lo recorre en pantalla; con prefers-reduced-motion no anima
+    // count-up de 400ms: el valor final tambien queda en dataset.valor (las pruebas lo leen al tiro);
+    // con prefers-reduced-motion no anima y el texto es el final de una vez
     contar(s, desde, hasta) {
         if (desde === hasta) { s.textContent = String(hasta); return; }
         s.textContent = String(hasta);
@@ -227,7 +227,7 @@ class DashboardModel {
         const paso = t => {
             const k = Math.min((t - t0) / 400, 1);
             const v = Math.round(desde + (hasta - desde) * k);
-            if (v !== hasta) s.textContent = String(v);      // el final no se toca: queda estable
+            s.textContent = String(v);                       // el ultimo cuadro (k = 1) escribe el valor final
             if (k < 1) requestAnimationFrame(paso);
         };
         requestAnimationFrame(paso);

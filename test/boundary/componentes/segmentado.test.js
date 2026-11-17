@@ -72,12 +72,12 @@ describe("galeno-segmentado", () => {
         const bs = pildoras();
         bs[0].focus();
         bs[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-        expect(document.activeElement).to.equal(bs[1]);
+        expect(el.shadowRoot.activeElement).to.equal(bs[1]);
         bs[1].dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
-        expect(document.activeElement).to.equal(bs[3]);
+        expect(el.shadowRoot.activeElement).to.equal(bs[3]);
         bs[1].click();     // Enter/Espacio de un boton = clic: elige
         expect(el.seleccionado.nombre).to.equal("Pasado");
-        expect(document.activeElement).to.equal(pildoras()[1]);   // el foco vuelve a la elegida
+        expect(el.shadowRoot.activeElement).to.equal(pildoras()[1]);   // el foco vuelve a la elegida
     });
 
     it("sin opciones no dibuja pildoras", () => {

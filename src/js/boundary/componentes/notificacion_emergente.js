@@ -68,11 +68,9 @@ class GalenoNotificacionEmergente extends HTMLElement {
         caja.className = tipo;
         // el mensaje vive en su propio span: el textContent de la caja sigue siendo EXACTO el mensaje
         // (los svg y el boton de cierre no aportan texto), y asi el HTML nunca se interpreta
-        caja.innerHTML = `
-            ${icono.replace("<svg ", '<svg class="icono" ')}
-            <span class="texto"></span>
-            <button class="cerrar" type="button" aria-label="Cerrar el aviso">${GalenoNotificacionEmergente.CRUZ}</button>
-            <span class="barra" aria-hidden="true" style="animation-duration:${milisegundos}ms"></span>`;
+        caja.innerHTML = `${icono.replace("<svg ", '<svg class="icono" ')}<span class="texto"></span>` +
+            `<button class="cerrar" type="button" aria-label="Cerrar el aviso">${GalenoNotificacionEmergente.CRUZ}</button>` +
+            `<span class="barra" aria-hidden="true" style="animation-duration:${milisegundos}ms"></span>`;
         caja.querySelector(".texto").textContent = mensaje;
         caja.querySelector(".cerrar").addEventListener("click", () => this.ocultar());
         caja.hidden = false;

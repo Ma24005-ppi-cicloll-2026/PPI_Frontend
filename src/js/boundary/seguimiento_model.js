@@ -61,12 +61,9 @@ class SeguimientoModel {
         ["estado", "cuerpo", "iniciales", "paciente", "procedimiento", "pasos", "paso", "lectura",
          "notas", "examenes", "mensaje", "anterior", "avanzar", "finalizar", "volver"]
             .forEach(id => this[id] = $(id));
-
-        this.aviso = this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
         this.bloquePaso = $("bloque-paso");
         this.notaFinalizar = $("nota-finalizar");
-        this.aviso = document.querySelector("#aviso");
-
+        this.aviso = this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
         this.procedimiento.formatoTexto = o => o.nombre;
         this.estado.addEventListener("galeno-reintentar", () => this.iniciar());
         this.procedimiento.addEventListener("galeno-seleccion", e => {
@@ -145,12 +142,10 @@ class SeguimientoModel {
         this.anterior.hidden = this.vista === 0;
         this.avanzar.hidden = !editable || ultimo;
         this.finalizar.hidden = !(editable && ultimo);
-
         this.anterior.disabled = this.ocupado;
         this.avanzar.disabled = this.ocupado;
         this.finalizar.disabled = this.ocupado;
         this.notaFinalizar.hidden = this.finalizar.hidden;   // la nota de confirmacion acompana al boton
-
     }
 
     // examenes disponibles para el paso definido que se esta viendo
@@ -167,6 +162,16 @@ class SeguimientoModel {
         const pedidos = paso ? this.datos.ordenes.filter(o => o.idConsultaProcedimientoPaso?.idConsultaProcedimientoPaso === paso.idConsultaProcedimientoPaso) : [];
         this.examenes.asignados = lista.filter(x => pedidos.some(o => o.indicaciones === x.nombre)).map(x => x.id);
         this.examenes.deshabilitada = !editable || this.ocupado;
+    }
+
+    // Mientras se guarda solo se bloquean o liberan los controles. NO se vuelve a dibujar la pantalla:
+    // pintar() repone las notas guardadas y borraria lo que el empleado acaba de escribir.
+    marcarOcupado(ocupado) {
+        this.ocupado = ocupado;
+        this.anterior.disabled = ocupado;
+        this.avanzar.disabled = ocupado;
+        this.finalizar.disabled = ocupado;
+        this.examenes.deshabilitada = !this.editable() || ocupado;
     }
 
     pasoRealizado(i) { return this.proc.estado.realizados[i] ?? null; }
@@ -196,8 +201,7 @@ class SeguimientoModel {
     async asignar(ids) {
         if (this.ocupado) return;
         if (!ids.length) { this.mensaje.textContent = "Marque al menos un examen"; return; }
-        this.ocupado = true;
-        this.pintar();
+        this.marcarOcupado(true);
         try {
             const paso = await this.asegurarPaso();
             for (const id of ids) {
@@ -210,7 +214,7 @@ class SeguimientoModel {
             this.pintarExamenes(true);
             this.aviso?.mostrar("Exámenes asignados", "exito");
         } catch (e) { this.aviso?.mostrar("No se pudieron asignar los exámenes", "error"); }
-        finally { this.ocupado = false; this.pintar(); }
+        finally { this.marcarOcupado(false); }
     }
 
     async completarPaso() {
@@ -228,8 +232,7 @@ class SeguimientoModel {
 
     async guardarYAvanzar() {
         if (this.ocupado) return;
-        this.ocupado = true;
-        this.pintar();
+        this.marcarOcupado(true);
         try {
             await this.completarPaso();
             this.recalcular();
@@ -237,13 +240,12 @@ class SeguimientoModel {
             this.pintar();
             this.aviso?.mostrar("Paso guardado", "exito");
         } catch (e) { this.aviso?.mostrar("No se pudo guardar el paso", "error"); }
-        finally { this.ocupado = false; this.pintar(); }
+        finally { this.marcarOcupado(false); }
     }
 
     async finalizarConsulta() {
         if (this.ocupado) return;
-        this.ocupado = true;
-        this.pintar();
+        this.marcarOcupado(true);
         try {
             await this.completarPaso();
             this.recalcular();
@@ -255,6 +257,6 @@ class SeguimientoModel {
             this.aviso?.mostrar("Consulta finalizada", "exito");
             this.irA("dashboard");
         } catch (e) { this.aviso?.mostrar("No se pudo finalizar la consulta", "error"); }
-        finally { this.ocupado = false; this.pintar(); }
+        finally { this.marcarOcupado(false); }
     }
 }

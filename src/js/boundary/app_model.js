@@ -136,7 +136,10 @@ class AppModel {
         const reducir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (typeof document.startViewTransition === "function" && !reducir) {
             const transicion = document.startViewTransition(pintar);
-            transicion && transicion.finished && transicion.finished.catch(() => {});
+            // si se cambia de pantalla antes de que termine, el navegador salta la transicion y rechaza
+            // sus promesas (ready, finished, updateCallbackDone): se atienden para que no salga error en consola
+            if (transicion) [transicion.ready, transicion.finished, transicion.updateCallbackDone]
+                .forEach(promesa => promesa && promesa.catch(() => {}));
         } else {
             pintar();
         }
