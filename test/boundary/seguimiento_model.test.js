@@ -104,6 +104,25 @@ describe("SeguimientoModel (HU4)", () => {
         expect(q("notas").value).to.equal("Presión normal");
         expect(q("avanzar").disabled).to.equal(false);
     });
+    it("tras su paso, el recepcionista no puede llevar el paso del medico", async () => {
+        Sesion.elegirContexto({ idPersonaRol: "pr-ana-rec-sa", idRol: "r-rec", rol: "Recepcionista", idClinica: "c-sa", clinica: "Santa Ana" });
+        await abrir("k-manana");
+        Ayuda.escribir(q("notas"), "Presión normal");
+        q("avanzar").click(); await Ayuda.esperar(20);
+        expect(q("paso").textContent).to.equal("Paso 2 de 2: Consulta médica");
+        expect(q("notas").deshabilitado).to.equal(true);
+        expect(q("avanzar").hidden).to.equal(true);
+        expect(q("finalizar").hidden).to.equal(true);
+        expect(q("lectura").hidden).to.equal(false);
+        expect(q("lectura").textContent).to.equal("Este paso le corresponde al rol Médico");
+    });
+    it("el medico no puede llevar el paso del recepcionista (solo lo ve)", async () => {
+        await abrir("k-manana");
+        expect(q("paso").textContent).to.equal("Paso 1 de 2: Triaje");
+        expect(q("notas").deshabilitado).to.equal(true);
+        expect(q("avanzar").hidden).to.equal(true);
+        expect(q("lectura").textContent).to.equal("Este paso le corresponde al rol Recepcionista");
+    });
     it("una consulta ya finalizada es de solo lectura", async () => {
         await abrir("k-cerrada");
         expect(q("avanzar").hidden && q("finalizar").hidden).to.equal(true);

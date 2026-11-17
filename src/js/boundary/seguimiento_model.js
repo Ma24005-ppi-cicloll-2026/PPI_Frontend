@@ -121,7 +121,12 @@ class SeguimientoModel {
     // posicion del paso que toca (si ya termino, el ultimo)
     actual() { const e = this.proc?.estado; return e ? (e.actual ?? e.definidos.length - 1) : 0; }
     enCurso() { return this.proc && !this.proc.estado.completo && !this.consulta.fechaFin; }
-    editable() { return this.enCurso() && this.vista === this.proc.estado.actual; }
+    // el paso que toca solo lo atiende el rol al que pertenece (los pasos sin rol, cualquiera):
+    // si el recepcionista termina su paso y el siguiente es del medico, ya no puede seguir
+    leToca() { return FlujoPasos.loAtiende(this.proc.estado, Sesion.contexto()?.idRol); }
+    editable() { return this.enCurso() && this.vista === this.proc.estado.actual && this.leToca(); }
+    // nombre del rol del paso que toca (para avisar a quien le corresponde)
+    rolDelPaso() { return this.proc.estado.definidos[this.proc.estado.actual]?.idRol?.nombre ?? "otro rol"; }
 
     pintar() {
         if (!this.proc) { ["anterior", "avanzar", "finalizar"].forEach(id => this[id].hidden = true); return; }
@@ -134,6 +139,9 @@ class SeguimientoModel {
         const editable = this.editable();
         // el paso ya registrado se ve distinto: sin edicion y con su insignia de solo lectura
         this.lectura.hidden = editable;
+        this.lectura.textContent = this.enCurso() && this.vista === e.actual && !this.leToca()
+            ? `Este paso le corresponde al rol ${this.rolDelPaso()}`
+            : "Solo lectura: este paso ya quedó registrado";
         this.bloquePaso.classList.toggle("solo-lectura", !editable);
         this.notas.value = NotasPaso.de(this.proc.cp.observaciones, this.vista + 1);
         this.notas.deshabilitado = !editable;
@@ -238,7 +246,8 @@ class SeguimientoModel {
             this.recalcular();
             this.vista = this.actual();
             this.pintar();
-            this.aviso?.mostrar("Paso guardado", "exito");
+            this.aviso?.mostrar(this.leToca() ? "Paso guardado"
+                : `Paso guardado. El siguiente le corresponde al rol ${this.rolDelPaso()}`, "exito");
         } catch (e) { this.aviso?.mostrar("No se pudo guardar el paso", "error"); }
         finally { this.marcarOcupado(false); }
     }
