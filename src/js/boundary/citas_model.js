@@ -98,7 +98,6 @@ class CitasModel {
         this.boton = $("buscar"); this.bienvenida = $("bienvenida");
         this.secciones = [...this.contenedor.querySelectorAll(".seccion-asistente")];
         this.pasos = [...this.contenedor.querySelectorAll(".paso")];
-        this.aviso = document.querySelector("#aviso");
 
         this.campoNumero.deshabilitado = true;
         this.selClinica.deshabilitado = true;
@@ -124,7 +123,7 @@ class CitasModel {
 
 
     destruir() { this._busqueda++; }
-=======
+
     // Aspecto del asistente: cada paso y cada seccion se ven bloqueados, activos o completos segun el estado real
     pintarSecciones() {
         const tipo = this.buscaTipo.seleccionado;

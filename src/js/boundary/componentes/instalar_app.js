@@ -91,17 +91,6 @@ class GalenoInstalar extends HTMLElement {
           <style>
             :host { display:inline-block; }
             :host([hidden]), .oculto { display:none; }
-
-            button { padding:.45rem .9rem; border:0; border-radius:.4rem; background:#1D3461; color:#fff;
-                     cursor:pointer; font:inherit; min-height:2.5rem; }
-            button:disabled { opacity:.65; cursor:wait; }
-            button:hover { background:#27498A; }
-            button:focus-visible { outline:3px solid #629DCB; outline-offset:2px; }
-            p { margin:.5rem 0 0; font-size:.85rem; max-width:18rem; }
-          </style>
-          <div class="${visible ? "" : "oculto"}">
-            <button id="instalar" type="button" aria-label="Instalar la aplicación GalenoSV" ${this._ocupada ? "disabled" : ""}>${this._ocupada ? "Abriendo instalación…" : "Instalar app"}</button>
-=======
             /* tarjeta amable flotante: sale del flujo de la cabecera y no la desborda */
             .tarjeta { position:fixed; right:.9rem; bottom:calc(var(--barra-movil, 0rem) + env(safe-area-inset-bottom, 0px) + 1rem);
                        z-index:60; max-width:19rem;

@@ -8,13 +8,8 @@
     <meta name="theme-color" content="#F1F8FB">
     <meta name="color-scheme" content="light dark">
     <!-- Aplica el tema guardado ANTES de pintar para que no parpadee claro->oscuro.
-         Este script vive dentro de index.html, que el service worker deja en cache. -->
-    <script>
-        try {
-            const t = localStorage.getItem("galeno-tema");
-            if (t === "claro" || t === "oscuro") document.documentElement.dataset.tema = t;
-        } catch (e) { /* sin localStorage: queda el tema automatico */ }
-    </script>
+         Archivo externo (js/tema_inicial.js) para que el service worker lo deje en cache. -->
+    <script src="js/tema_inicial.js"></script>
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/png" href="./recursos/iconos/icon-192.png">
     <link rel="apple-touch-icon" href="./recursos/iconos/icon-192.png">
@@ -24,40 +19,6 @@
 <body>
 
     <galeno-app></galeno-app>
-=======
-    <a class="saltar" href="#/" id="saltar">Saltar al contenido</a>
-    <!-- los cambios de pantalla se anuncian aqui para lectores de pantalla -->
-    <p id="anuncio" class="sr" aria-live="polite"></p>
-    <div class="app">
-        <header>
-            <!-- la cabecera es un bloque: fila de acciones + franja de conexion debajo (sticky junto) -->
-            <div class="cabecera-fila">
-                <!-- la marca vive para lectores de pantalla; a la vista: logo + titulo de la seccion actual -->
-                <h1 class="sr">GalenoSV</h1>
-                <p id="titulo-seccion">
-                    <svg class="logo" viewBox="0 0 32 32" width="22" height="22" aria-hidden="true" focusable="false">
-                        <rect x="2.5" y="2.5" width="27" height="27" rx="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
-                        <path d="M16 9.5v13M9.5 16h13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                    </svg>
-                    <span id="titulo-seccion-texto">Buscar citas</span>
-                </p>
-                <galeno-tema id="tema"></galeno-tema>
-                <span id="sesion" aria-live="polite"></span>
-            </div>
-            <galeno-conexion></galeno-conexion>
-        </header>
-        <nav aria-label="Menú principal">
-            <galeno-menu id="menu"></galeno-menu>
-        </nav>
-        <main id="pantalla" tabindex="-1"></main>
-        <footer>
-            GalenoSV · Sistema de gestión médica
-        </footer>
-    </div>
-    <!-- la tarjeta de instalacion es flotante (fixed): fuera de la cabecera porque el
-         backdrop-filter de esta crea un containing block y romperia el position:fixed -->
-    <galeno-instalar id="instalar"></galeno-instalar>
-    <galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>
 
 
     <!-- 1. Services (control) -->

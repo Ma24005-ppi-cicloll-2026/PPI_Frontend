@@ -63,7 +63,6 @@ class SeguimientoModel {
             .forEach(id => this[id] = $(id));
 
         this.aviso = this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
-=======
         this.bloquePaso = $("bloque-paso");
         this.notaFinalizar = $("nota-finalizar");
         this.aviso = document.querySelector("#aviso");
@@ -150,7 +149,6 @@ class SeguimientoModel {
         this.anterior.disabled = this.ocupado;
         this.avanzar.disabled = this.ocupado;
         this.finalizar.disabled = this.ocupado;
-=======
         this.notaFinalizar.hidden = this.finalizar.hidden;   // la nota de confirmacion acompana al boton
 
     }

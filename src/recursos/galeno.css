@@ -1,27 +1,19 @@
 
-/* Ajustes para las pantallas con componentes. No reemplaza a principal.css. */
-galeno-app, galeno-pantalla-citas, galeno-pantalla-login,
-galeno-pantalla-dashboard, galeno-pantalla-consulta{ display:block; }
-header{
-=======
 /* Ajustes para las pantallas con componentes. No reemplaza a principal.css;
    todo color sale de los tokens de :root en principal.css. */
 
-/* ---------------- cabecera (franja compacta de ~4rem) ----------------
-   La cabecera es un BLOQUE sticky: arriba la fila de acciones (flex) y debajo,
-   cuando toca, la franja de conexion (sin ocupar fila en la rejilla). */
-.cabecera-fila{
+/* los hosts de los Web Components son bloques (por defecto quedarian inline) */
+galeno-app, galeno-pantalla-citas, galeno-pantalla-login,
+galeno-pantalla-dashboard, galeno-pantalla-consulta{ display:block; }
 
+/* ---------------- cabecera (franja compacta de ~4rem) ----------------
+   Fila flex de acciones (galeno-app la pinta); sticky y apariencia las pone principal.css. */
+header{
     display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
     gap:.5rem 1rem; padding:.5rem .8rem;
 }
-header .logo{ color:var(--tinta); flex:0 0 auto; }
-/* titulo de la seccion actual (lo llena app_model.irA con el texto de la pantalla) */
-#titulo-seccion{
-    display:flex; align-items:center; gap:.55rem; margin:0; min-width:0;
-    font-size:var(--fs-2); font-weight:700; color:var(--tinta);
-}
-#titulo-seccion-texto{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+header h1{ margin:0; font-size:1.3rem; }
+
 /* tarjeta de usuario: avatar con iniciales, nombre, rol · clinica y debajo el boton-enlace */
 #sesion{
     display:flex; align-items:flex-start; gap:.55rem; margin-left:auto;
@@ -228,7 +220,7 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
 #pantalla .citas .banner-arte .cal{ stroke:var(--primario); fill:var(--superficie); }
 #pantalla .citas .banner-arte .cal-raya{ stroke:var(--primario-oscuro); }
 #pantalla .citas .banner-arte .cruz{ stroke:var(--acento); }
-#pantalla .citas .banner-arte .cora{ stroke:var(--acento); fill:var(--acento-fondo); }
+#pantalla .citas .banner-arte .cora{ stroke:var(--acento); fill:var(--superficie); }
 @media screen and (max-width:34.99em){
     #pantalla .citas .banner-arte{ display:none; }
 }
@@ -445,7 +437,7 @@ header .logo{ color:var(--tinta); flex:0 0 auto; }
 
 @media screen and (min-width: 48em){
     #pantalla{ padding:1.2rem 1.6rem; }
-    .cabecera-fila{ padding:.5rem 1.2rem; }
+    header{ padding:.5rem 1.2rem; }
     #pantalla .consulta-grid{ grid-template-columns:minmax(0, 3fr) minmax(0, 2fr); }
 }
 

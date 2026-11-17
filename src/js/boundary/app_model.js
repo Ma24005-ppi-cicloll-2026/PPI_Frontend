@@ -10,13 +10,8 @@ class AppModel {
         this.menu = raiz.querySelector("#menu");
         this.zona = raiz.querySelector("#pantalla");
         this.textoSesion = raiz.querySelector("#sesion");
-=======
-    constructor() {
-        this.menu = document.querySelector("#menu");
-        this.zona = document.querySelector("#pantalla");
-        this.textoSesion = document.querySelector("#sesion");
-        this.tituloSeccion = document.querySelector("#titulo-seccion-texto");
-        this.anuncio = document.querySelector("#anuncio");   // region aria-live para anunciar la pantalla
+        this.tituloSeccion = raiz.querySelector("#titulo-seccion-texto");
+        this.anuncio = raiz.querySelector("#anuncio");   // region aria-live para anunciar la pantalla
 
         // Para agregar una pantalla: una entrada aqui (y su regla en control/sesion.js).
         // `enMenu: false` = se llega desde otra pantalla (la consulta se abre desde el Dashboard).
@@ -122,21 +117,17 @@ class AppModel {
         const ruta = "/" + destino + (this.param ? "/" + this.param : "");
         if (window.location.hash !== "#" + ruta) window.location.hash = ruta;   // la URL refleja la pantalla
 
-        this.zona.replaceChildren();          // limpiar la pantalla anterior
-        this.menu.activo = destino === "consulta" ? "dashboard" : destino;
-        document.title = `${this.pantallas[destino].texto} · GalenoSV`;
-        const pantalla = document.createElement(this.pantallas[destino].elemento);
-        pantalla.irA = (ruta, param) => this.irA(ruta, param);
-        if (destino === "consulta") pantalla.idConsulta = this.param;
-        this.zona.append(pantalla);
-=======
         const pintar = () => {
             this.zona.replaceChildren();          // limpiar la pantalla anterior
             this.menu.activo = destino === "consulta" ? "dashboard" : destino;
             document.title = `${this.pantallas[destino].texto} · GalenoSV`;
             // la cabecera compacta muestra a la izquierda el titulo de la seccion actual
             if (this.tituloSeccion) this.tituloSeccion.textContent = this.pantallas[destino].texto;
-            this.pantallas[destino].crear(this.zona, this.param);
+            // cada pantalla es un Web Component (pantallas.js) que envuelve a su modelo
+            const pantalla = document.createElement(this.pantallas[destino].elemento);
+            pantalla.irA = (ruta, param) => this.irA(ruta, param);
+            if (destino === "consulta") pantalla.idConsulta = this.param;
+            this.zona.append(pantalla);
             this.zona.scrollTop = 0;              // la pantalla nueva empieza arriba
             this.enfocarPantalla();
         };

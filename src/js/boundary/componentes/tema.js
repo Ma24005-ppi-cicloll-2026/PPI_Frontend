@@ -69,6 +69,9 @@ class GalenoTema extends HTMLElement {
     pintar() {
         GalenoTema.aplicar(this._valor);
         const oscuro = this.oscuro;
+        // la franja del navegador acompana al tema (theme-color); si el documento no trae la meta, se ignora
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.content = oscuro ? "#0F1E26" : "#F1F8FB";
         const nombres = { auto: "automático", claro: "claro", oscuro: "oscuro" };
         const etiqueta = `Tema: ${nombres[this._valor]}${this._valor === "auto" ? ` (se ve ${oscuro ? "oscuro" : "claro"})` : ""}`;
         // sol (claro) / luna (oscuro) dentro de un boton; el aria-checked del switch dice si se ve oscuro

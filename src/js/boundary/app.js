@@ -17,6 +17,7 @@ class GalenoApp extends HTMLElement {
                 <a class="saltar" href="#/" id="saltar">Saltar al contenido</a>
                 <header>
                     <h1>GalenoSV</h1>
+                    <galeno-tema id="tema"></galeno-tema>
                     <span id="sesion" aria-live="polite"></span>
                     <galeno-instalar id="instalar"></galeno-instalar>
                 </header>

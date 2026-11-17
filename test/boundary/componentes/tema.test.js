@@ -101,5 +101,52 @@ describe("<galeno-tema>", () => {
         expect(tema.valor).to.equal("auto");
         expect(document.documentElement.hasAttribute("data-tema")).to.equal(false);
     });
+
+    it("en automatico sigue al sistema: si cambia prefers-color-scheme se repinta", () => {
+        let oyentes = [];
+        const mm = sinon.stub(window, "matchMedia").returns({
+            matches: false,
+            addEventListener: (tipo, f) => oyentes.push(f),
+            removeEventListener: (tipo, f) => { oyentes = oyentes.filter(o => o !== f); }
+        });
+        const otro = document.createElement("galeno-tema");
+        document.body.append(otro);
+        try {
+            expect(otro.valor).to.equal("auto");
+            expect(otro.shadowRoot.querySelector("button").getAttribute("aria-checked")).to.equal("false");
+            // el sistema pasa a oscuro: matchMedia.matches ahora devuelve true
+            mm.returns({ matches: true, addEventListener() {}, removeEventListener() {} });
+            oyentes.forEach(f => f());
+            expect(otro.shadowRoot.querySelector("button").getAttribute("aria-checked")).to.equal("true");
+            expect(document.documentElement.hasAttribute("data-tema")).to.equal(false);   // en auto lo decide el CSS
+            // con eleccion manual el cambio del sistema NO repinta (el usuario manda)
+            otro.elegir("claro");
+            oyentes.forEach(f => f());
+            expect(otro.shadowRoot.querySelector("button").getAttribute("aria-checked")).to.equal("false");
+        } finally {
+            otro.remove();
+            mm.restore();
+        }
+    });
+
+    it("actualiza la meta theme-color segun el tema que se ve", () => {
+        const meta = document.createElement("meta");
+        meta.name = "theme-color";
+        document.head.append(meta);
+        const mm = sinon.stub(window, "matchMedia").returns({
+            matches: false, addEventListener() {}, removeEventListener() {}
+        });   // determinista: en automatico se ve claro aunque el navegador este en oscuro
+        try {
+            tema.elegir("oscuro");
+            expect(meta.content).to.equal("#0F1E26");
+            tema.elegir("claro");
+            expect(meta.content).to.equal("#F1F8FB");
+            tema.elegir("auto");
+            expect(meta.content).to.equal("#F1F8FB");   // en automatico se ve claro (matches: false)
+        } finally {
+            meta.remove();
+            mm.restore();
+        }
+    });
 });
 }

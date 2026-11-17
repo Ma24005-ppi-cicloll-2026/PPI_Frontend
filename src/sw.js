@@ -3,10 +3,7 @@
 // (el numero nuevo hace que los usuarios descarguen la version actualizada).
 importScripts("js/control/sw_estrategias.js");
 
-
-const VERSION = "galeno-v6";
-=======
-const VERSION = "galeno-v8";
+const VERSION = "galeno-v9";
 
 const ARCHIVOS = [
     "./",
@@ -88,6 +85,7 @@ const ARCHIVOS = [
     "js/entity/tipoDocumento.js",
     "js/entity/tipoExamen.js",
     "js/entity/tipoMedioContacto.js",
+    "js/tema_inicial.js",
     "manifest.webmanifest",
     "recursos/galeno.css",
     "recursos/iconos/icon-192.png",

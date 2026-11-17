@@ -16,7 +16,6 @@ class DashboardModel {
         this.datos = null;
 
         this._carga = 0;
-=======
         this.chipEstado = "total";      // total | curso | finalizadas (los chips filtran lo ya cargado)
         this.pagina = 0;
 
