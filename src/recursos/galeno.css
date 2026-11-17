@@ -14,9 +14,20 @@ header{
 }
 header h1{ margin:0; font-size:1.3rem; }
 
+/* pildora de instalar: cluster de acciones a la derecha, justo a la izquierda del
+   interruptor de tema y de la tarjeta de usuario (el anfitrión se esconde solo cuando
+   no toca mostrarla, asi no deja hueco ni altera la altura de la cabecera) */
+header galeno-boton-instalar{ margin-left:auto; }
+
+/* pantallas muy angostas: acorta la separacion de la cabecera para que la fila de
+   acciones (pildora + tema + tarjeta) quepa sin envolverse (probado a 320 px) */
+@media screen and (max-width:25em){
+    header{ gap:.4rem .5rem; }
+}
+
 /* tarjeta de usuario: avatar con iniciales, nombre, rol · clinica y debajo el boton-enlace */
 #sesion{
-    display:flex; align-items:flex-start; gap:.55rem; margin-left:auto;
+    display:flex; align-items:flex-start; gap:.55rem;
     min-width:0; max-width:20rem;
     font-size:var(--fs-1); color:var(--tinta-suave);
     background:var(--superficie); border:1px solid var(--borde); border-radius:var(--radio-tarjeta);

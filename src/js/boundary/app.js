@@ -17,21 +17,27 @@ class GalenoApp extends HTMLElement {
                 <a class="saltar" href="#/" id="saltar">Saltar al contenido</a>
                 <header>
                     <h1>GalenoSV</h1>
+                    <galeno-boton-instalar id="instalar"></galeno-boton-instalar>
                     <galeno-tema id="tema"></galeno-tema>
                     <span id="sesion" aria-live="polite"></span>
-                    <galeno-instalar id="instalar"></galeno-instalar>
                 </header>
                 <nav aria-label="Menú principal"><galeno-menu id="menu"></galeno-menu></nav>
                 <main id="pantalla" tabindex="-1"></main>
                 <footer>GalenoSV · Sistema de gestión médica</footer>
             </div>
-            <galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>`;
+            <galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>
+            <galeno-invitacion-instalar id="invitacion"></galeno-invitacion-instalar>
+            <galeno-guia-instalacion id="guia"></galeno-guia-instalacion>`;
 
         this._app = new AppModel(this);
         this._app.iniciar();
         this._pwa = new Pwa();
         this._pwa.iniciar();
         this.querySelector("#instalar").pwa = this._pwa;
+        this.querySelector("#invitacion").pwa = this._pwa;
+        const aviso = this.querySelector("#aviso");
+        this.querySelector("#instalar").aviso = aviso;
+        this.querySelector("#invitacion").aviso = aviso;
         this._saltar = evento => {
             evento.preventDefault();
             this.querySelector("#pantalla").focus();

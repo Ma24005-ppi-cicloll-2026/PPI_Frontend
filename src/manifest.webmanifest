@@ -14,5 +14,21 @@
         { "src": "recursos/iconos/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
         { "src": "recursos/iconos/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
         { "src": "recursos/iconos/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ],
+    "screenshots": [
+        {
+            "src": "recursos/capturas/escritorio.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Buscar citas en computadora de escritorio"
+        },
+        {
+            "src": "recursos/capturas/movil.png",
+            "sizes": "540x720",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Buscar citas en teléfono móvil"
+        }
     ]
 }

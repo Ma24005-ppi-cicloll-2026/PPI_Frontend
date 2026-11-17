@@ -3,23 +3,39 @@
     "tasks": [
         {
             "label": "lanzarBrowserSync",
-            "command": "browser-sync start --server src -f \"**/*\" ./src/ --no-open",
+            "command": "browser-sync start --server src -f \"src/**\" --no-open",
             "type": "shell",
             "presentation": {
                 "reveal": "silent"
             },
             "isBackground": true,
-            "problemMatcher": []
+            "problemMatcher": {
+                "owner": "browsersync",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^\\[Browsersync\\] Access URLs:",
+                    "endsPattern": "^\\[Browsersync\\] Watching files"
+                },
+                "pattern": { "regexp": "^(?!)$" }
+            }
         },
         {
             "label": "debugBrowserSync",
-            "command": "browser-sync start --server ./ -f \"**/*\" ./ --no-open",
+            "command": "browser-sync start --server ./ -f \"src/**,test/**\" --no-open",
             "type": "shell",
             "presentation": {
                 "reveal": "silent"
             },
             "isBackground": true,
-            "problemMatcher": []
+            "problemMatcher": {
+                "owner": "browsersync",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^\\[Browsersync\\] Access URLs:",
+                    "endsPattern": "^\\[Browsersync\\] Watching files"
+                },
+                "pattern": { "regexp": "^(?!)$" }
+            }
         },
         {
             "label": "paraBrowserSync",

@@ -247,6 +247,8 @@ class CitasModel {
         try {
             await this.descargar(e.detail.idConsulta);
             this.aviso?.mostrar("Ticket descargado", "exito");
+            // la invitacion a instalar escucha este evento; solo el EXITO de la descarga la activa
+            window.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
         } catch (err) {
             this.aviso?.mostrar(err.message || "No se pudo generar el ticket", "error");
         } finally {

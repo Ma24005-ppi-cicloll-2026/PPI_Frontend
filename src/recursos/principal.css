@@ -213,12 +213,16 @@ nav{
     padding-bottom:env(safe-area-inset-bottom, 0px);
 }
 
-/* los avisos flotantes viven FUERA de la rejilla (hijos de body): sus hosts estan vacios
-   (la tarjeta/caja real es position:fixed) pero igual forman una caja de linea anonima
-   que anade ~24px de scroll sobrante; los aplanamos (las reglas del documento mandan
-   sobre :host y no afectan a los componentes cuando se usan sueltos en las pruebas) */
-body > galeno-instalar,
-body > galeno-notificacion-emergente{ display:block; height:0; margin:0; }
+/* los avisos y las invitaciones flotantes viven FUERA de la rejilla (despues de .app): sus
+   hosts estan vacios (la tarjeta/caja real es position:fixed) pero igual forman una caja de
+   linea anonima que anade ~24px de scroll sobrante; los aplanamos (las reglas del documento
+   mandan sobre :host y no afectan a los componentes cuando se usan sueltos en las pruebas) */
+galeno-app > galeno-notificacion-emergente,
+galeno-app > galeno-invitacion-instalar,
+galeno-app > galeno-guia-instalacion,
+body > galeno-notificacion-emergente,
+body > galeno-invitacion-instalar,
+body > galeno-guia-instalacion{ display:block; height:0; margin:0; }
 
 /* ---- pantallas medianas y grandes: menu celeste a la izquierda ---- */
 @media screen and (min-width: 48em){

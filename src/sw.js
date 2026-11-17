@@ -3,7 +3,7 @@
 // (el numero nuevo hace que los usuarios descarguen la version actualizada).
 importScripts("js/control/sw_estrategias.js");
 
-const VERSION = "galeno-v12";
+const VERSION = "galeno-v15";
 
 const ARCHIVOS = [
     "./",
@@ -16,8 +16,10 @@ const ARCHIVOS = [
     "js/boundary/componentes/campo.js",
     "js/boundary/componentes/estado_conexion.js",
     "js/boundary/componentes/estado_vista.js",
+    "js/boundary/componentes/boton_instalar.js",
     "js/boundary/componentes/indicador_pasos.js",
-    "js/boundary/componentes/instalar_app.js",
+    "js/boundary/componentes/invitacion_instalar.js",
+    "js/boundary/componentes/guia_instalacion.js",
     "js/boundary/componentes/lista_examenes.js",
     "js/boundary/componentes/menu_navegacion.js",
     "js/boundary/componentes/notificacion_emergente.js",
@@ -64,6 +66,7 @@ const ARCHIVOS = [
     "js/control/tipo_documento_service.js",
     "js/control/tipo_examen_service.js",
     "js/control/tipo_medio_contacto_service.js",
+    "js/pwa_antes.js",
     "js/entity/clinica.js",
     "js/entity/consulta.js",
     "js/entity/consultaProcedimiento.js",
@@ -88,6 +91,8 @@ const ARCHIVOS = [
     "js/entity/tipoMedioContacto.js",
     "js/tema_inicial.js",
     "manifest.webmanifest",
+    "recursos/capturas/escritorio.png",
+    "recursos/capturas/movil.png",
     "recursos/galeno.css",
     "recursos/iconos/icon-192.png",
     "recursos/iconos/icon-512.png",
