@@ -1,30 +1,33 @@
-// <galeno-tarjeta-cita>: una cita medica como card (HU1: Busqueda de citas).
-//   tarjeta.cita = { idConsulta, fechaInicio, clinica, procedimientos: ["Consulta general", ...], ocupada: false };
-// Muestra fecha, hora, clinica y procedimientos, y el boton "Descargar ticket (PDF)".
-// Al pulsarlo emite "galeno-descargar-ticket" { idConsulta }; `ocupada = true` desactiva el boton mientras se descarga.
 class GalenoTarjetaCita extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
         this._cita = null;
     }
 
+    // Actualiza los datos de la cita.
     set cita(v) { this._cita = v; this.pintar(); }
+    // Devuelve los datos de la cita.
     get cita() { return this._cita; }
 
+    // Actualiza el bloqueo mientras se procesa la acción.
     set ocupada(v) {
         if (this._cita) this._cita = { ...this._cita, ocupada: Boolean(v) };
         this.pintar();
     }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Escapa los caracteres con significado en HTML.
     escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const c = this._cita || {};
         const f = GestorFechas.leer(c.fechaInicio);
@@ -43,7 +46,6 @@ class GalenoTarjetaCita extends HTMLElement {
                       box-shadow:var(--sombra-1, none); display:flex; gap:.8rem;
                       transition:box-shadow var(--velocidad, 180ms), border-color var(--velocidad, 180ms), transform var(--velocidad, 180ms); }
             article:hover { box-shadow:var(--sombra-2, none); border-color:var(--secundario-borde, #AECFC6); transform:translateY(-2px); }
-            /* insignia de fecha: dia y mes grandes a la izquierda */
             .fecha { flex:0 0 auto; width:3.4rem; display:flex; flex-direction:column; align-items:center; justify-content:center;
                      gap:.05rem; background:var(--primario-suave, #E9F1EF); border:1px solid var(--secundario-borde, #AECFC6);
                      border-radius:var(--radio-control, .625rem); padding:.5rem .2rem; text-align:center; }
@@ -67,7 +69,6 @@ class GalenoTarjetaCita extends HTMLElement {
             button:disabled { background:var(--inactivo, #8CA0A8); cursor:progress; }
             button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
             button svg { flex:0 0 auto; }
-          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
             @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <article aria-label="Cita del ${this.escapar(dia)} de ${this.escapar(mes)} de ${this.escapar(anio)} a las ${this.escapar(hora)}">

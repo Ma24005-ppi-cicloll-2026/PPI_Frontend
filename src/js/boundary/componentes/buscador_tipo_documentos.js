@@ -1,11 +1,12 @@
-// <galeno-buscador-tipo-documentos>: elige un TipoDocumento (DUI, NIT, Pasaporte...).
-// Muestra solo los activos aunque el Model le pase todos.
 class GalenoBuscadorTipoDocumentos extends GalenoAutocomplete {
+    // Actualiza las opciones disponibles.
     set opciones(lista) {
         super.opciones = (Array.isArray(lista) ? lista : []).filter(t => t?.activo !== false);
     }
+    // Devuelve las opciones disponibles.
     get opciones() { return this._opciones; }
 
+    // Obtiene la etiqueta que se muestra para la opción.
     texto(tipo) {
         return String(tipo?.nombre ?? "");
     }

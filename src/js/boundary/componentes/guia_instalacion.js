@@ -1,10 +1,3 @@
-// <galeno-guia-instalacion>: dialogo accesible con los 3 pasos para instalar la PWA a mano
-// en Safari de iPhone/iPad (donde no existe el dialogo del navegador).
-// Se abre con "galeno-abrir-guia" en window (lo emiten el boton de la cabecera y la
-// invitacion cuando el estado es "ios_manual"). Nadie mas lo abre.
-//   guia.addEventListener("galeno-guia-cerrada", ...);   // opcional
-// Accesibilidad: role="dialog", aria-modal="true", foco atrapado dentro, Escape cierra
-// y devuelve el foco al elemento que lo tenia antes de abrir.
 class GalenoGuiaInstalacion extends HTMLElement {
 
     static PASOS = [
@@ -25,6 +18,7 @@ class GalenoGuiaInstalacion extends HTMLElement {
         }
     ];
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -37,17 +31,21 @@ class GalenoGuiaInstalacion extends HTMLElement {
         };
     }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() {
+        // Atiende las teclas que controla esta vista.
         window.addEventListener("keydown", this.alTecla);
         window.addEventListener("galeno-abrir-guia", this.alAbrirGuia = () => this.abrir());
         this.pintar();
     }
 
+    // Libera las escuchas y recursos al retirar el componente.
     disconnectedCallback() {
         window.removeEventListener("keydown", this.alTecla);
         window.removeEventListener("galeno-abrir-guia", this.alAbrirGuia);
     }
 
+    // Abre el recurso y deja listo su estado para usarlo.
     abrir() {
         if (this._abierta) return;
         this._abierta = true;
@@ -57,6 +55,7 @@ class GalenoGuiaInstalacion extends HTMLElement {
         cerrar?.focus();
     }
 
+    // Cierra el estado abierto y libera sus recursos.
     cerrar() {
         if (!this._abierta) return;
         this._abierta = false;
@@ -66,7 +65,7 @@ class GalenoGuiaInstalacion extends HTMLElement {
         this.dispatchEvent(new CustomEvent("galeno-guia-cerrada", { bubbles: true, composed: true }));
     }
 
-    // mantiene Tab (y Shift+Tab) entre los botones del dialogo
+    // Mantiene la tabulación dentro del cuadro de diálogo.
     traparFoco(e) {
         const botones = [...this.shadowRoot.querySelectorAll("button:not([hidden])")];
         if (!botones.length) return;
@@ -78,6 +77,7 @@ class GalenoGuiaInstalacion extends HTMLElement {
         siguiente.focus();
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const pasos = GalenoGuiaInstalacion.PASOS.map(p => `
             <li>

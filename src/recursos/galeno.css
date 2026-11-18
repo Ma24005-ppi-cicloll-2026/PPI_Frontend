@@ -1,31 +1,23 @@
 
-/* Ajustes para las pantallas con componentes. No reemplaza a principal.css;
-   todo color sale de los tokens de :root en principal.css. */
 
-/* los hosts de los Web Components son bloques (por defecto quedarian inline) */
+/* Los elementos de pantalla ocupan una fila completa del shell. */
 galeno-app, galeno-pantalla-citas, galeno-pantalla-login,
 galeno-pantalla-dashboard, galeno-pantalla-consulta{ display:block; }
 
-/* ---------------- cabecera (franja compacta de ~4rem) ----------------
-   Fila flex de acciones (galeno-app la pinta); sticky y apariencia las pone principal.css. */
+/* La cabecera agrupa el título y los controles de la sesión. */
 header{
     display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
     gap:.5rem 1rem; padding:.5rem .8rem;
 }
 header h1{ margin:0; font-size:1.3rem; }
 
-/* pildora de instalar: cluster de acciones a la derecha, justo a la izquierda del
-   interruptor de tema y de la tarjeta de usuario (el anfitrión se esconde solo cuando
-   no toca mostrarla, asi no deja hueco ni altera la altura de la cabecera) */
 header galeno-boton-instalar{ margin-left:auto; }
 
-/* pantallas muy angostas: acorta la separacion de la cabecera para que la fila de
-   acciones (pildora + tema + tarjeta) quepa sin envolverse (probado a 320 px) */
 @media screen and (max-width:25em){
     header{ gap:.4rem .5rem; }
 }
 
-/* tarjeta de usuario: avatar con iniciales, nombre, rol · clinica y debajo el boton-enlace */
+/* La tarjeta de sesión mantiene el nombre y la acción en el espacio disponible. */
 #sesion{
     display:flex; align-items:flex-start; gap:.55rem;
     min-width:0; max-width:20rem;
@@ -51,7 +43,6 @@ header galeno-boton-instalar{ margin-left:auto; }
     color:var(--tinta-suave); font-size:var(--fs-0);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-/* celular: tarjeta compacta (avatar + nombre + accion); la linea rol·clinica solo en escritorio */
 #sesion .detalle{ display:none; }
 @media screen and (min-width:48em){
     #sesion .detalle{ display:block; }
@@ -66,25 +57,20 @@ header galeno-boton-instalar{ margin-left:auto; }
 #sesion button svg{ width:1rem; height:1rem; flex:0 0 auto; }
 #sesion button:hover{ color:var(--error); }
 #sesion button:focus-visible{ outline:3px solid var(--foco); outline-offset:2px; }
-/* el fondo del <nav> (degradado celeste) se define en principal.css;
-   el scroll del menu en celular vive dentro del shadow de galeno-menu */
 
-/* ---------------- zona de pantallas ---------------- */
+/* La región central desplaza su contenido sin mover el menú ni el pie. */
 #pantalla{
     overflow:auto; padding:.8rem; color:var(--texto);
 }
 #pantalla > section{ max-width:66rem; margin:0 auto; }
 
-/* transicion de entrada de cada pantalla (respaldo cuando no hay view transitions):
-   al montarse una seccion nueva, la animacion corre sola porque el nodo es nuevo */
+/* Anima la entrada de las vistas que usan la transición CSS. */
 @keyframes aparecer{
     from{ opacity:0; transform:translateY(.45rem); }
     to{ opacity:1; transform:none; }
 }
 #pantalla > section{ animation:aparecer var(--velocidad, 180ms) ease-out; }
 
-/* micro-interaccion "ripple" en los botones del contenido (solo CSS, sin librerias):
-   un destello radial desde el centro al presionar */
 #pantalla button{ position:relative; overflow:hidden; }
 #pantalla button::after{
     content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
@@ -92,13 +78,12 @@ header galeno-boton-instalar{ margin-left:auto; }
     opacity:0; transition:opacity .35s ease;
 }
 #pantalla button:active::after{ opacity:1; transition:none; }
-#pantalla button.enlace::after{ content:none; }   /* los enlaces no destellan */
+#pantalla button.enlace::after{ content:none; }
 #pantalla h2, #pantalla h3{ margin-top:0; }
 #pantalla .cabecera-pantalla{ margin-bottom:.8rem; }
 #pantalla .cabecera-pantalla h2{ font-size:clamp(1.25rem, 2.2vw, 1.75rem); }
 #pantalla .cabecera-pantalla p{ margin:.05rem 0 0; color:var(--tinta-suave); font-size:var(--fs-1); }
 
-/* botones: primario (verde azulado), acento (terracota), secundario y enlace */
 #pantalla button{
     display:inline-flex; align-items:center; justify-content:center; gap:.45rem;
     padding:.6rem 1.1rem; min-height:2.75rem; border:0; border-radius:var(--radio-control);
@@ -123,7 +108,7 @@ header galeno-boton-instalar{ margin-left:auto; }
 #pantalla .acciones{ display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:.8rem; }
 #pantalla .acciones button{ margin-bottom:0; }
 
-/* ---------------- bloques y rejillas ---------------- */
+/* Las tarjetas comparten superficie, borde y espaciado. */
 #pantalla .tarjeta{
     background:var(--superficie); border:1px solid var(--borde); border-radius:var(--radio-tarjeta);
     box-shadow:var(--sombra-1); padding:1.1rem;
@@ -141,7 +126,6 @@ header galeno-boton-instalar{ margin-left:auto; }
     display:flex; align-items:flex-start; gap:.65rem;
     animation:aparecer var(--velocidad, 180ms) ease-out;
 }
-/* insignia de check que aparece al guardar (micro-interaccion, desactivable) */
 #pantalla #confirmacion::before{
     content:"✓"; flex:0 0 auto;
     width:1.35rem; height:1.35rem; margin-top:.05rem;
@@ -155,71 +139,23 @@ header galeno-boton-instalar{ margin-left:auto; }
     to{ transform:scale(1); opacity:1; }
 }
 #pantalla .mensaje-error{ color:var(--error); font-weight:600; min-height:1.2em; font-size:var(--fs-1); }
-/* sin mensaje no queda fila reservada: el error solo ocupa cuando hay algo que mostrar */
 #pantalla .mensaje-error:empty{ display:none; }
-#pantalla .enlace-aparte{ margin-top:1rem; color:var(--tinta-suave); font-size:var(--fs-1); }
 
-/* ---------------- login ---------------- */
-#pantalla .login{ max-width:70rem; margin:.5rem auto 0; }
-#pantalla .login form{ display:grid; gap:.8rem; }
-#pantalla .login button[type=submit]{ margin-bottom:0; width:100%; }
-
-@media screen and (min-width: 48em){
-    #pantalla .login-marco{
-        display:grid; grid-template-columns:minmax(15rem, 18rem) minmax(0, 26rem);
-        gap:2rem; justify-content:center; align-items:stretch;
-    }
-    #pantalla .panel-marca{ display:flex; }
-}
-/* escritorio ancho: panel de marca mas generoso */
-@media screen and (min-width: 72em){
-    #pantalla .login-marco{
-        grid-template-columns:minmax(18rem, 24rem) minmax(0, 26rem);
-        gap:2.5rem;
-    }
+/* Equilibra el espacio de la barra de desplazamiento para conservar el eje del login. */
+#pantalla:has(> galeno-pantalla-login){
+    scrollbar-width:thin;
+    scrollbar-gutter:stable both-edges;
 }
 
-/* panel de marca (solo escritorio): azul marino CONSTANTE en claro y oscuro (tokens -marca) */
-#pantalla .panel-marca{
-    display:none;
-    flex-direction:column; justify-content:flex-end;
-    background:var(--tinta-marca, #1D3461); color:var(--sobre-tinta, #F2F6F9);
-    border-radius:var(--radio-tarjeta); box-shadow:var(--sombra-2);
-    padding:2rem; position:relative; overflow:hidden;
+/* Centra el login en el espacio útil del shell. */
+#pantalla > galeno-pantalla-login{
+    display:grid; place-items:center; inline-size:100%; min-block-size:100%;
+    container:acceso / inline-size;
 }
-#pantalla .panel-marca .marca-nombre{
-    font-size:var(--fs-4); font-weight:700; margin:0 0 .2rem;
-    display:flex; align-items:center; gap:.6rem; color:inherit;
-}
-#pantalla .panel-marca .marca-lema{ margin:.2rem 0 0; color:var(--salvia-marca, #CFE3DD); font-size:var(--fs-2); }
-#pantalla .panel-marca .forma{ position:absolute; right:-4rem; top:-4rem; width:16rem; height:16rem; opacity:.5; }
-/* electrocardiograma del panel de marca: el trazo se dibuja y borra en bucle suave */
-#pantalla .panel-marca .ecg{ width:100%; height:auto; margin-top:1.4rem; opacity:.9; }
-#pantalla .panel-marca .ecg .trazo{
-    stroke-dasharray:470; stroke-dashoffset:470;
-    animation:ecg 3.4s linear infinite;
-}
-@keyframes ecg{
-    0%{ stroke-dashoffset:470; }
-    62%{ stroke-dashoffset:0; }
-    100%{ stroke-dashoffset:-470; }
-}
-/* sin animacion (prefiere menos movimiento): el trazo queda dibujado completo y quieto */
-@media (prefers-reduced-motion: reduce){
-    #pantalla .panel-marca .ecg .trazo{ stroke-dasharray:none; stroke-dashoffset:0; animation:none; }
-}
-#pantalla .panel-marca .marca-nota{ margin-top:2rem; font-size:var(--fs-1); color:var(--salvia-marca, #CFE3DD); }
 
-#pantalla .login-tarjeta{ align-self:start; }
-#pantalla .login-cabecera{ display:flex; align-items:center; gap:.6rem; margin-bottom:.2rem; }
-#pantalla .login-cabecera .logo{ color:var(--tinta); }
-#pantalla .login-sub{ margin:.1rem 0 1rem; color:var(--tinta-suave); font-size:var(--fs-1); }
-
-/* ---------------- buscar citas (HU1) ---------------- */
-/* contenido centrado con ancho comodo: en pantallas muy anchas no se estira */
+/* Limita el ancho de lectura de la vista de citas. */
 #pantalla > section.citas{ max-width:76rem; }
 
-/* banner de encabezado: fondo salvia suave, ilustracion propia a la derecha, poco alto */
 #pantalla .citas .cabecera-pantalla{
     display:flex; align-items:center; justify-content:space-between; gap:1rem;
     background:var(--primario-suave); border:1px solid var(--secundario-borde);
@@ -239,17 +175,14 @@ header galeno-boton-instalar{ margin-left:auto; }
     #pantalla .citas .banner-arte{ width:4.5rem; }
 }
 
-/* la SECCION de citas es el CONTENEDOR: el layout responde al ancho real de la tarjeta
-   (el menu lateral lo reduce) y no al de la ventana. El contenedor debe ser un ANCESTRO
-   de #formulario: un elemento no puede consultar su propio @container y si el contenedor
-   fuera la propia tarjeta, su grid-template-columns condicional nunca aplicaria. */
+/* El asistente responde al ancho que le queda junto al menú. */
 #pantalla .citas{ container-type:inline-size; }
 #pantalla .citas #formulario{
     display:grid; gap:.8rem; align-items:start;
     padding:1rem; border-radius:1rem;
 }
 
-/* guia de progreso horizontal: insignia + etiqueta + linea conectora */
+/* Marca el progreso del asistente sin depender del color por sí solo. */
 #pantalla .citas .pasos{ list-style:none; margin:0; padding:0; display:flex; align-items:center; }
 #pantalla .citas .paso{
     display:flex; align-items:center; gap:.45rem; flex:1 1 0; min-width:0;
@@ -261,12 +194,9 @@ header galeno-boton-instalar{ margin-left:auto; }
     transition:background var(--velocidad), color var(--velocidad), border-color var(--velocidad);
 }
 #pantalla .citas .paso .txt{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-/* celular: tres puntos conectados; solo se lee la etiqueta del paso activo */
 #pantalla .citas .paso .num{ width:.7rem; height:.7rem; font-size:0; }
 #pantalla .citas .paso .txt{ display:none; }
 #pantalla .citas .paso.activa .txt{ display:inline; color:var(--tinta); }
-/* celular: el paso activo ocupa el doble de la fila para que su etiqueta completa
-   quepa incluso en un telefono de 360px (las etiquetas de los demas pasos estan ocultas) */
 #pantalla .citas .paso.activa{ flex-grow:2; }
 #pantalla .citas .paso:not(:last-child)::after{
     content:""; flex:1 1 .6rem; min-width:.6rem; height:2px; margin:0 .45rem;
@@ -276,22 +206,17 @@ header galeno-boton-instalar{ margin-left:auto; }
 #pantalla .citas .paso.activa .num{ background:var(--primario); border-color:var(--primario); color:var(--sobre-primario); }
 #pantalla .citas .paso.activa{ color:var(--tinta); }
 
-/* celular (<40rem de tarjeta): una columna; Desde/Hasta lado a lado; boton a todo lo ancho */
 #pantalla .citas .asistente{ list-style:none; margin:0; padding:0; display:grid; gap:.55rem; }
 #pantalla .citas .seccion-asistente{ display:grid; gap:.55rem; min-width:0; }
 #pantalla .citas .fila-fechas{ display:grid; gap:.6rem .8rem; grid-template-columns:repeat(2, minmax(0,1fr)); align-items:start; }
 #pantalla .citas #mensaje{ min-height:1.2em; margin:0; }
 #pantalla .citas #buscar{ width:100%; margin:0; }
 
-/* tarjeta mediana (40–72rem): dos filas — tipo + numero + clinica / desde + hasta + boton.
-   align-items:start mantiene etiquetas e inputs a la MISMA altura: ayuda y errores cuelgan
-   hacia abajo en filas reservadas sin mover el resto de la fila. */
 @container (min-width:40rem){
     #pantalla .citas #formulario{ grid-template-columns:.9fr 1.2fr 1.4fr; }
     #pantalla .citas .pasos{ grid-column:1 / -1; grid-row:1; }
     #pantalla .citas .paso .num{ width:1.25rem; height:1.25rem; font-size:var(--fs-0); }
     #pantalla .citas .paso .txt{ display:inline; }
-    /* escritorio: todos los pasos pesan igual (el refuerzo del paso activo es solo movil) */
     #pantalla .citas .paso.activa{ flex-grow:1; }
     #pantalla .citas .asistente, #pantalla .citas .seccion-asistente, #pantalla .citas .fila-fechas{ display:contents; }
     #pantalla .citas #tipo{ grid-column:1; grid-row:2; min-width:0; }
@@ -299,12 +224,10 @@ header galeno-boton-instalar{ margin-left:auto; }
     #pantalla .citas #clinica{ grid-column:3; grid-row:2; min-width:0; }
     #pantalla .citas #desde{ grid-column:1; grid-row:3; min-width:0; }
     #pantalla .citas #hasta{ grid-column:2; grid-row:3; min-width:0; }
-    /* 1.6rem = altura de la etiqueta: el boton queda a la altura de los inputs */
     #pantalla .citas #buscar{ grid-column:3; grid-row:3; width:auto; margin:1.6rem 0 0; white-space:nowrap; }
     #pantalla .citas #mensaje{ grid-column:1 / -1; grid-row:4; margin:0; }
 }
 
-/* tarjeta ancha (≥72rem): una sola fila con el ancho que pide cada campo */
 @container (min-width:72rem){
     #pantalla .citas #formulario{ grid-template-columns:.8fr 1.2fr 1.4fr .9fr .9fr auto; gap:.7rem 1rem; }
     #pantalla .citas #tipo{ grid-column:1; grid-row:2; }
@@ -316,7 +239,7 @@ header galeno-boton-instalar{ margin-left:auto; }
     #pantalla .citas #mensaje{ grid-column:1 / -1; grid-row:3; }
 }
 
-/* panel de bienvenida: solo se ve antes de la primera busqueda */
+/* La bienvenida ocupa la región de resultados antes de la primera búsqueda. */
 #pantalla .citas .bienvenida{ margin-top:.9rem; }
 #pantalla .citas .bienvenida[hidden]{ display:none; }
 #pantalla .citas .bienvenida .hero{
@@ -337,14 +260,10 @@ header galeno-boton-instalar{ margin-left:auto; }
 }
 #pantalla .citas .consejos svg{ color:var(--primario); flex:0 0 auto; margin-top:.15rem; }
 
-/* ---------------- dashboard (HU3) ---------------- */
-/* contenido centrado con ancho comodo; la seccion es el CONTENEDOR: la rejilla de
-   tarjetas responde al ancho real del contenido (el menu lateral lo reduce) */
+/* Las herramientas y las tarjetas del dashboard se ajustan al ancho disponible. */
 #pantalla > section.dashboard{ max-width:80rem; }
 #pantalla .dashboard{ container-type:inline-size; }
 
-/* barra de herramientas unica (saludo + contexto + filtros + conteo), sticky bajo la cabecera.
-   El wrapper es el contenedor: las filas de la tarjeta responden a su ancho REAL */
 #pantalla .dashboard .herramientas{
     position:sticky; top:0; z-index:10;
     background:var(--fondo); padding-bottom:.6rem;
@@ -357,14 +276,12 @@ header galeno-boton-instalar{ margin-left:auto; }
 #pantalla .dashboard #cargar{ margin:0; grid-column:1 / -1; }
 #pantalla .dashboard #filtros [hidden]{ display:none !important; }
 
-/* resumen del contexto tras cargar: icono + "Clínica · Rol" + boton-enlace "Cambiar" */
 #pantalla .dashboard #resumen-contexto{ display:flex; align-items:center; gap:.5rem; min-width:0; }
 #pantalla .dashboard #resumen-contexto svg{ color:var(--primario); flex:0 0 auto; }
 #pantalla .dashboard #resumen-contexto strong{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #pantalla .dashboard #resumen-contexto button{ margin:0 0 0 auto; }
 #pantalla .dashboard #resumen-contexto[hidden]{ display:none !important; }
 
-/* chips de conteo: Total / En curso / Finalizadas (clic filtra lo ya cargado) */
 #pantalla .dashboard .conteo{ display:flex; flex-wrap:wrap; gap:.5rem; min-width:0; justify-content:flex-start; }
 #pantalla .dashboard .chip{
     display:inline-flex; align-items:center; gap:.4rem; margin:0;
@@ -380,8 +297,6 @@ header galeno-boton-instalar{ margin-left:auto; }
 #pantalla .dashboard .chip.activo svg{ color:var(--sobre-primario); }
 #pantalla .dashboard .chip.activo .n{ background:var(--primario-oscuro, #25585B); color:var(--sobre-primario, #FFFFFF); }
 
-/* ≥36rem de tarjeta: saludo | resumen | chips en una fila; contexto en 3 columnas
-   (clinica | rol | boton) y filtros en 2 (paciente | fechas; desde/hasta luego) */
 @container (min-width:36rem){
     #pantalla .dashboard .herramientas-caja{ grid-template-columns:auto minmax(0,1fr) auto; align-items:center; }
     #pantalla .dashboard .mini{ grid-column:1; grid-row:1; }
@@ -392,24 +307,19 @@ header galeno-boton-instalar{ margin-left:auto; }
     #pantalla .dashboard #contexto #mensaje{ grid-column:1 / -1; grid-row:2; margin:0; }
     #pantalla .dashboard #filtros{ grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); }
 }
-/* ≥60rem: los filtros entran en UNA fila (con Rango: paciente | fechas | desde | hasta) */
 @container (min-width:60rem){
-    /* Fechas ocupa lo que miden sus 4 botones (max-content): sin Rango no deja columnas vacias y la pildora no se parte;
-       con Rango, desde y hasta caen en las columnas implicitas (grid-auto-columns) */
     #pantalla .dashboard #filtros{ grid-template-columns:minmax(0,1.4fr) max-content; grid-auto-columns:minmax(9rem,.7fr); }
 }
 
-/* rejilla de tarjetas: 1/2/3/4 columnas segun el ancho real (min ~20rem por tarjeta);
-   stretch + article height:100% = filas de tarjetas de la misma altura */
+/* Distribuye las tarjetas según el ancho del listado. */
 #pantalla .dashboard #lista{ display:grid; gap:.8rem; align-items:stretch; margin-top:.2rem; }
-/* cada tarjeta es su propio contenedor: su layout interno responde al ancho REAL de la tarjeta */
 #pantalla .dashboard #lista galeno-tarjeta-agenda{ container-type:inline-size; min-width:0; }
 @container (min-width:36rem){ #pantalla .dashboard #lista{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 @container (min-width:58rem){ #pantalla .dashboard #lista{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
 @container (min-width:76rem){ #pantalla .dashboard #lista{ grid-template-columns:repeat(4, minmax(0,1fr)); } }
 #pantalla .dashboard #mostrar-mas{ grid-column:1 / -1; justify-self:center; margin:.2rem 0 .8rem; }
 
-/* ---------------- consulta (HU4) ---------------- */
+/* Agrupa la identificación del paciente y los controles de seguimiento. */
 #pantalla .cabecera-consulta{
     display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.4rem 1rem; margin-bottom:.6rem;
 }
@@ -454,6 +364,6 @@ header galeno-boton-instalar{ margin-left:auto; }
     #pantalla .consulta-grid{ grid-template-columns:minmax(0, 3fr) minmax(0, 2fr); }
 }
 
-/* los componentes definen su propio display: sin esto el atributo hidden no los esconde */
+/* Respeta la ocultación aunque el elemento tenga un display propio. */
 #pantalla [hidden]{ display:none !important; }
 #pantalla #filtros[hidden]{ display:none !important; }

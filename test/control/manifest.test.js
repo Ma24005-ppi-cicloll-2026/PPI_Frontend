@@ -1,9 +1,7 @@
-// Pruebas del manifest de la PWA: las capturas del dialogo de instalacion deben declararse
-// con datos coherentes con los archivos reales (Chrome rechaza entradas inconsistentes).
 {
 const { expect } = chai;
 
-// carga una imagen del manifest para medir sus pixeles reales
+// Carga una captura para comprobar sus dimensiones reales.
 const cargarImagen = src => new Promise((resuelta, rechazada) => {
     const imagen = new Image();
     imagen.onload = () => resuelta(imagen);
@@ -14,6 +12,7 @@ const cargarImagen = src => new Promise((resuelta, rechazada) => {
 describe("manifest web", () => {
     let manifest;
 
+    // Prepara el entorno de las pruebas.
     before(async () => {
         const respuesta = await fetch("/src/manifest.webmanifest");
         manifest = await respuesta.json();

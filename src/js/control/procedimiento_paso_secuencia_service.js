@@ -1,5 +1,6 @@
 class ProcedimientoPasoSecuenciaService extends DefaultService {
+    // Vincula el servicio con su recurso REST.
     constructor() {
-        super("procedimiento_paso_secuencia");   // la misma ruta del @Path del resource
+        super("procedimiento_paso_secuencia");
     }
 }

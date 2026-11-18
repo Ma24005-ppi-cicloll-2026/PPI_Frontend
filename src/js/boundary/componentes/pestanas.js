@@ -1,13 +1,6 @@
-// <galeno-pestanas>: las pestañas de la pantalla de Consulta (Detalle / Documentos / Procedimientos).
-//   <galeno-pestanas id="p">
-//       <div slot="p0">...contenido de la primera pestaña...</div>
-//       <div slot="p1">...contenido de la segunda...</div>
-//   </galeno-pestanas>
-//   p.titulos = ["Detalle", "Documentos"];
-// Cada hijo lleva slot="p0", "p1"... segun su posicion; solo se ve el de la pestaña activa.
-// Emite "galeno-cambiar-pestana" { indice, titulo }.
 class GalenoPestanas extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -15,11 +8,15 @@ class GalenoPestanas extends HTMLElement {
         this._activa = 0;
     }
 
+    // Actualiza los títulos visibles.
     set titulos(v) { this._titulos = Array.isArray(v) ? v : []; this._activa = 0; this.pintar(); }
+    // Devuelve el estado activo del componente.
     get activa() { return this._activa; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Activa el componente y actualiza su presentación.
     activar(indice) {
         if (indice < 0 || indice >= this._titulos.length) return;
         this._activa = indice;
@@ -28,6 +25,7 @@ class GalenoPestanas extends HTMLElement {
             { detail: { indice, titulo: this._titulos[indice] }, bubbles: true, composed: true }));
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         this.shadowRoot.innerHTML = `
           <style>

@@ -1,27 +1,11 @@
-// Los pasos de un procedimiento y en cual va una consulta.
-//
-// En el backend:
-//   - ProcedimientoPaso            = un paso DEFINIDO de un procedimiento (ej. "Triaje", "Consulta medica").
-//   - ProcedimientoPasoSecuencia   = que paso va antes o despues de otro (idProcedimientoPasoReferencia + tipoSecuencia).
-//   - ConsultaProcedimientoPaso    = un paso REALIZADO en una consulta (estado, fechas y quien lo hizo).
-//
-// Un paso realizado no guarda cual paso definido era, asi que se usa el orden: el 1.º paso realizado de un
-// procedimiento es el 1.º paso definido, el 2.º realizado es el 2.º definido, y asi. Por eso los pasos
-// definidos se ordenan siempre igual (ordenar) y los realizados se ordenan por su fecha de inicio.
 class FlujoPasos {
 
-    // Pasos definidos de UN procedimiento, en orden. secuencias = todas las ProcedimientoPasoSecuencia.
-    // tipoSecuencia se compara sin mayusculas ni tildes:
-    //   - "after"/"despues"/"posterior" (el backend crea "AFTER"): el paso va DESPUES de la referencia,
-    //     o sea la referencia va ANTES (asi el primer paso es el que no depende de otro).
-    //   - "before": el paso va ANTES de la referencia.
-    //   - "anterior"/"previo" ("ant"/"prev"): la referencia va ANTES.
-    //   - cualquier otro ("siguiente"...): el paso de referencia va DESPUES (comportamiento de siempre).
-    // Los pasos que no quedan ordenados por la secuencia se dejan al final, en el orden en que llegaron.
+    // Ordena los pasos por dependencia. AFTER sitúa el paso después de su referencia.
     static ordenar(pasos, secuencias = []) {
         const ids = new Set(pasos.map(p => p.idProcedimientoPaso));
-        const despuesDe = new Map(pasos.map(p => [p.idProcedimientoPaso, new Set()]));   // paso -> los que van despues
-        const faltan = new Map(pasos.map(p => [p.idProcedimientoPaso, 0]));              // paso -> cuantos van antes
+        const despuesDe = new Map(pasos.map(p => [p.idProcedimientoPaso, new Set()]));
+        const faltan = new Map(pasos.map(p => [p.idProcedimientoPaso, 0]));
+        // Registra una dependencia válida y evita contarla dos veces.
         const unir = (antes, despues) => {
             if (!ids.has(antes) || !ids.has(despues) || antes === despues || despuesDe.get(antes).has(despues)) return;
             despuesDe.get(antes).add(despues);
@@ -30,18 +14,17 @@ class FlujoPasos {
         secuencias.forEach(s => {
             const paso = s.idProcedimientoPaso?.idProcedimientoPaso;
             const referencia = s.idProcedimientoPasoReferencia;
-            // sin mayusculas ni tildes ("AFTER" -> "after", "Después" -> "despues")
             const tipo = String(s.tipoSecuencia ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            // after/before primero, para que no los capturen las reglas viejas
-            if (/after|despues|posterior/.test(tipo)) unir(referencia, paso);   // la referencia va ANTES del paso
-            else if (/before/.test(tipo)) unir(paso, referencia);               // el paso va ANTES de la referencia
-            else if (/ant|prev/.test(tipo)) unir(referencia, paso);             // "anterior"/"previo": ref antes
-            else unir(paso, referencia);                                        // resto: como siempre
+            if (/after|despues|posterior/.test(tipo)) unir(referencia, paso);
+            else if (/before/.test(tipo)) unir(paso, referencia);
+            else if (/ant|prev/.test(tipo)) unir(referencia, paso);
+            else unir(paso, referencia);
         });
         const orden = [];
         const pendientes = [...pasos];
+        // Si la secuencia forma un ciclo, conserva el orden de los pasos pendientes.
         while (pendientes.length) {
-            const siguiente = pendientes.find(p => faltan.get(p.idProcedimientoPaso) === 0) ?? pendientes[0];   // sin salida: ciclo
+            const siguiente = pendientes.find(p => faltan.get(p.idProcedimientoPaso) === 0) ?? pendientes[0];
             pendientes.splice(pendientes.indexOf(siguiente), 1);
             orden.push(siguiente);
             despuesDe.get(siguiente.idProcedimientoPaso).forEach(d => faltan.set(d, faltan.get(d) - 1));
@@ -49,24 +32,20 @@ class FlujoPasos {
         return orden;
     }
 
-    // Los pasos definidos del procedimiento `idProcedimiento`, ya en orden.
+    // Obtiene y ordena los pasos definidos para el procedimiento.
     static definidos(idProcedimiento, todosLosPasos, secuencias) {
         const suyos = todosLosPasos.filter(p => p.idProcedimiento?.idProcedimiento === idProcedimiento);
         return FlujoPasos.ordenar(suyos, secuencias);
     }
 
-    // Pasos realizados de un ConsultaProcedimiento, el primero primero.
+    // Ordena los registros por fecha de inicio para asociarlos con los pasos definidos.
     static realizados(idConsultaProcedimiento, todosLosRealizados) {
         return todosLosRealizados
             .filter(r => r.idConsultaProcedimiento?.idConsultaProcedimiento === idConsultaProcedimiento)
             .sort((a, b) => DatosClinica.milisegundos(a.fechaInicio) - DatosClinica.milisegundos(b.fechaInicio));
     }
 
-    // Donde va un procedimiento. Devuelve:
-    //   definidos   los pasos definidos (si no hay ninguno se usa un paso unico "Atención", asi igual se puede atender)
-    //   realizados  los pasos realizados
-    //   actual      posicion del paso que toca (el que esta "En proceso" o el siguiente por empezar); null si ya termino
-    //   completo    true si todos los pasos estan completados
+    // Calcula el paso actual y usa Atención si el procedimiento no define pasos.
     static estado(definidos, realizados) {
         const pasos = definidos.length ? definidos : [{ idProcedimientoPaso: null, nombre: "Atención", idRol: null }];
         const ultimo = realizados[realizados.length - 1];
@@ -76,7 +55,7 @@ class FlujoPasos {
         return { definidos: pasos, realizados, actual: completo ? null : hechos, completo };
     }
 
-    // true si el paso que toca puede atenderlo `idRol` (los pasos sin rol los puede atender cualquiera)
+    // Permite atender el paso al rol indicado o cuando el paso no tiene rol.
     static loAtiende(estado, idRol) {
         if (estado.completo) return false;
         const rolDelPaso = estado.definidos[estado.actual]?.idRol?.idRol;

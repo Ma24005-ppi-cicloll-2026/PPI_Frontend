@@ -1,12 +1,12 @@
-// Clase padre de todos los services (igual que DefaultResource en GalenoSV).
-// Aqui estan las 5 llamadas al backend; cada service hijo solo dice su ruta.
 class DefaultService {
 
+    // Conserva la ruta REST y prepara el indicador de lectura desde caché.
     constructor(ruta) {
         this.url = "http://localhost:9080/GalenoSV-1.0-SNAPSHOT/resources/" + ruta;
         this.ultimaLecturaDesdeCache = false;
     }
 
+    // Lee el JSON y recurre a IndexedDB cuando falla la conexión.
     async getJson(url, opciones = {}) {
         this.ultimaLecturaDesdeCache = false;
         try {
@@ -15,10 +15,9 @@ class DefaultService {
             if (respuesta.status === 404) return null;
             if (!respuesta.ok) throw new Error("No se pudo consultar (error " + respuesta.status + ")");
             const datos = await respuesta.json();
-            ApiCache.guardar(url, datos).catch(() => {}); // el API en línea no debe esperar al almacenamiento local
+            ApiCache.guardar(url, datos).catch(() => {});
             return datos;
         } catch (error) {
-            // Los errores HTTP no se sustituyen con datos viejos: solo el fallo de red usa la copia local.
             if (!(error instanceof TypeError) && navigator.onLine !== false) throw error;
             const guardados = await ApiCache.leer(url).catch(() => null);
             if (guardados === null) throw error;
@@ -28,17 +27,17 @@ class DefaultService {
         }
     }
 
-    // GET /ruta?primero=0&max=50  ->  lista de registros
+    // Solicita una página de registros al endpoint.
     async listar(primero = 0, max = 50) {
         return this.getJson(`${this.url}?primero=${primero}&max=${max}`);
     }
 
-    // GET /ruta/{id}  ->  un registro, o null si no existe (404)
+    // Busca los registros que coinciden con los datos elegidos.
     async buscar(id) {
         return this.getJson(`${this.url}/${encodeURIComponent(id)}`);
     }
 
-    // POST /ruta  ->  devuelve el registro creado (con su id)
+    // Crea el registro o elemento que necesita este flujo.
     async crear(datos) {
         const r = await fetch(this.url, {
             method: "POST",
@@ -49,7 +48,7 @@ class DefaultService {
         return r.json();
     }
 
-    // PUT /ruta/{id}  ->  devuelve el registro actualizado
+    // Envía los cambios mediante PUT y devuelve el registro guardado.
     async actualizar(id, datos) {
         const r = await fetch(`${this.url}/${encodeURIComponent(id)}`, {
             method: "PUT",
@@ -60,7 +59,7 @@ class DefaultService {
         return r.json();
     }
 
-    // DELETE /ruta/{id}  ->  204; si esta en uso el backend responde 409
+    // Solicita el borrado del registro y comprueba el resultado.
     async eliminar(id) {
         const r = await fetch(`${this.url}/${encodeURIComponent(id)}`, { method: "DELETE" });
         if (r.status === 409) throw new Error("No se puede eliminar: esta siendo usado en otra parte");

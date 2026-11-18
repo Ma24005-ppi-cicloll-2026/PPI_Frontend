@@ -1,11 +1,10 @@
-// Pruebas del control segmentado <galeno-segmentado> (Fechas del Dashboard).
-// API tipo galeno-selector; a diferencia del selector, seleccionar() por programa
-// TAMBIEN emite "galeno-seleccion" (el dashboard repinta la lista en ambos casos).
 {
 const { expect } = chai;
 describe("galeno-segmentado", () => {
     let el;
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => el?.remove());
+    // Crea el registro o elemento que necesita este flujo.
     const crear = () => {
         el = document.createElement("galeno-segmentado");
         el.setAttribute("label", "Fechas");
@@ -13,6 +12,7 @@ describe("galeno-segmentado", () => {
         el.opciones = [{ nombre: "Hoy" }, { nombre: "Pasado" }, { nombre: "Futuro" }, { nombre: "Rango" }];
         return el;
     };
+    // Recoge las opciones renderizadas del selector segmentado.
     const pildoras = () => [...el.shadowRoot.querySelectorAll("[role=radio]")];
 
     it("dibuja una pildora por opcion en un radiogroup, sin eleccion al inicio", () => {
@@ -25,7 +25,9 @@ describe("galeno-segmentado", () => {
 
     it("seleccionar() marca aria-checked, tabindex de roving y avisa con galeno-seleccion", () => {
         crear();
-        let v; el.addEventListener("galeno-seleccion", e => { v = e.detail.valor; });
+        let v;
+            // Actualiza los datos que dependen de la opción seleccionada.
+            el.addEventListener("galeno-seleccion", e => { v = e.detail.valor; });
         el.seleccionar(el.opciones[2]);
         expect(el.seleccionado.nombre).to.equal("Futuro");
         expect(v.nombre).to.equal("Futuro");
@@ -38,7 +40,9 @@ describe("galeno-segmentado", () => {
 
     it("clic en una pildora la elige y emite el evento con la opcion", () => {
         crear();
-        let v; el.addEventListener("galeno-seleccion", e => { v = e.detail.valor; });
+        let v;
+            // Actualiza los datos que dependen de la opción seleccionada.
+            el.addEventListener("galeno-seleccion", e => { v = e.detail.valor; });
         Ayuda.clic(el, "[role=radio][data-i='1']");
         expect(el.seleccionado.nombre).to.equal("Pasado");
         expect(v.nombre).to.equal("Pasado");
@@ -75,9 +79,9 @@ describe("galeno-segmentado", () => {
         expect(el.shadowRoot.activeElement).to.equal(bs[1]);
         bs[1].dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
         expect(el.shadowRoot.activeElement).to.equal(bs[3]);
-        bs[1].click();     // Enter/Espacio de un boton = clic: elige
+        bs[1].click();
         expect(el.seleccionado.nombre).to.equal("Pasado");
-        expect(el.shadowRoot.activeElement).to.equal(pildoras()[1]);   // el foco vuelve a la elegida
+        expect(el.shadowRoot.activeElement).to.equal(pildoras()[1]);
     });
 
     it("sin opciones no dibuja pildoras", () => {

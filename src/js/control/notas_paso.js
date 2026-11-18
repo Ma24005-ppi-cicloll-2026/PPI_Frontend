@@ -1,12 +1,9 @@
-// Las notas que se escriben en un paso. El backend no tiene un campo de notas por paso, asi que se guardan en
-// las observaciones del ConsultaProcedimiento, una linea por paso:
-//     Paso 2 (Consulta médica) · Dr. Carlos Gómez: Dolor de cabeza desde hace dos dias
-// Si un paso se guarda otra vez, su linea se reemplaza (no se duplica).
 class NotasPaso {
 
+    // Construye la parte de la nota que identifica el paso.
     static prefijo(numero) { return `Paso ${numero} (`; }
 
-    // Agrega o reemplaza la linea del paso `numero` y devuelve las observaciones nuevas.
+    // Reemplaza la línea de ese paso y conserva las demás observaciones.
     static guardar(observaciones, numero, nombrePaso, autor, texto) {
         const lineas = NotasPaso.lineas(observaciones).filter(l => !l.startsWith(NotasPaso.prefijo(numero)));
         const nota = String(texto ?? "").replace(/\s*\n\s*/g, " / ").trim();
@@ -14,19 +11,21 @@ class NotasPaso {
         return lineas.sort((a, b) => NotasPaso.numeroDe(a) - NotasPaso.numeroDe(b)).join("\n");
     }
 
-    // La nota (solo el texto) del paso `numero`, o "" si no tiene.
+    // Extrae la nota que corresponde al número de paso.
     static de(observaciones, numero) {
         const linea = NotasPaso.lineas(observaciones).find(l => l.startsWith(NotasPaso.prefijo(numero)));
         const m = linea && /^Paso \d+ \(.*?\) · .*?: (.*)$/.exec(linea);
         return m ? m[1].replace(/ \/ /g, "\n") : "";
     }
 
+    // Separa las observaciones en líneas para localizar cada nota.
     static lineas(observaciones) {
         return String(observaciones ?? "").split("\n").map(l => l.trim()).filter(Boolean);
     }
 
+    // Extrae el número de paso del encabezado de la nota.
     static numeroDe(linea) {
         const m = /^Paso (\d+) \(/.exec(linea);
-        return m ? Number(m[1]) : 9999;     // las lineas que no son de un paso van al final
+        return m ? Number(m[1]) : 9999;
     }
 }

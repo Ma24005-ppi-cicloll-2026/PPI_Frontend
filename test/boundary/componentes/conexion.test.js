@@ -1,13 +1,13 @@
-// Pruebas de <galeno-conexion> (aviso sin conexion).
-// (Las de <galeno-instalar> se retiraron con ese componente: su flujo vive hoy en
-//  boton_instalar.test.js, invitacion_instalar.test.js y guia_instalacion.test.js.)
 {
 const { expect } = chai;
 
 describe("<galeno-conexion>", () => {
     let el, reloj;
+    // Busca el aviso de conexión dentro del componente.
     const aviso = () => el.shadowRoot.querySelector("[role=status]");
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { reloj = sinon.useFakeTimers(); el = document.createElement("galeno-conexion"); document.body.append(el); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => { el.remove(); reloj.restore(); });
 
     it("con conexion no muestra nada", () => {

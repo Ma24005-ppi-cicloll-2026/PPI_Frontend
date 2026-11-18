@@ -1,4 +1,5 @@
 class Rol {
+    // Inicializa los campos del registro con sus valores por defecto.
     constructor() {
         this.idRol = null;
         this.nombre = "";

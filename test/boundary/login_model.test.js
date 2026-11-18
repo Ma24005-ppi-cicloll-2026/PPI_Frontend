@@ -1,19 +1,26 @@
-// HU2 · Login: tipo de documento + numero, nada mas.
 {
 const { expect } = chai;
 describe("LoginModel (HU2)", () => {
-    let api, zona, modelo, irA;
+    let api, pantalla, zona, modelo, irA;
+    // Prepara el entorno de las pruebas.
     beforeEach(async () => {
         Sesion.cerrar();
         api = new ApiFalsa(Datos.bd());
-        zona = document.createElement("div"); document.body.append(zona);
         irA = sinon.spy();
-        modelo = new LoginModel(zona, { irA });
-        await modelo.iniciar(); await Ayuda.esperar();
+        pantalla = document.createElement("galeno-pantalla-login");
+        pantalla.irA = irA;
+        document.body.append(pantalla);
+        zona = pantalla.shadowRoot;
+        modelo = pantalla._modelo;
+        await modelo.datos;
     });
-    afterEach(() => { api.restaurar(); zona.remove(); Sesion.cerrar(); });
+    // Limpia el entorno al terminar las pruebas.
+    afterEach(() => { api.restaurar(); pantalla.remove(); Sesion.cerrar(); });
+    // Busca un elemento de la pantalla de prueba por su ID.
     const q = id => zona.querySelector("#" + id);
+    // Envía el formulario y espera su resultado.
     const enviar = async () => { q("formulario").dispatchEvent(new Event("submit", { cancelable: true })); await Ayuda.esperar(); };
+    // Rellena el tipo y el número de documento.
     const llenar = async (tipo, numero) => { Ayuda.tipo(q("tipo"), tipo); Ayuda.escribir(q("numero"), numero); };
 
     it("pide solo tipo de documento y numero (no hay usuario ni clave)", () => {
@@ -42,7 +49,6 @@ describe("LoginModel (HU2)", () => {
     });
     it("acepta un pasaporte si cumple su expresion regular", async () => {
         Ayuda.tipo(q("tipo"), "Pasaporte"); Ayuda.escribir(q("numero"), "A1234567"); await enviar();
-        // Jenni solo es paciente: no inicia sesion
         expect(Sesion.obtener()).to.equal(null);
         expect(q("mensaje").textContent).to.contain("No encontramos un empleado");
     });
@@ -66,12 +72,36 @@ describe("LoginModel (HU2)", () => {
         await llenar("DUI", "012345678"); await enviar();
         expect(q("numero").shadowRoot.querySelector("#error").textContent).to.contain("formato");
     });
-    it("si el backend no responde avisa y no entra", async () => {
-        api.restaurar();
-        const f = sinon.stub(window, "fetch").rejects(new Error("sin red"));
-        modelo = new LoginModel(zona, { irA }); await modelo.iniciar(); await Ayuda.esperar();
-        expect(zona.querySelector("#mensaje").textContent).to.contain("No se pudo conectar");
-        f.restore(); api = new ApiFalsa(Datos.bd());
+    it("anuncia los errores y contiene el panel de marca", async () => {
+        expect(zona.querySelector("galeno-marca-acceso")).to.not.equal(null);
+        expect(q("mensaje").getAttribute("role")).to.equal("alert");
+        await enviar();
+        expect(q("mensaje").textContent).to.contain("tipo de documento");
+        expect(q("reintentar").hidden).to.equal(true);
+    });
+    it("permite reintentar la carga tras un fallo y recuperar el acceso", async () => {
+        api.stub.onCall(api.stub.callCount).rejects(new Error("sin red"));
+        await modelo.cargarDatos();
+        const reintentar = q("reintentar");
+        expect(q("mensaje").textContent).to.contain("No se pudo conectar");
+        expect(Sesion.obtener()).to.equal(null);
+        expect(reintentar.hidden).to.equal(false);
+        reintentar.click();
+        expect(reintentar.disabled).to.equal(true);
+        expect(await modelo.datos).to.equal(true);
+        expect(reintentar.hidden).to.equal(true);
+        expect(q("mensaje").textContent).to.equal("");
+        expect(q("tipo").opciones.map(tipo => tipo.nombre)).to.include("DUI");
+        await llenar("DUI", "01234567-8"); await enviar();
+        expect(Sesion.obtener().nombre).to.equal("Ana Mejía");
+    });
+    it("Enter en el número envía el formulario a través de su evento submit", async () => {
+        await llenar("DUI", "01234567-8");
+        q("numero").entrada.dispatchEvent(new KeyboardEvent("keydown", {
+            key: "Enter", bubbles: true, composed: true, cancelable: true
+        }));
+        await Ayuda.esperar();
+        expect(Sesion.obtener().nombre).to.equal("Ana Mejía");
     });
     it("tiene un enlace a Buscar citas", () => {
         q("citas").click();

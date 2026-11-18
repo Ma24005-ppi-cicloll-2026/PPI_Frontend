@@ -1,11 +1,7 @@
-// Pruebas del servicio unico de instalacion (control/pwa.js):
-// estados derivados y persistencia de la invitacion (aplazo de 7 dias y marca de sesion).
-// (Los casos ya cubiertos en pwa.test.js — beforeinstallprompt, instalar(), appinstalled,
-//  standalone, iOS — no se repiten aqui.)
 {
 const { expect } = chai;
 
-// ventana/navegador falsos como en pwa.test.js
+// Prepara un navegador simulado para probar la instalación.
 function crearEntorno({ standalone = false, agente = "Chrome", conSw = false } = {}) {
     const ventana = new EventTarget();
     ventana.matchMedia = () => ({ matches: standalone });
@@ -13,16 +9,21 @@ function crearEntorno({ standalone = false, agente = "Chrome", conSw = false } =
     if (conSw) navegador.serviceWorker = { register: sinon.stub().resolves({ scope: "./" }) };
     return { ventana, navegador };
 }
-// almacen falso que recuerda lo guardado (como localStorage/sessionStorage reales)
+// Crea una copia en memoria del almacenamiento del navegador.
 function almacenFalso() {
     const mapa = new Map();
+    // Crea el registro o elemento que necesita este flujo.
     const crear = () => ({
+        // Lee un valor del almacenamiento simulado.
         getItem: clave => (mapa.has(clave) ? mapa.get(clave) : null),
+        // Guarda un valor en el almacenamiento simulado.
         setItem: (clave, valor) => mapa.set(clave, String(valor)),
+        // Elimina una clave del almacenamiento simulado.
         removeItem: clave => mapa.delete(clave)
     });
     return { local: crear(), sesion: crear() };
 }
+// Simula el evento y la respuesta del diálogo de instalación.
 function eventoInstalacion() {
     const e = new Event("beforeinstallprompt", { cancelable: true });
     e.prompt = async () => {};
@@ -40,7 +41,7 @@ describe("Pwa · instalacion (estado unico e invitacion)", () => {
         it("Chromium con service worker registrado es instalable AUN sin beforeinstallprompt (probable)", async () => {
             const { ventana, navegador } = crearEntorno({ agente: "Chrome/120", conSw: true });
             const pwa = new Pwa({ ventana, navegador });
-            await pwa.iniciar();   // registra el SW con exito
+            await pwa.iniciar();
             expect(pwa.estado).to.equal("instalable");
             expect(pwa.puedeInstalar).to.equal(false, "el dialogo del navegador aun no esta disponible");
         });
@@ -73,7 +74,7 @@ describe("Pwa · instalacion (estado unico e invitacion)", () => {
         it("tras appinstalled queda instalada y NO revive por probable", async () => {
             const { ventana, navegador } = crearEntorno({ agente: "Chrome/120", conSw: true });
             const pwa = new Pwa({ ventana, navegador });
-            await pwa.iniciar();                       // probable -> instalable
+            await pwa.iniciar();
             ventana.dispatchEvent(new Event("appinstalled"));
             expect(pwa.estado).to.equal("instalada");
             expect(pwa.navegadorInstalable()).to.equal(false);
@@ -81,7 +82,7 @@ describe("Pwa · instalacion (estado unico e invitacion)", () => {
         it("con beforeinstallprompt: instalable", () => {
             const entorno = crearEntorno({ conPrompt: true });
             const pwa = new Pwa(entorno);
-            pwa.iniciar();                          // sin suscripcion el evento no se captura
+            pwa.iniciar();
             entorno.ventana.dispatchEvent(eventoInstalacion());
             expect(pwa.estado).to.equal("instalable");
         });
@@ -114,7 +115,7 @@ describe("Pwa · instalacion (estado unico e invitacion)", () => {
             expect(noSoportado.puedeInvitar()).to.equal(false);
             const entorno = crearEntorno({ conPrompt: true });
             const pwa = new Pwa({ ...entorno, almacen: almacenFalso() });
-            pwa.iniciar();                          // sin suscripcion el evento no se captura
+            pwa.iniciar();
             entorno.ventana.dispatchEvent(eventoInstalacion());
             expect(pwa.puedeInvitar()).to.equal(true);
             const iphone = crearEntorno({ agente: "iPhone Safari" });
@@ -143,9 +144,9 @@ describe("Pwa · instalacion (estado unico e invitacion)", () => {
                 pwa.aplazar();
                 expect(pwa.aplazado(), "apenas aplazada").to.equal(true);
                 expect(pwa.puedeInvitar()).to.equal(false);
-                reloj.tick(7 * 24 * 60 * 60 * 1000 - 1000);   // 7 dias menos 1 segundo
+                reloj.tick(7 * 24 * 60 * 60 * 1000 - 1000);
                 expect(pwa.aplazado(), "aun dentro de los 7 dias").to.equal(true);
-                reloj.tick(1000);                            // justo los 7 dias cumplidos
+                reloj.tick(1000);
                 expect(pwa.aplazado(), "pasados los 7 dias se vuelve a invitar").to.equal(false);
                 expect(pwa.puedeInvitar()).to.equal(true);
             } finally { reloj.restore(); }
@@ -165,8 +166,16 @@ describe("Pwa · instalacion (estado unico e invitacion)", () => {
         });
         it("sin almacen (localStorage roto): no falla y la invitacion puede salir", () => {
             const roto = {
-                local: { getItem: () => { throw new Error("bloqueado"); }, setItem: () => { throw new Error("bloqueado"); } },
-                sesion: { getItem: () => { throw new Error("bloqueado"); }, setItem: () => { throw new Error("bloqueado"); } }
+                local: {
+                    // Lee un valor del almacenamiento simulado.
+                    getItem: () => { throw new Error("bloqueado"); },
+                    // Guarda un valor en el almacenamiento simulado.
+                    setItem: () => { throw new Error("bloqueado"); } },
+                sesion: {
+                    // Lee un valor del almacenamiento simulado.
+                    getItem: () => { throw new Error("bloqueado"); },
+                    // Guarda un valor en el almacenamiento simulado.
+                    setItem: () => { throw new Error("bloqueado"); } }
             };
             const entorno = crearEntorno({ conPrompt: true });
             const pwa = new Pwa({ ...entorno, almacen: roto });

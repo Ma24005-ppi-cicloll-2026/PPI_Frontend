@@ -1,12 +1,5 @@
-// <galeno-menu>: el menu del <nav> del index.html (Buscar citas, Dashboard, Cerrar sesion...).
-//   menu.items = [ { texto: "Inicio", destino: "inicio" }, { texto: "Consultas", destino: "consulta" } ];
-//   menu.activo = "inicio";
-//   menu.addEventListener("galeno-navegar", e => mostrarPantalla(e.detail.destino));
-// No cambia de pagina por si solo: el Model decide que pantalla mostrar.
-// Cada destino lleva su icono SVG de trazo fino (GalenoMenu.ICONOS) y el texto siempre se escapa.
 class GalenoMenu extends HTMLElement {
 
-    // Iconos por destino: trazo fino, currentColor, 20px. "general" es el punto de reserva.
     static ICONOS = {
         citas: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15.5" rx="2.2"/><path d="M3.5 9.5h17M8 2.8v4.2M16 2.8v4.2"/><path d="m8.6 14.6 2.1 2.1 4.4-4.5"/></svg>`,
         login: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.5 20c.9-3.3 3.4-5.1 6.5-5.1s5.6 1.8 6.5 5.1"/></svg>`,
@@ -15,9 +8,9 @@ class GalenoMenu extends HTMLElement {
         general: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/></svg>`
     };
 
-    // Marca del menu lateral (solo se ve en escritorio, dentro del shadow)
     static MARCA = `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="14" fill="currentColor" opacity=".14"/><path d="M16 9.5v13M9.5 16h13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -25,20 +18,26 @@ class GalenoMenu extends HTMLElement {
         this._activo = null;
     }
 
+    // Devuelve las opciones del menú.
     get items() { return this._items; }
+    // Actualiza las opciones del menú.
     set items(v) { this._items = Array.isArray(v) ? v : []; this.pintar(); }
+    // Actualiza el destino activo.
     set activo(v) { this._activo = v; this.pintar(); }
+    // Devuelve el destino activo.
     get activo() { return this._activo; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
-    // escapa el texto antes de meterlo en el shadow (los items vienen del Model, pero por prudencia)
+    // Escapa los caracteres con significado en HTML.
     static escapar(t) {
         const d = document.createElement("div");
         d.textContent = t == null ? "" : String(t);
         return d.innerHTML;
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         this.shadowRoot.innerHTML = `
           <style>
@@ -61,14 +60,10 @@ class GalenoMenu extends HTMLElement {
             button svg { width:1.25rem; height:1.25rem; flex:0 0 auto; color:var(--primario, #2F6F73); }
             button:hover { background:rgba(255,255,255,.70); }
             button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-            /* activo: pildora verde azulado con texto e icono BLANCOS (contraste >= 4.5:1)
-               y un indicador lateral terracota */
             button[aria-current=page] { background:var(--primario, #2F6F73); color:var(--sobre-primario, #FFFFFF); font-weight:700; }
             button[aria-current=page] svg { color:var(--sobre-primario, #FFFFFF); }
-            /* movil: punto terracota bajo la etiqueta del item activo */
             button[aria-current=page]::after { content:""; position:absolute; left:44%; right:44%; bottom:.28rem;
                                                height:4px; border-radius:2px; background:var(--acento, #C9775B); }
-            /* escritorio: barra lateral vertical con la marca arriba */
             @media (min-width: 48em) {
                 :host { display:flex; flex-direction:column; height:100%; }
                 .marca { display:flex; flex:0 0 auto; padding:1.1rem 1.1rem .6rem; }
@@ -77,10 +72,8 @@ class GalenoMenu extends HTMLElement {
                 button { flex-direction:row; gap:.65rem; width:100%; min-width:0; min-height:2.75rem;
                          padding:.55rem .8rem; text-align:left; font-size:var(--fs-1, .875rem); }
                 button:hover { transform:translateX(3px); }
-                /* escritorio: barra lateral terracota junto a la pildora activa */
                 button[aria-current=page]::after { left:-.7rem; right:auto; top:22%; bottom:22%; width:4px; height:auto; }
             }
-            /* respeta la preferencia de menos movimiento (las transiciones son de 150ms) */
             @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
           </style>
           <p class="marca">${GalenoMenu.MARCA}<span>GalenoSV</span></p>

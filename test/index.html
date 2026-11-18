@@ -14,8 +14,7 @@
     <script>mocha.setup("bdd");</script>
     <script type="module" src="./cargar_pruebas.js"></script>
 
-    <!-- Los services que se van a probar (default_service primero) -->
-    <!-- Services y helpers (control) -->
+    <!-- Registra el código de producción en el orden que requiere el ejecutor. -->
     <script data-prueba="../src/js/control/api_cache.js"></script>
     <script data-prueba="../src/js/control/default_service.js"></script>
     <script data-prueba="../src/js/control/clinica_service.js"></script>
@@ -50,7 +49,7 @@
     <script data-prueba="../src/js/control/pwa.js"></script>
     <script data-prueba="../src/js/pwa_antes.js"></script>
 
-    <!-- Componentes -->
+    <!-- Carga los controles que se montan en las pruebas. -->
     <script data-prueba="../src/js/boundary/componentes/campo.js"></script>
     <script data-prueba="../src/js/boundary/componentes/opcion.js"></script>
     <script data-prueba="../src/js/boundary/componentes/autocomplete.js"></script>
@@ -63,6 +62,7 @@
     <script data-prueba="../src/js/boundary/componentes/tema.js"></script>
     <script data-prueba="../src/js/boundary/componentes/notificacion_emergente.js"></script>
     <script data-prueba="../src/js/boundary/componentes/boton_instalar.js"></script>
+    <script data-prueba="../src/js/boundary/componentes/marca_acceso.js"></script>
     <script data-prueba="../src/js/boundary/componentes/invitacion_instalar.js"></script>
     <script data-prueba="../src/js/boundary/componentes/guia_instalacion.js"></script>
     <script data-prueba="../src/js/boundary/componentes/tarjeta_cita.js"></script>
@@ -71,7 +71,6 @@
     <script data-prueba="../src/js/boundary/componentes/indicador_pasos.js"></script>
     <script data-prueba="../src/js/boundary/componentes/lista_examenes.js"></script>
 
-    <!-- Models -->
     <script data-prueba="../src/js/boundary/login_model.js"></script>
     <script data-prueba="../src/js/boundary/citas_model.js"></script>
     <script data-prueba="../src/js/boundary/dashboard_model.js"></script>
@@ -79,6 +78,7 @@
     <script data-prueba="../src/js/boundary/app_model.js"></script>
     <script data-prueba="../src/js/boundary/pantallas.js"></script>
 
+    <!-- Prepara los datos y el API simulado antes de ejecutar las suites. -->
     <script data-prueba="./ayuda/api_falsa.js"></script>
     <script data-prueba="./ayuda/datos.js"></script>
 
@@ -99,6 +99,7 @@
     <script data-prueba="./boundary/componentes/buscadores.test.js"></script>
     <script data-prueba="./boundary/componentes/conexion.test.js"></script>
     <script data-prueba="./boundary/componentes/boton_instalar.test.js"></script>
+    <script data-prueba="./boundary/componentes/marca_acceso.test.js"></script>
     <script data-prueba="./boundary/componentes/invitacion_instalar.test.js"></script>
     <script data-prueba="./boundary/componentes/guia_instalacion.test.js"></script>
     <script data-prueba="./boundary/componentes/menu_notificacion.test.js"></script>

@@ -1,17 +1,6 @@
-// <galeno-segmentado>: control segmentado tipo pildoras para ELEGIR UNA opcion
-// (Hoy / Pasado / Futuro / Rango en el Dashboard). Misma API que galeno-selector:
-//   segmentado.opciones = [{ nombre: "Hoy" }, ...];
-//   segmentado.formatoTexto = o => o.nombre;      // como se ve cada opcion (por defecto, su "nombre")
-//   segmentado.seleccionado                        // la opcion elegida (objeto) o null
-//   segmentado.seleccionar(opcion); segmentado.deshabilitado = true; segmentado.error("mensaje");
-//   segmentado.addEventListener("galeno-seleccion", e => e.detail.valor);
-// A diferencia del selector (que solo avisa con el cambio del usuario), aqui TAMBIEN
-// seleccionar() por programa avisa con "galeno-seleccion": el dashboard repinta la lista
-// tanto si el usuario pulsa una pildora como si el codigo elige la inicial.
-// Accesible: role="radiogroup" con botones role="radio" (aria-checked y foco movido con
-// las flechas del teclado, Inicio/Fin); el foco siempre queda visible.
 class GalenoSegmentado extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -20,27 +9,33 @@ class GalenoSegmentado extends HTMLElement {
         this._deshabilitado = false;
     }
 
+    // Obtiene la etiqueta que se muestra para la opción.
     texto(opcion) {
         if (typeof this.formatoTexto === "function") return String(this.formatoTexto(opcion) ?? "");
         return String(opcion?.nombre ?? "");
     }
 
+    // Actualiza las opciones disponibles.
     set opciones(lista) {
         this._opciones = Array.isArray(lista) ? lista : [];
         if (!this._opciones.includes(this._seleccionado)) this._seleccionado = null;
         this.pintar();
     }
+    // Devuelve las opciones disponibles.
     get opciones() { return this._opciones; }
+    // Devuelve el valor seleccionado.
     get seleccionado() { return this._seleccionado; }
 
+    // Actualiza el bloqueo de la entrada.
     set deshabilitado(v) { this._deshabilitado = Boolean(v); this.pintar(); }
+    // Devuelve el bloqueo de la entrada.
     get deshabilitado() { return this._deshabilitado; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Fija la opción seleccionada y sincroniza el control.
     seleccionar(opcion) {
-        // si el usuario estaba navegando con el teclado, el foco vuelve a la pildora elegida
-        // (pintar() vuelve a crear los botones y perderia el foco)
         const conFoco = this.shadowRoot.activeElement?.getAttribute?.("role") === "radio";
         this._seleccionado = this._opciones.includes(opcion) ? opcion : null;
         this.pintar();
@@ -49,17 +44,19 @@ class GalenoSegmentado extends HTMLElement {
             { detail: { valor: this._seleccionado }, bubbles: true, composed: true }));
     }
 
+    // Actualiza el mensaje de validación del control.
     error(mensaje) {
         const e = this.shadowRoot?.querySelector("#error");
         if (e) e.textContent = mensaje || "";
     }
 
+    // Escapa los caracteres con significado en HTML.
     escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
-    // el foco se mueve con flechas entre las pildoras (roving tabindex)
+    // Desplaza el foco entre las opciones del control.
     moverFoco(desde, paso) {
         const botones = [...this.shadowRoot.querySelectorAll("[role=radio]")];
         if (!botones.length) return;
@@ -67,8 +64,10 @@ class GalenoSegmentado extends HTMLElement {
         botones[i].focus();
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const indice = this._opciones.indexOf(this._seleccionado);
+        // Escapa los textos que se insertan en la plantilla.
         const e = t => this.escapar(t);
         this.shadowRoot.innerHTML = `
           <style>
@@ -89,7 +88,6 @@ class GalenoSegmentado extends HTMLElement {
             button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
             #error { color:var(--error, #A8402F); font-weight:600; font-size:var(--fs-1, .875rem); }
             #error:empty { display:none; }
-          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
             @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           ${this.getAttribute("label") ? `<label id="etiqueta">${e(this.getAttribute("label"))}</label>` : ""}
@@ -103,6 +101,7 @@ class GalenoSegmentado extends HTMLElement {
         const botones = [...this.shadowRoot.querySelectorAll("[role=radio]")];
         botones.forEach(b => {
             b.addEventListener("click", () => this.seleccionar(this._opciones[Number(b.dataset.i)]));
+            // Atiende las teclas que controla esta vista.
             b.addEventListener("keydown", ev => {
                 const i = Number(b.dataset.i);
                 const teclas = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };

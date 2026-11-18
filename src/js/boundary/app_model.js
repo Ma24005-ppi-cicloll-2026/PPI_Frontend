@@ -1,20 +1,15 @@
-// Modelo principal: une el menu, el encabezado (sesion) y la zona de pantallas (#pantalla).
-// Pantallas (en el orden de la rubrica): citas (HU1, publica), login (HU2), dashboard (HU3), consulta (HU4, #/consulta/<id>).
-// Lo que ve cada quien sale de Sesion.puede() (control/sesion.js). Se arranca desde el index.html:
-//     new AppModel().iniciar();
 class AppModel {
 
 
+    // Conecta las referencias del shell y configura las rutas.
     constructor(raiz = document) {
         this.raiz = raiz;
         this.menu = raiz.querySelector("#menu");
         this.zona = raiz.querySelector("#pantalla");
         this.textoSesion = raiz.querySelector("#sesion");
         this.tituloSeccion = raiz.querySelector("#titulo-seccion-texto");
-        this.anuncio = raiz.querySelector("#anuncio");   // region aria-live para anunciar la pantalla
+        this.anuncio = raiz.querySelector("#anuncio");
 
-        // Para agregar una pantalla: una entrada aqui (y su regla en control/sesion.js).
-        // `enMenu: false` = se llega desde otra pantalla (la consulta se abre desde el Dashboard).
         this.pantallas = {
             citas:     { texto: "Buscar citas", elemento: "galeno-pantalla-citas" },
             login:     { texto: "Iniciar sesión", elemento: "galeno-pantalla-login" },
@@ -26,18 +21,20 @@ class AppModel {
         this.alCambiarHash = () => this.alCambiarDireccion();
         this.alNavegarMenu = e =>
             e.detail.destino === "salir" ? Sesion.cerrar() : this.irA(e.detail.destino);
-        this.actual = null;                    // la pantalla que se esta mostrando
+        this.actual = null;
         this.param = null;
     }
 
+    // Prepara el estado y las escuchas que necesita este flujo.
     iniciar() {
         this.menu.addEventListener("galeno-navegar", this.alNavegarMenu);
         window.addEventListener("galeno-sesion", this.alCambiarSesion);
         window.addEventListener("galeno-contexto", this.alCambiarContexto);
-        window.addEventListener("hashchange", this.alCambiarHash);     // botones Atras/Adelante del navegador
-        this.reiniciar(this.destinoEnDireccion());                     // al recargar se respeta la direccion
+        window.addEventListener("hashchange", this.alCambiarHash);
+        this.reiniciar(this.destinoEnDireccion());
     }
 
+    // Descarta el trabajo pendiente de la vista al salir.
     destruir() {
         this.menu.removeEventListener("galeno-navegar", this.alNavegarMenu);
         window.removeEventListener("galeno-sesion", this.alCambiarSesion);
@@ -45,34 +42,35 @@ class AppModel {
         window.removeEventListener("hashchange", this.alCambiarHash);
     }
 
-    // ---------- direccion (SPA): #/citas, #/dashboard, #/consulta/<id> ----------
 
+    // Extrae la ruta y su parámetro del hash actual.
     destinoEnDireccion() {
         const [destino, ...resto] = window.location.hash.replace(/^#\/?/, "").split("/");
         return this.pantallas[destino] ? { destino, param: resto.join("/") || null } : null;
     }
 
+    // Sincroniza la pantalla cuando cambia el hash.
     alCambiarDireccion() {
         const d = this.destinoEnDireccion();
         if (d && (d.destino !== this.actual || d.param !== this.param)) this.irA(d.destino, d.param);
     }
 
+    // Devuelve las rutas disponibles para la sesión actual.
     permitidas() { return Object.keys(this.pantallas).filter(d => Sesion.puede(d)); }
 
+    // Construye el menú con las rutas permitidas para la sesión.
     construirMenu() {
-        // El menu solo lleva pantallas: "Cerrar sesion" vive en la tarjeta de usuario de la cabecera.
         return this.permitidas().filter(d => this.pantallas[d].enMenu !== false)
             .map(d => ({ texto: this.pantallas[d].texto, destino: d }));
     }
 
+    // Escapa los caracteres con significado en HTML.
     static escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
-    // Tarjeta de usuario compacta alineada a la derecha: avatar con iniciales, nombre, rol · clinica
-    // y debajo el boton-enlace "Cerrar sesion". Sin sesion: "Sin sesión iniciada" + "Iniciar sesión".
-    // Conserva #sesion y su aria-live: todo el texto vive dentro del mismo span.
+    // Actualiza el nombre y las acciones de sesión en la cabecera.
     pintarSesion() {
         const s = Sesion.obtener();
         const t = this.textoSesion;
@@ -98,10 +96,10 @@ class AppModel {
                 </span>`;
             t.querySelector("button.entrar").addEventListener("click", () => this.irA("login"));
         }
-        t.classList.toggle("con-sesion", Boolean(s));   // resalta la tarjeta solo con sesion
+        t.classList.toggle("con-sesion", Boolean(s));
     }
 
-    // al arrancar y cada vez que alguien inicia o cierra sesion: sin sesion -> Buscar citas; con sesion -> Dashboard
+    // Actualiza el menú y resuelve la ruta inicial según la sesión.
     reiniciar(pedida = null) {
         this.pintarSesion();
         this.menu.items = this.construirMenu();
@@ -109,35 +107,31 @@ class AppModel {
         else this.irA(Sesion.obtener() ? "dashboard" : "citas");
     }
 
+    // Cambia de ruta y monta la pantalla correspondiente.
     irA(destino, param = null) {
         if (!this.pantallas[destino] || !Sesion.puede(destino)) destino = Sesion.obtener() ? "dashboard" : "citas";
         if (destino === "consulta" && !param) destino = "dashboard";
         this.actual = destino;
         this.param = destino === "consulta" ? param : null;
         const ruta = "/" + destino + (this.param ? "/" + this.param : "");
-        if (window.location.hash !== "#" + ruta) window.location.hash = ruta;   // la URL refleja la pantalla
+        if (window.location.hash !== "#" + ruta) window.location.hash = ruta;
 
+        // El montaje se ejecuta dentro de la transición cuando el navegador la admite.
         const pintar = () => {
-            this.zona.replaceChildren();          // limpiar la pantalla anterior
+            this.zona.replaceChildren();
             this.menu.activo = destino === "consulta" ? "dashboard" : destino;
             document.title = `${this.pantallas[destino].texto} · GalenoSV`;
-            // la cabecera compacta muestra a la izquierda el titulo de la seccion actual
             if (this.tituloSeccion) this.tituloSeccion.textContent = this.pantallas[destino].texto;
-            // cada pantalla es un Web Component (pantallas.js) que envuelve a su modelo
             const pantalla = document.createElement(this.pantallas[destino].elemento);
             pantalla.irA = (ruta, param) => this.irA(ruta, param);
             if (destino === "consulta") pantalla.idConsulta = this.param;
             this.zona.append(pantalla);
-            this.zona.scrollTop = 0;              // la pantalla nueva empieza arriba
-            this.enfocarPantalla();
+            this.zona.scrollTop = 0;
+            this.enfocarPantalla(pantalla);
         };
-        // transicion de vista nativa (view transitions) si existe y el usuario no pide menos movimiento;
-        // si no hay API, el respaldo es la animacion CSS "aparecer" de #pantalla > section (nodo nuevo = se anima)
         const reducir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (typeof document.startViewTransition === "function" && !reducir) {
             const transicion = document.startViewTransition(pintar);
-            // si se cambia de pantalla antes de que termine, el navegador salta la transicion y rechaza
-            // sus promesas (ready, finished, updateCallbackDone): se atienden para que no salga error en consola
             if (transicion) [transicion.ready, transicion.finished, transicion.updateCallbackDone]
                 .forEach(promesa => promesa && promesa.catch(() => {}));
         } else {
@@ -145,10 +139,12 @@ class AppModel {
         }
     }
 
-    // al cambiar de pantalla: el foco va al titulo de la nueva pantalla y un region aria-live lo anuncia
-    enfocarPantalla() {
+    // Enfoca la entrada o el título y anuncia el cambio de ruta.
+    enfocarPantalla(pantalla) {
         const titulo = this.zona.querySelector("h2");
-        if (titulo) {
+        if (pantalla?.enfocarEntrada) {
+            pantalla.enfocarEntrada();
+        } else if (titulo) {
             titulo.setAttribute("tabindex", "-1");
             titulo.focus({ preventScroll: true });
         }

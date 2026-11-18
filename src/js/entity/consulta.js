@@ -1,4 +1,5 @@
 class Consulta {
+    // Inicializa los campos del registro con sus valores por defecto.
     constructor() {
         this.idConsulta = null;
         this.fechaInicio = null;

@@ -1,5 +1,6 @@
 class TipoDocumentoService extends DefaultService {
+    // Vincula el servicio con su recurso REST.
     constructor() {
-        super("tipo_documento");   // la misma ruta del @Path del resource
+        super("tipo_documento");
     }
 }

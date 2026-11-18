@@ -2,11 +2,14 @@
 const { expect } = chai;
 describe("Tarjetas de citas y de la agenda", () => {
     let el;
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => el?.remove());
+    // Crea el registro o elemento que necesita este flujo.
     const crear = tag => { el = document.createElement(tag); document.body.append(el); return el; };
 
     describe("galeno-tarjeta-cita", () => {
         const cita = { idConsulta: "k1", fechaInicio: "2026-11-11T15:30:00Z", clinica: "Santa Ana", procedimientos: ["Consulta general", "Rayos X"] };
+        // Prepara el entorno de las pruebas.
         beforeEach(() => { crear("galeno-tarjeta-cita"); el.cita = cita; });
         it("muestra clinica y procedimientos", () => {
             const t = el.shadowRoot.textContent;
@@ -39,6 +42,7 @@ describe("Tarjetas de citas y de la agenda", () => {
             paciente: { nombre: "Luis Pérez", edad: 26, documento: "11111111-1" },
             procedimientos: [{ nombre: "Consulta general", pasos: [
                 { idPaso: "cpp1", nombre: "Triaje", estado: "Completado", quien: "Ana Mejía", rol: "Recepcionista", fecha: "2026-11-11T14:00:00Z" }] }] };
+        // Prepara el entorno de las pruebas.
         beforeEach(() => { crear("galeno-tarjeta-agenda"); el.datos = datos; });
         it("muestra paciente (nombre, edad, ID) y la jerarquia procedimiento > pasos", () => {
             const t = el.shadowRoot.textContent;

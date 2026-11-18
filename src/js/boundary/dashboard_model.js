@@ -1,26 +1,20 @@
-// HU3 · Dashboard del empleado.
-//   1) Elige la clinica y el rol con los que trabaja (solo entre SUS roles-clinicas) y pulsa "Cargar consultas".
-//   2) Ve las consultas de esa clinica (las abiertas que le toca atender y las finalizadas), con filtros: paciente (nombre o documento)
-//      y Hoy / Pasado / Futuro / Rango (control segmentado).
-//   3) Cada consulta es una card con el paciente, la fecha de inicio y los pasos hechos (quien y cuando);
-//      "Ver registro" abre el detalle del paso y "Atender consulta" lleva a la HU4.
-// La barra de herramientas (contexto + filtros + conteo) es sticky, el listado va en rejilla de a 12
-// tarjetas con un boton "Mostrar mas" (paginacion en el cliente, sin llamadas nuevas al backend).
 class DashboardModel {
 
     static POR_PAGINA = 12;
 
+    // Prepara el estado de filtros, contexto y paginación.
     constructor(contenedor, { irA = () => {} } = {}) {
         this.contenedor = contenedor;
         this.irA = irA;
         this.datos = null;
 
         this._carga = 0;
-        this.chipEstado = "total";      // total | curso | finalizadas (los chips filtran lo ya cargado)
+        this.chipEstado = "total";
         this.pagina = 0;
 
     }
 
+    // Prepara el estado y las escuchas que necesita este flujo.
     iniciar() {
         this.sesion = Sesion.obtener();
         const contextos = this.sesion?.contextos ?? [];
@@ -69,6 +63,7 @@ class DashboardModel {
                 <div id="lista" class="rejilla-agenda" aria-live="polite"></div>
                 <galeno-registro-paso id="registro"></galeno-registro-paso>
             </section>`;
+        // Busca un elemento de la vista por su ID.
         const $ = id => this.contenedor.querySelector("#" + id);
         this.selClinica = $("clinica"); this.selRol = $("rol"); this.mensaje = $("mensaje");
         this.contextoForm = $("contexto"); this.resumen = $("resumen-contexto");
@@ -86,21 +81,24 @@ class DashboardModel {
         this.selRol.deshabilitado = true;
         this.selModo.formatoTexto = o => o.nombre;
         this.selModo.opciones = Agenda.MODOS.map(nombre => ({ nombre }));
-        this.selModo.seleccionar(this.selModo.opciones[0]);   // avisa con galeno-seleccion (todavia sin oyente)
+        this.selModo.seleccionar(this.selModo.opciones[0]);
 
+        // Actualiza los datos que dependen de la opción seleccionada.
         this.selClinica.addEventListener("galeno-seleccion", ev => this.alElegirClinica(ev.detail.valor));
+        // Intercepta el envío para validar dentro de la SPA.
         this.contextoForm.addEventListener("submit", ev => { ev.preventDefault(); this.cargar(); });
         $("cambiar-contexto").addEventListener("click", () => this.desplegarContexto());
+        // Repite la operación que produjo el error.
         this.estado.addEventListener("galeno-reintentar", () => this.cargar());
+        // Actualiza los datos que dependen de la opción seleccionada.
         this.selModo.addEventListener("galeno-seleccion", () => { this.mostrarFechas(); this.pintar(); });
         [this.campoPaciente, this.campoDesde, this.campoHasta].forEach(c => c.addEventListener("galeno-cambio", () => this.pintar()));
         this.conteo.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => this.elegirChip(b.dataset.estado)));
         this.lista.addEventListener("galeno-atender", ev => this.irA("consulta", ev.detail.idConsulta));
         this.lista.addEventListener("galeno-ver-registro", ev => this.verRegistro(ev.detail.idPaso));
-        // atajo "/": enfoca el buscador de paciente (ayuda visible en title y aria-keyshortcuts;
-        // no interfiere cuando el foco ya esta en un campo de texto)
         this.campoPaciente.title = "Atajo: pulsa / para buscar un paciente";
         this.campoPaciente.entrada?.setAttribute("aria-keyshortcuts", "/");
+        // Atiende las teclas que controla esta vista.
         document.addEventListener("keydown", this.alTecla = ev => {
             if (ev.key !== "/" || ev.ctrlKey || ev.metaKey || ev.altKey) return;
             const activo = document.activeElement;
@@ -113,10 +111,13 @@ class DashboardModel {
         if (clinicas.size === 1) { this.selClinica.seleccionar(this.selClinica.opciones[0]); this.alElegirClinica(this.selClinica.opciones[0]); }
     }
 
+    // Descarta el trabajo pendiente de la vista al salir.
     destruir() { this._carga++; }
 
+    // Escapa el texto antes de incluirlo en una plantilla HTML.
     static esc(t) { return String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
+    // Limita los roles disponibles a la clínica seleccionada.
     alElegirClinica(clinica) {
         const roles = clinica ? this.contextos.filter(c => c.idClinica === clinica.idClinica) : [];
         this.selRol.opciones = roles;
@@ -124,18 +125,20 @@ class DashboardModel {
         if (roles.length === 1) this.selRol.seleccionar(roles[0]);
     }
 
+    // Muestra los campos de fecha cuando se elige un rango.
     mostrarFechas() {
         const rango = this.selModo.seleccionado?.nombre === "Rango";
         this.campoDesde.hidden = !rango; this.campoHasta.hidden = !rango;
     }
 
-    // vuelve a mostrar el formulario de contexto (boton "Cambiar" del resumen)
+    // Vuelve a mostrar los selectores de clínica y rol.
     desplegarContexto() {
         this.resumen.hidden = true;
         this.contextoForm.hidden = false;
         this.selClinica.shadowRoot.querySelector("select")?.focus();
     }
 
+    // Carga el expediente del contexto y descarta respuestas obsoletas.
     async cargar() {
         const carga = ++this._carga;
         this.mensaje.textContent = "";
@@ -145,7 +148,6 @@ class DashboardModel {
         this.selClinica.error(""); this.selRol.error("");
         this.ctx = ctx;
         Sesion.elegirContexto(ctx);
-        // 6 tarjetas esqueleto mientras llega la informacion
         this.estado.mostrar("cargando", "", { tarjetas: 6 });
         this.lista.replaceChildren();
         try {
@@ -162,7 +164,7 @@ class DashboardModel {
         }
     }
 
-    // Tras cargar, el contexto se colapsa a una linea: "Clínica · Rol" con el boton "Cambiar"
+    // Resume la clínica y el rol seleccionados.
     pintarContexto() {
         if (!this.ctx) return;
         this.resumen.querySelector("#resumen-contexto-texto").textContent = `${this.ctx.clinica} · ${this.ctx.rol}`;
@@ -170,14 +172,12 @@ class DashboardModel {
         this.resumen.hidden = false;
     }
 
-    // Consultas abiertas de la clinica elegida, para el rol elegido, con los filtros puestos
-    // (paciente y fechas). Los chips de estado se aplican aparte en visibles().
+    // Obtiene las consultas que coinciden con el contexto y los filtros.
     filtradas() {
         const texto = DatosClinica.normalizar(this.campoPaciente.value);
         const rango = Agenda.rango(this.selModo.seleccionado?.nombre, this.campoDesde.value, this.campoHasta.value);
         return this.datos.consultas
             .filter(c => DatosClinica.esDeClinica(c.idPersonaRol, this.ctx.idClinica))
-            // las abiertas solo si le tocan a este rol; las finalizadas se ven siempre (solo lectura)
             .filter(c => !Expediente.abierta(c) || Expediente.laAtiende(this.datos, c, this.ctx.idRol))
             .filter(c => Agenda.enRango(c.fechaInicio, rango))
             .filter(c => {
@@ -188,6 +188,7 @@ class DashboardModel {
             .sort((a, b) => DatosClinica.milisegundos(a.fechaInicio) - DatosClinica.milisegundos(b.fechaInicio));
     }
 
+    // Aplica el filtro de estado a las consultas del listado.
     visibles() {
         const cs = this.filtradas();
         if (this.chipEstado === "curso") return cs.filter(c => Expediente.abierta(c));
@@ -195,6 +196,7 @@ class DashboardModel {
         return cs;
     }
 
+    // Aplica el filtro correspondiente al contador seleccionado.
     elegirChip(estado) {
         this.chipEstado = estado;
         this.conteo.querySelectorAll(".chip").forEach(b => {
@@ -205,8 +207,9 @@ class DashboardModel {
         this.pintar();
     }
 
-    // conteos de los chips: sobre las consultas ya filtradas (sin el filtro de chip)
+    // Actualiza los contadores con las consultas filtradas.
     pintarChips(consultas) {
+        // Calcula el valor del contador que se muestra en la vista.
         const n = estado => consultas.filter(c =>
             estado === "curso" ? Expediente.abierta(c) : estado === "finalizadas" ? !Expediente.abierta(c) : true).length;
         this.conteo.querySelectorAll(".n").forEach(s => {
@@ -216,14 +219,12 @@ class DashboardModel {
         });
     }
 
-    // El valor se actualiza en el mismo ciclo que los filtros. Evita que una animacion anterior
-    // reescriba un conteo nuevo si el usuario cambia varios filtros rapidamente.
+    // Calcula el número de consultas para el estado indicado.
     contar(s, valor) {
         s.textContent = String(valor);
     }
 
-    // tarjeta de consulta enriquecida SIN tocar control: el total de pasos definidos de cada
-    // procedimiento sale de Expediente.procedimientosDe (para la barra de progreso de la card)
+    // Prepara los datos que necesita la tarjeta de la consulta.
     tarjeta(c) {
         const base = Expediente.tarjeta(this.datos, c);
         const procs = Expediente.procedimientosDe(this.datos, c);
@@ -231,6 +232,7 @@ class DashboardModel {
             ({ ...p, total: procs[i]?.estado?.definidos?.length ?? p.pasos.length })) };
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         if (!this.datos) return;
         this.pagina = 0;
@@ -247,7 +249,7 @@ class DashboardModel {
         this.agregarTarjetas(consultas);
     }
 
-    // agrega el lote de la pagina actual y, si quedan, el boton "Mostrar mas (N restantes)"
+    // Añade las tarjetas de esta tanda al listado.
     agregarTarjetas(consultas) {
         this.lista.querySelector("#mostrar-mas")?.remove();
         const desde = this.pagina * DashboardModel.POR_PAGINA;
@@ -267,6 +269,7 @@ class DashboardModel {
         }
     }
 
+    // Abre el detalle del paso seleccionado.
     verRegistro(idPaso) {
         const datos = Expediente.registro(this.datos, idPaso);
         if (!datos) return;

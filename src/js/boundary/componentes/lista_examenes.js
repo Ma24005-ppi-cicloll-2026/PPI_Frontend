@@ -1,10 +1,6 @@
-// <galeno-lista-examenes>: los examenes que se pueden asignar en un paso (HU4), con filtro por categoria.
-//   lista.examenes = [{ id, nombre, categoria }];          // categoria puede venir vacia
-//   lista.asignados = ["id1", "id2"];                      // ya asignados: salen marcados y bloqueados
-//   lista.seleccionados                                    // ids marcados ahora
-//   lista.addEventListener("galeno-asignar", e => e.detail.ids);   // boton "Asignar exámenes seleccionados"
 class GalenoListaExamenes extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -14,28 +10,39 @@ class GalenoListaExamenes extends HTMLElement {
         this._categoria = "";
     }
 
+    // Actualiza los exámenes disponibles.
     set examenes(v) { this._examenes = Array.isArray(v) ? v : []; this._categoria = ""; this._marcados.clear(); this.pintar(); }
+    // Devuelve los exámenes disponibles.
     get examenes() { return this._examenes; }
+    // Actualiza los exámenes ya asignados.
     set asignados(v) { this._asignados = new Set(v || []); this._marcados.clear(); this.pintar(); }
+    // Devuelve los valores seleccionados.
     get seleccionados() { return [...this._marcados]; }
+    // Actualiza el bloqueo del control.
     set deshabilitada(v) { this._deshabilitada = Boolean(v); this.pintar(); }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Agrupa los exámenes por categoría.
     categorias() {
         return [...new Set(this._examenes.map(x => x.categoria).filter(Boolean))].sort();
     }
 
+    // Aplica el filtro de estado a las consultas del listado.
     visibles() {
         return this._examenes.filter(x => !this._categoria || x.categoria === this._categoria);
     }
 
+    // Escapa los caracteres con significado en HTML.
     escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
+        // Escapa los textos que se insertan en la plantilla.
         const e = t => this.escapar(t);
         const bloqueada = Boolean(this._deshabilitada);
         this.shadowRoot.innerHTML = `
@@ -65,7 +72,6 @@ class GalenoListaExamenes extends HTMLElement {
             button:hover:not(:disabled) { background:var(--primario-oscuro, #25585B); }
             button:disabled { background:var(--inactivo, #8CA0A8); cursor:not-allowed; }
             button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
             @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <h3>Lista de exámenes asignables</h3>

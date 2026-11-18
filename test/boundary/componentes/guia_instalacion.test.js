@@ -1,12 +1,15 @@
-// Pruebas de <galeno-guia-instalacion> (dialogo accesible con los pasos manuales de iOS).
 {
 const { expect } = chai;
 
 describe("<galeno-guia-instalacion>", () => {
     let el;
+    // Busca el cuadro visible dentro del componente.
     const caja = () => el.shadowRoot.querySelector(".caja");
+    // Comprueba si se muestra la interfaz de prueba.
     const visible = () => !caja().hidden;
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { el = document.createElement("galeno-guia-instalacion"); document.body.append(el); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => el.remove());
 
     it("empieza cerrada", () => {

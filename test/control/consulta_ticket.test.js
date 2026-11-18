@@ -3,7 +3,9 @@ const { expect } = chai;
 describe("ConsultaService · ticket PDF del backend", () => {
     let stub;
     let leerCache;
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => { stub?.restore(); stub = null; leerCache?.restore(); leerCache = null; });
+    // Construye la respuesta HTTP que espera la prueba.
     const respuesta = (estado = 200, nombre = 'attachment; filename="ticket-cita-2026-11-11-abc.pdf"') =>
         new Response(new Blob(["%PDF-1.4"], { type: "application/pdf" }), { status: estado, headers: { "Content-Disposition": nombre } });
 

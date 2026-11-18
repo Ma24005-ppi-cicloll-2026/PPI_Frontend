@@ -1,23 +1,28 @@
-// Rutas y menu de la SPA: Buscar citas y Login (publicas), Dashboard y Consulta (empleado).
 {
 const { expect } = chai;
 describe("AppModel", () => {
     let api, app, cont, transicionStub;
     const empleado = { idPersona: "p-ana", nombre: "Ana Mejía", contextos: [{ idPersonaRol: "pr-ana-med-sa", idRol: "r-med", rol: "Médico", idClinica: "c-sa", clinica: "Santa Ana" }] };
+    // Prepara el entorno de las pruebas.
     beforeEach(() => {
         Sesion.cerrar(); window.location.hash = "";
         api = new ApiFalsa(Datos.bd());
-        // view transitions: se ejecuta el cambio AL TIRO para que las pruebas sean sincronas
         transicionStub = sinon.stub(document, "startViewTransition")
             .callsFake(fn => { fn(); return { finished: Promise.resolve() }; });
         cont = document.createElement("div");
         cont.innerHTML = '<p id="anuncio" class="sr" aria-live="polite"></p><header><p id="titulo-seccion"><span id="titulo-seccion-texto"></span></p><span id="sesion"></span></header><galeno-menu id="menu"></galeno-menu><main id="pantalla"></main><galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>';
         document.body.append(cont);
     });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => { transicionStub.restore(); app?.destruir(); api.restaurar(); cont.remove(); Sesion.cerrar(); window.location.hash = ""; });
+    // Monta el enrutador y espera a que termine la primera carga.
     const arrancar = async () => { app = new AppModel(); app.iniciar(); await Ayuda.esperar(); };
+    // Recoge los destinos que muestra el menú.
     const menu = () => app.menu.items.map(i => i.texto);
-    const titulo = () => cont.querySelector("#pantalla h2")?.textContent;
+    // Devuelve la raíz encapsulada de la pantalla de acceso.
+    const login = () => cont.querySelector("galeno-pantalla-login").shadowRoot;
+    // Lee el título de la ruta que está montada.
+    const titulo = () => cont.querySelector("#pantalla h2")?.textContent ?? login().querySelector("h2").textContent;
 
     describe("sin sesion", () => {
         it("abre Buscar citas y el menu solo tiene Buscar citas e Iniciar sesión", async () => {
@@ -38,6 +43,13 @@ describe("AppModel", () => {
             expect(titulo()).to.equal("Iniciar sesión");
             expect(window.location.hash).to.equal("#/login");
         });
+        it("enfoca la entrada del tipo de documento al navegar al login", async () => {
+            await arrancar(); app.irA("login");
+            const tipo = login().querySelector("#tipo");
+            expect(document.activeElement).to.equal(login().host);
+            expect(login().activeElement).to.equal(tipo);
+            expect(tipo.shadowRoot.activeElement).to.equal(tipo.shadowRoot.querySelector("input"));
+        });
         it("no entra al Dashboard ni a una consulta aunque escriba la URL", async () => {
             window.location.hash = "/dashboard"; await arrancar();
             expect(titulo()).to.equal("Buscar citas");
@@ -52,6 +64,7 @@ describe("AppModel", () => {
     });
 
     describe("empleado", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => Sesion.iniciar(empleado));
         it("empieza en el Dashboard", async () => {
             await arrancar();
@@ -109,6 +122,7 @@ describe("AppModel", () => {
     });
 
     describe("transicion de pantallas (view transitions)", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => Sesion.iniciar(empleado));
         it("usa document.startViewTransition al cambiar de pantalla", async () => {
             await arrancar();
@@ -116,7 +130,11 @@ describe("AppModel", () => {
             expect(titulo()).to.equal("Dashboard");
         });
         it("con prefers-reduced-motion no la usa (queda el respaldo CSS)", async () => {
-            const mm = sinon.stub(window, "matchMedia").returns({ matches: true, addEventListener() {}, removeEventListener() {} });
+            const mm = sinon.stub(window, "matchMedia").returns({ matches: true,
+                // Simula la suscripción a un evento del navegador.
+                addEventListener() {},
+                // Simula la retirada de una suscripción del navegador.
+                removeEventListener() {} });
             await arrancar();
             expect(transicionStub.called).to.equal(false);
             expect(titulo()).to.equal("Dashboard");
@@ -133,7 +151,7 @@ describe("AppModel", () => {
 
     it("iniciar sesion desde el login lleva al Dashboard", async () => {
         await arrancar(); app.irA("login"); await Ayuda.esperar(15);
-        const z = cont.querySelector("#pantalla");
+        const z = login();
         Ayuda.tipo(z.querySelector("#tipo"), "DUI"); Ayuda.escribir(z.querySelector("#numero"), "01234567-8");
         z.querySelector("#formulario").dispatchEvent(new Event("submit", { cancelable: true }));
         await Ayuda.esperar(20);

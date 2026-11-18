@@ -1,5 +1,6 @@
 class MedioContactoService extends DefaultService {
+    // Vincula el servicio con su recurso REST.
     constructor() {
-        super("medio_contacto");   // la misma ruta del @Path del resource
+        super("medio_contacto");
     }
 }

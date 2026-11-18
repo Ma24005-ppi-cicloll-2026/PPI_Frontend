@@ -1,23 +1,20 @@
-// HU1 · Busqueda de citas (publica: el paciente no inicia sesion).
-//   Asistente: tipo de documento -> numero (se habilita al elegir el tipo) -> clinica donde esta registrado como
-//   paciente -> rango de fechas -> "Buscar citas". Cada cita sale como card (fecha, hora, clinica, procedimientos)
-//   con el boton que baja el ticket en PDF, generado por el BACKEND (GET /consulta/{id}/ticket).
 class CitasModel {
 
-    // Icono de lupa del boton "Buscar citas"; se reusa al terminar la carga (textContent borraria el icono)
     static LUPA = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="9" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m13.2 13.2 3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
     static BOTON = CitasModel.LUPA + "<span>Buscar citas</span>";
 
+    // Guarda el contenedor y la operación de descarga del ticket.
     constructor(contenedor, { descargar = id => new ConsultaService().descargarTicket(id) } = {}) {
         this.contenedor = contenedor;
         this.descargar = descargar;
         this.personasRoles = [];
         this.documentos = [];
-        this.pacienteEn = [];             // PersonaRol de paciente de la persona identificada
+        this.pacienteEn = [];
         this.datos = null;
         this._busqueda = 0;
     }
 
+    // Monta el asistente y conecta sus campos con la búsqueda.
     iniciar() {
         this.contenedor.innerHTML = `
             <section class="citas" aria-labelledby="titulo-citas">
@@ -88,6 +85,7 @@ class CitasModel {
                 <galeno-estado-vista id="estado"></galeno-estado-vista>
                 <div id="resultado" class="rejilla" aria-live="polite"></div>
             </section>`;
+        // Busca un elemento de la vista por su ID.
         const $ = id => this.contenedor.querySelector("#" + id);
         this.buscaTipo = $("tipo"); this.campoNumero = $("numero"); this.selClinica = $("clinica");
         this.campoDesde = $("desde"); this.campoHasta = $("hasta");
@@ -101,12 +99,15 @@ class CitasModel {
 
         this.campoNumero.deshabilitado = true;
         this.selClinica.deshabilitado = true;
-        this.campoNumero.ayuda = "";   // la ayuda del numero solo se ve con el campo habilitado
+        this.campoNumero.ayuda = "";
         this.estado.mostrar("contenido");
         this.pintarSecciones();
 
+        // Intercepta el envío para validar dentro de la SPA.
         $("formulario").addEventListener("submit", e => { e.preventDefault(); this.buscar(); });
+        // Repite la operación que produjo el error.
         this.estado.addEventListener("galeno-reintentar", () => this.buscar());
+        // Actualiza los datos que dependen de la opción seleccionada.
         this.buscaTipo.addEventListener("galeno-seleccion", e => {
             const tipo = e.detail.valor;
             this.campoNumero.deshabilitado = !tipo;
@@ -115,6 +116,7 @@ class CitasModel {
             this.identificar();
         });
         this.campoNumero.addEventListener("galeno-cambio", () => this.identificar());
+        // Actualiza los datos que dependen de la opción seleccionada.
         this.selClinica.addEventListener("galeno-seleccion", () => this.pintarSecciones());
         this.resultado.addEventListener("galeno-descargar-ticket", e => this.bajarTicket(e));
         this.datos = this.cargarDatos();
@@ -122,9 +124,10 @@ class CitasModel {
     }
 
 
+    // Descarta el trabajo pendiente de la vista al salir.
     destruir() { this._busqueda++; }
 
-    // Aspecto del asistente: cada paso y cada seccion se ven bloqueados, activos o completos segun el estado real
+    // Actualiza el progreso y los bloqueos del asistente.
     pintarSecciones() {
         const tipo = this.buscaTipo.seleccionado;
         const numero = this.campoNumero.value.trim();
@@ -134,6 +137,7 @@ class CitasModel {
             identificado ? "activa" : "bloqueada",
             identificado ? "activa" : "bloqueada"
         ];
+        // Actualiza la vista con los datos y el estado actuales.
         const pintar = (nodo, i) => {
             nodo.classList.toggle("bloqueada", estados[i] === "bloqueada");
             nodo.classList.toggle("activa", estados[i] === "activa");
@@ -147,6 +151,7 @@ class CitasModel {
     }
 
 
+    // Carga los documentos, tipos y roles necesarios para identificar a la persona.
     async cargarDatos() {
         try {
             this.personasRoles = await new PersonaRolService().listar(0, 1000);
@@ -159,7 +164,7 @@ class CitasModel {
         }
     }
 
-    // Cada vez que cambia el tipo o el numero: si el documento es valido y es de un paciente, se llena el selector de clinicas.
+    // Busca al paciente y carga las clínicas vinculadas a su documento.
     identificar() {
         this.mensaje.textContent = "";
         this.campoNumero.error("");
@@ -180,6 +185,7 @@ class CitasModel {
         this.pintarSecciones();
     }
 
+    // Comprueba los datos obligatorios y muestra el primer error.
     validar() {
         const tipo = this.buscaTipo.seleccionado;
         const numero = this.campoNumero.value.trim();
@@ -193,17 +199,18 @@ class CitasModel {
         return true;
     }
 
+    // Valida el asistente y descarta resultados de búsquedas que ya quedaron atrás.
     async buscar() {
 
         const busqueda = ++this._busqueda;
-        this.bienvenida.hidden = true;   // el panel de bienvenida solo se ve antes de la primera busqueda
+        this.bienvenida.hidden = true;
         this.mensaje.textContent = "";
         this.campoHasta.error(""); this.selClinica.error("");
         this.resultado.replaceChildren();
         if (!(await this.datos)) this.datos = this.cargarDatos();
         if (!(await this.datos)) return;
         if (busqueda !== this._busqueda) return;
-        if (!this.pacienteEn.length) this.identificar();   // por si escribio antes de que llegaran los datos
+        if (!this.pacienteEn.length) this.identificar();
         if (!this.validar()) return;
         const clinica = this.selClinica.seleccionado;
         const idsPaciente = this.pacienteEn.filter(pr => pr.idClinica?.idClinica === clinica.idClinica).map(pr => pr.idPersonaRol);
@@ -241,13 +248,13 @@ class CitasModel {
         }
     }
 
+    // Descarga el PDF y mantiene el estado de carga en su tarjeta.
     async bajarTicket(e) {
         const tarjeta = e.target.closest("galeno-tarjeta-cita");
         tarjeta.ocupada = true;
         try {
             await this.descargar(e.detail.idConsulta);
             this.aviso?.mostrar("Ticket descargado", "exito");
-            // la invitacion a instalar escucha este evento; solo el EXITO de la descarga la activa
             window.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
         } catch (err) {
             this.aviso?.mostrar(err.message || "No se pudo generar el ticket", "error");

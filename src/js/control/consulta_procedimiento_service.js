@@ -1,5 +1,6 @@
 class ConsultaProcedimientoService extends DefaultService {
+    // Vincula el servicio con su recurso REST.
     constructor() {
-        super("consulta_procedimiento");   // la misma ruta del @Path del resource
+        super("consulta_procedimiento");
     }
 }

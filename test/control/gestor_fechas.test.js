@@ -1,5 +1,4 @@
-// Pruebas de GestorFechas: lee las fechas que manda el backend (con el sufijo "[UTC]").
-{  // bloque: evita que 'expect' choque con el de otros archivos de prueba
+{
 const { expect } = chai;
 
 describe("GestorFechas", () => {

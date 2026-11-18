@@ -1,8 +1,8 @@
-// HU1 · Busqueda de citas (publica)
 {
 const { expect } = chai;
 describe("CitasModel (HU1)", () => {
     let api, zona, modelo, descargar;
+    // Prepara el entorno de las pruebas.
     beforeEach(async () => {
         Sesion.cerrar();
         api = new ApiFalsa(Datos.bd());
@@ -11,10 +11,15 @@ describe("CitasModel (HU1)", () => {
         modelo = new CitasModel(zona, { descargar });
         await modelo.iniciar(); await Ayuda.esperar();
     });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => { api.restaurar(); zona.remove(); });
+    // Busca un elemento de la pantalla de prueba por su ID.
     const q = id => zona.querySelector("#" + id);
+    // Busca los registros que coinciden con los datos elegidos.
     const buscar = async () => { q("formulario").dispatchEvent(new Event("submit", { cancelable: true })); await Ayuda.esperar(12); };
+    // Rellena los datos de identidad en el asistente.
     const documento = (tipo, numero) => { Ayuda.tipo(q("tipo"), tipo); Ayuda.escribir(q("numero"), numero); };
+    // Devuelve las tarjetas que están visibles en el resultado.
     const tarjetas = () => [...zona.querySelectorAll("galeno-tarjeta-cita")];
 
     it("es un asistente en orden: tipo, numero, clinica, fechas", () => {
@@ -76,7 +81,7 @@ describe("CitasModel (HU1)", () => {
     it("filtra por rango de fechas", async () => {
         documento("DUI", "11111111-1");
         Ayuda.elegir(q("clinica"), q("clinica").opciones.findIndex(c => c.nombre === "Santa Ana"));
-        const hoy = Datos.fechaLocal(0);                  // fecha LOCAL (no UTC)
+        const hoy = Datos.fechaLocal(0);
         q("desde").value = hoy; q("hasta").value = hoy;
         await buscar();
         expect(tarjetas().map(t => t.cita.idConsulta)).to.have.members(["k-hoy", "k-cerrada"]);

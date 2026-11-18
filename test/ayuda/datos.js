@@ -1,8 +1,10 @@
-// Base de datos de ejemplo para las pruebas de las pantallas (la misma forma que devuelve el backend).
 const Datos = (() => {
+    // Crea una fecha de consulta con respecto al día actual.
     const dia = (desfase, hora = 9) => { const d = new Date(); d.setDate(d.getDate() + desfase); d.setHours(hora, 0, 0, 0); return d.toISOString(); };
-    // fecha local "AAAA-MM-DD" de hoy + desfase dias (la que escribiria el usuario en un <input type=date>)
-    const fechaLocal = desfase => { const d = new Date(); d.setDate(d.getDate() + desfase); const dos = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`; };
+    // Prepara una fecha de prueba en la zona local.
+    const fechaLocal = desfase => { const d = new Date(); d.setDate(d.getDate() + desfase);
+        // Rellena un número de fecha con dos dígitos.
+        const dos = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`; };
     const personas = {
         ana: { idPersona: "p-ana", nombres: "Ana", apellidos: "Mejía", fechaNacimiento: "1990-05-10" },
         luis: { idPersona: "p-luis", nombres: "Luis", apellidos: "Pérez", fechaNacimiento: "2000-01-15" },
@@ -10,6 +12,7 @@ const Datos = (() => {
     };
     const clinicas = { sa: { idClinica: "c-sa", nombre: "Santa Ana" }, sm: { idClinica: "c-sm", nombre: "San Miguel" } };
     const roles = { med: { idRol: "r-med", nombre: "Médico" }, pac: { idRol: "r-pac", nombre: "Paciente" }, rec: { idRol: "r-rec", nombre: "Recepcionista" } };
+    // Construye un registro de persona, rol y clínica.
     const pr = (id, persona, rol, clinica) => ({ idPersonaRol: id, idPersona: personas[persona], idRol: roles[rol], idClinica: clinicas[clinica] });
     const personasRoles = {
         anaMedSa: pr("pr-ana-med-sa", "ana", "med", "sa"), anaRecSa: pr("pr-ana-rec-sa", "ana", "rec", "sa"),
@@ -20,21 +23,25 @@ const Datos = (() => {
     const tipos = [
         { idTipoDocumento: "t-dui", nombre: "DUI", indicaciones: "00000000-0", expresionRegular: "^\\d{8}-\\d$", activo: true },
         { idTipoDocumento: "t-pas", nombre: "Pasaporte", indicaciones: "A0000000", expresionRegular: "^[A-Z]\\d{7}$", activo: true }];
+    // Construye un documento de identidad de prueba.
     const doc = (id, persona, tipo, valor) => ({ idDocumento: id, idPersona: personas[persona], idTipoDocumento: tipos[tipo], valor });
     const procedimiento = { idProcedimiento: "pc-gen", nombre: "Consulta general", activo: true };
     const pasos = [
         { idProcedimientoPaso: "s-triaje", nombre: "Triaje", indicaFin: false, idProcedimiento: procedimiento, idRol: roles.rec },
         { idProcedimientoPaso: "s-medica", nombre: "Consulta médica", indicaFin: true, idProcedimiento: procedimiento, idRol: roles.med }];
+    // Construye los datos de una consulta de prueba.
     const consulta = (id, rol, desfase, extra = {}) => ({ idConsulta: id, fechaInicio: dia(desfase), fechaFin: null, observaciones: "", referenciaExterna: "", idPersonaRol: personasRoles[rol], ...extra });
     const consultas = [
-        consulta("k-hoy", "luisSa", 0),                    // ya paso el triaje: le toca al medico
-        consulta("k-manana", "jenniSa", 1),                // sin pasos: le toca a recepcion
+        consulta("k-hoy", "luisSa", 0),
+        consulta("k-manana", "jenniSa", 1),
         consulta("k-ayer", "luisSa", -1),
         consulta("k-sm", "luisSm", 0),
         consulta("k-cerrada", "luisSa", 0, { fechaFin: dia(0, 10) })];
+    // Vincula un procedimiento con una consulta de prueba.
     const cp = (id, k, obs = "") => ({ idConsultaProcedimiento: id, idProcedimiento: "pc-gen", fechaInicio: dia(0), fechaFin: null, observaciones: obs, idConsulta: consultas.find(c => c.idConsulta === k) });
     return {
         dia, fechaLocal, personas, clinicas, roles, personasRoles, tipos, pasos, procedimiento,
+        // Reúne los registros por endpoint para el API simulado.
         bd() {
             return {
                 tipo_documento: tipos, persona: Object.values(personas), clinica: Object.values(clinicas), rol: Object.values(roles),

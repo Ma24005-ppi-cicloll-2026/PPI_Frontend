@@ -1,9 +1,6 @@
-// <galeno-indicador-pasos>: la barra de pasos de una consulta (HU4): "Triaje ✓ | Consulta médica | Tratamiento".
-//   indicador.pasos = [{ nombre: "Triaje", estado: "hecho" }, { nombre: "Consulta", estado: "actual" }, { nombre: "Cierre", estado: "pendiente" }];
-//   indicador.vista = 1;     // el paso que se esta mirando (se resalta)
-// Los pasos hechos y el actual se pueden pulsar para verlos: emite "galeno-ir-paso" { indice }.
 class GalenoIndicadorPasos extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -11,25 +8,31 @@ class GalenoIndicadorPasos extends HTMLElement {
         this._vista = 0;
     }
 
+    // Actualiza los pasos del procedimiento.
     set pasos(v) { this._pasos = Array.isArray(v) ? v : []; this.pintar(); }
+    // Devuelve los pasos del procedimiento.
     get pasos() { return this._pasos; }
+    // Actualiza el índice del paso visible.
     set vista(v) { this._vista = v; this.pintar(); }
+    // Devuelve el índice del paso visible.
     get vista() { return this._vista; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Escapa los caracteres con significado en HTML.
     escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         this.shadowRoot.innerHTML = `
           <style>
             :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); }
             ol { display:flex; flex-wrap:wrap; gap:.35rem .25rem; list-style:none; margin:0; padding:0; }
             li { display:flex; align-items:center; gap:.25rem; }
-            /* conector entre pasos */
             li + li::before { content:""; width:1.4rem; height:2px; background:var(--borde, #E3EAEA); border-radius:2px; flex:0 0 auto;
                               margin-right:.25rem; }
             button { display:inline-flex; align-items:center; gap:.45rem; border:1px solid var(--borde, #E3EAEA);
@@ -44,7 +47,6 @@ class GalenoIndicadorPasos extends HTMLElement {
             button:disabled { color:var(--inactivo, #8CA0A8); cursor:not-allowed; }
             button[aria-current=step] { background:var(--primario-suave, #E9F1EF); border-color:var(--primario, #2F6F73); color:var(--tinta, #1D3461); }
             button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
             @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <ol aria-label="Pasos del procedimiento"></ol>`;

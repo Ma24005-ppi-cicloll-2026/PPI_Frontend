@@ -1,13 +1,6 @@
-// <galeno-opcion>: una tarjeta que se puede elegir (clinica, procedimiento...). Es la "categoria"
-// con su imagen y el "producto" de la pantalla de pedido de Cafefe.
-//   opcion.datos = { id: "c1", titulo: "Clínica Central", detalle: "General", icono: "cruz", activo: true };
-//   opcion.seleccionada = true;
-//   opcion.addEventListener("galeno-elegir", e => e.detail.id);
-// Si activo es false se ve apagada, dice "No disponible" y NO se puede elegir.
-// Iconos (dibujados con SVG, sin imagenes externas): cruz, corazon, diente, ojo, bebe, general.
-// Con el atributo `sin-icono` no dibuja la imagen (para listas de procedimientos).
 class GalenoOpcion extends HTMLElement {
 
+    // Devuelve los iconos del menú.
     static get ICONOS() {
         return {
             cruz: '<rect x="20" y="8" width="24" height="48" rx="5"/><rect x="8" y="20" width="48" height="24" rx="5"/>',
@@ -19,7 +12,7 @@ class GalenoOpcion extends HTMLElement {
         };
     }
 
-    // elige un icono segun el texto ("Pediatría" -> bebe); si nada coincide, "general"
+    // Elige el icono que corresponde al tipo de opción.
     static iconoPara(texto) {
         const t = String(texto ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
         if (/cardi|corazon/.test(t)) return "corazon";
@@ -30,6 +23,7 @@ class GalenoOpcion extends HTMLElement {
         return "general";
     }
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -37,18 +31,25 @@ class GalenoOpcion extends HTMLElement {
         this._seleccionada = false;
     }
 
+    // Actualiza los datos de la vista.
     set datos(v) { this._datos = v || {}; this.pintar(); }
+    // Devuelve los datos de la vista.
     get datos() { return this._datos; }
+    // Actualiza la opción seleccionada.
     set seleccionada(v) { this._seleccionada = Boolean(v); this.pintar(); }
+    // Devuelve la opción seleccionada.
     get seleccionada() { return this._seleccionada; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Escapa los caracteres con significado en HTML.
     escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const d = this._datos;
         const activo = d.activo !== false;
@@ -68,7 +69,6 @@ class GalenoOpcion extends HTMLElement {
             strong { font-size:1.05rem; }
             small { color:var(--tinta-suave, #44577B); }
             .marca { position:absolute; top:.4rem; right:.5rem; color:var(--exito, #3E7C59); font-weight:700; }
-          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
             @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <button type="button" aria-pressed="${this._seleccionada}" ${activo ? "" : "disabled"}>

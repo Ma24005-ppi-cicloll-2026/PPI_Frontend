@@ -1,14 +1,6 @@
-// <galeno-estado-vista>: lo que se ve mientras la pantalla pide datos al backend.
-//   estado.mostrar("cargando");                    // esqueleto de carga (skeleton)
-//   estado.mostrar("vacio");                       // la lista llego sin registros
-//   estado.mostrar("error", "No se pudo listar");  // con boton "Reintentar"
-//   estado.mostrar("contenido");                   // no dibuja nada: ya se puede ver la tabla
-// Opciones (tercer argumento, opcional):
-//   { tarjetas: 6 }   -> en "cargando" dibuja 6 esqueletos con forma de tarjeta en rejilla (dashboard)
-//   { arte: true }    -> en "vacio" agrega una ilustracion propia encima del mensaje
-// Al pulsar "Reintentar" emite "galeno-reintentar".
 class GalenoEstadoVista extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -17,8 +9,10 @@ class GalenoEstadoVista extends HTMLElement {
         this._opts = {};
     }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Presenta el contenido o estado indicado.
     mostrar(estado, mensaje = "", opts = {}) {
         this._estado = estado;
         this._mensaje = mensaje;
@@ -26,8 +20,10 @@ class GalenoEstadoVista extends HTMLElement {
         this.pintar();
     }
 
+    // Devuelve el estado actual.
     get estado() { return this._estado; }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const textos = { cargando: "Cargando información...", vacio: "Todavía no hay registros para mostrar." };
         const mensaje = this._mensaje || textos[this._estado] || "";
@@ -35,8 +31,6 @@ class GalenoEstadoVista extends HTMLElement {
         if (this._estado === "contenido" || !mensaje) { raiz.innerHTML = ""; return; }
         if (this._estado === "cargando") {
             const n = Number(this._opts.tarjetas) > 0 ? Number(this._opts.tarjetas) : 0;
-            // esqueleto: se ve la forma del contenido mientras llega; el texto va para lectores de pantalla.
-            // Con { tarjetas: n } son n tarjetas en rejilla; sin opciones, la caja clasica de siempre.
             raiz.innerHTML = `
           <style>
             :host { display:block; }
@@ -94,7 +88,7 @@ class GalenoEstadoVista extends HTMLElement {
             <span id="texto"></span>
             ${deError ? '<button id="reintentar" type="button">Reintentar</button>' : ""}
           </div>`;
-        raiz.querySelector("#texto").textContent = mensaje;     // textContent: seguro
+        raiz.querySelector("#texto").textContent = mensaje;
         const b = raiz.querySelector("#reintentar");
         if (b) b.addEventListener("click", () =>
             this.dispatchEvent(new CustomEvent("galeno-reintentar", { bubbles: true, composed: true })));

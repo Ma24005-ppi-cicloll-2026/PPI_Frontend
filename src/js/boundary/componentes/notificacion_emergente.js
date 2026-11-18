@@ -1,10 +1,3 @@
-// <galeno-notificacion-emergente>: aviso tipo "toast" que aparece arriba a la derecha
-// con icono, color apagado por tipo, barra de tiempo que se agota y cierre con boton o Escape.
-// Uso desde un Model:
-//   notificacion.mostrar("Registro guardado", "exito");   // tipos: exito, aviso, error, info
-//   notificacion.ocultar();
-// La caja #caja es la MISMA para todos los avisos (uno nuevo reemplaza al anterior y reinicia
-// su tiempo). El mensaje va con textContent: nunca interpreta HTML.
 class GalenoNotificacionEmergente extends HTMLElement {
 
     static ICONOS = {
@@ -15,6 +8,7 @@ class GalenoNotificacionEmergente extends HTMLElement {
     };
     static CRUZ = '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" focusable="false"><path d="m5 5 10 10m0-10L5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -22,6 +16,7 @@ class GalenoNotificacionEmergente extends HTMLElement {
         this.alTecla = ev => { if (ev.key === "Escape") this.ocultar(); };
     }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() {
         this.shadowRoot.innerHTML = `
           <style>
@@ -44,7 +39,6 @@ class GalenoNotificacionEmergente extends HTMLElement {
             #caja .barra { position:absolute; left:0; right:0; bottom:0; height:3px;
                     background:var(--info, #3F78A8); transform-origin:left;
                     animation:toast-tiempo 4000ms linear forwards; }
-            /* color apagado por tipo (icono, borde y barra) */
             #caja.exito { border-left-color:var(--exito, #4F8A6B); }  #caja.exito .icono, #caja.exito .barra { color:var(--exito, #4F8A6B); background-color:var(--exito, #4F8A6B); }
             #caja.aviso { border-left-color:var(--aviso, #B98A3E); }  #caja.aviso .icono, #caja.aviso .barra { color:var(--aviso, #B98A3E); background-color:var(--aviso, #B98A3E); }
             #caja.error { border-left-color:var(--error, #B5524A); }  #caja.error .icono, #caja.error .barra { color:var(--error, #B5524A); background-color:var(--error, #B5524A); }
@@ -54,20 +48,21 @@ class GalenoNotificacionEmergente extends HTMLElement {
             @media (prefers-reduced-motion: reduce) { #caja { animation:none; } #caja .barra { display:none; } }
           </style>
           <div id="caja" role="status" aria-live="polite" hidden></div>`;
+        // Atiende las teclas que controla esta vista.
         this.addEventListener("keydown", this.alTecla);
     }
 
+    // Libera las escuchas y recursos al retirar el componente.
     disconnectedCallback() {
         this.removeEventListener("keydown", this.alTecla);
         clearTimeout(this._temporizador);
     }
 
+    // Presenta el contenido o estado indicado.
     mostrar(mensaje, tipo = "info", milisegundos = 4000) {
         const caja = this.shadowRoot.querySelector("#caja");
         const icono = GalenoNotificacionEmergente.ICONOS[tipo] ?? GalenoNotificacionEmergente.ICONOS.info;
         caja.className = tipo;
-        // el mensaje vive en su propio span: el textContent de la caja sigue siendo EXACTO el mensaje
-        // (los svg y el boton de cierre no aportan texto), y asi el HTML nunca se interpreta
         caja.innerHTML = `${icono.replace("<svg ", '<svg class="icono" ')}<span class="texto"></span>` +
             `<button class="cerrar" type="button" aria-label="Cerrar el aviso">${GalenoNotificacionEmergente.CRUZ}</button>` +
             `<span class="barra" aria-hidden="true" style="animation-duration:${milisegundos}ms"></span>`;
@@ -78,6 +73,7 @@ class GalenoNotificacionEmergente extends HTMLElement {
         this._temporizador = setTimeout(() => this.ocultar(), milisegundos);
     }
 
+    // Retira la interfaz visible.
     ocultar() {
         clearTimeout(this._temporizador);
         this.shadowRoot.querySelector("#caja").hidden = true;

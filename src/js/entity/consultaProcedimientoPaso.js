@@ -1,4 +1,5 @@
 class ConsultaProcedimientoPaso {
+    // Inicializa los campos del registro con sus valores por defecto.
     constructor() {
         this.idConsultaProcedimientoPaso = null;
         this.fechaInicio = null;

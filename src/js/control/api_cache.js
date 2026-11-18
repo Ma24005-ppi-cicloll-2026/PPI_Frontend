@@ -1,11 +1,10 @@
-// Copia JSON del API en IndexedDB para consultar el último dato recibido sin red.
-// Solo guarda respuestas GET correctas; nunca guarda credenciales ni escrituras pendientes.
 class ApiCache {
     static BASE = "galeno-api-cache";
     static VERSION = 1;
     static STORE = "respuestas";
     static MAX_EDAD_MS = 7 * 24 * 60 * 60 * 1000;
 
+    // Abre IndexedDB y crea el almacén de respuestas si falta.
     static abrir() {
         if (!("indexedDB" in globalThis)) return Promise.resolve(null);
         return new Promise((resolve, reject) => {
@@ -20,6 +19,7 @@ class ApiCache {
         });
     }
 
+    // Recupera una copia local si todavía está dentro de los siete días.
     static async leer(url) {
         const db = await ApiCache.abrir();
         if (!db) return null;
@@ -35,6 +35,7 @@ class ApiCache {
         } finally { db.close(); }
     }
 
+    // Guarda la respuesta con su fecha para poder comprobar el vencimiento.
     static async guardar(url, valor) {
         const db = await ApiCache.abrir();
         if (!db) return false;
@@ -50,6 +51,7 @@ class ApiCache {
         } finally { db.close(); }
     }
 
+    // Vacía las copias locales cuando termina la sesión.
     static async limpiar() {
         const db = await ApiCache.abrir();
         if (!db) return;

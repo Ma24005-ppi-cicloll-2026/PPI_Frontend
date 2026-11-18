@@ -1,7 +1,6 @@
-// Elemento raíz de la aplicación. El contenido de la interfaz vive dentro de
-// este Web Component; AppModel se ocupa de las rutas y de su estado de sesión.
 class GalenoApp extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this._app = null;
@@ -9,6 +8,7 @@ class GalenoApp extends HTMLElement {
         this._saltar = null;
     }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() {
         if (this._app) return;
         this.innerHTML = `
@@ -45,6 +45,7 @@ class GalenoApp extends HTMLElement {
         this.querySelector("#saltar").addEventListener("click", this._saltar);
     }
 
+    // Libera las escuchas y recursos al retirar el componente.
     disconnectedCallback() {
         this._app?.destruir();
         this._app = null;

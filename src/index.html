@@ -7,8 +7,7 @@
     <meta name="description" content="GalenoSV: sistema de gestión médica">
     <meta name="theme-color" content="#F1F8FB">
     <meta name="color-scheme" content="light dark">
-    <!-- Aplica el tema guardado ANTES de pintar para que no parpadee claro->oscuro.
-         Archivo externo (js/tema_inicial.js) para que el service worker lo deje en cache. -->
+    <!-- Aplica el tema y captura la instalación antes de montar la interfaz. -->
     <script src="js/tema_inicial.js"></script>
     <script src="js/pwa_antes.js"></script>
     <link rel="manifest" href="./manifest.webmanifest">
@@ -22,7 +21,7 @@
     <galeno-app></galeno-app>
 
 
-    <!-- 1. Services (control) -->
+    <!-- Carga la caché antes de los servicios que guardan respuestas. -->
     <script src="js/control/api_cache.js"></script>
     <script src="js/control/default_service.js"></script>
     <script src="js/control/clinica_service.js"></script>
@@ -55,7 +54,7 @@
     <script src="js/control/sesion.js"></script>
     <script src="js/control/pwa.js"></script>
 
-    <!-- 2. Componentes (autocomplete ANTES de buscador_tipo_documentos) -->
+    <!-- Registra los controles antes de las pantallas que los usan. -->
     <script src="js/boundary/componentes/campo.js"></script>
     <script src="js/boundary/componentes/opcion.js"></script>
     <script src="js/boundary/componentes/autocomplete.js"></script>
@@ -68,6 +67,7 @@
     <script src="js/boundary/componentes/tema.js"></script>
     <script src="js/boundary/componentes/notificacion_emergente.js"></script>
     <script src="js/boundary/componentes/boton_instalar.js"></script>
+    <script src="js/boundary/componentes/marca_acceso.js"></script>
     <script src="js/boundary/componentes/invitacion_instalar.js"></script>
     <script src="js/boundary/componentes/guia_instalacion.js"></script>
     <script src="js/boundary/componentes/tarjeta_cita.js"></script>
@@ -76,7 +76,7 @@
     <script src="js/boundary/componentes/indicador_pasos.js"></script>
     <script src="js/boundary/componentes/lista_examenes.js"></script>
 
-    <!-- 3. Modelos de pantalla, envolturas de ruta y componente raíz -->
+    <!-- Carga los modelos y montajes de ruta antes del componente raíz. -->
     <script src="js/boundary/login_model.js"></script>
     <script src="js/boundary/citas_model.js"></script>
     <script src="js/boundary/dashboard_model.js"></script>

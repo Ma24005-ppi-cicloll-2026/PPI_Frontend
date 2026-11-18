@@ -1,11 +1,13 @@
-// Pruebas de <galeno-campo> y <galeno-opcion>.
 {
 const { expect } = chai;
 
 describe("<galeno-campo>", () => {
     let campo;
+    // Localiza el control real dentro del campo.
     const entrada = () => campo.shadowRoot.querySelector("input");
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { campo = document.createElement("galeno-campo"); campo.setAttribute("label", "Nombre"); campo.setAttribute("ayuda", "Su nombre completo"); document.body.append(campo); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => campo.remove());
 
     it("muestra la etiqueta y la ayuda", () => {
@@ -47,8 +49,11 @@ describe("<galeno-campo>", () => {
 
 describe("<galeno-opcion>", () => {
     let o;
+    // Busca el botón que se usa en la prueba.
     const boton = () => o.shadowRoot.querySelector("button");
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { o = document.createElement("galeno-opcion"); document.body.append(o); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => o.remove());
 
     it("muestra titulo, detalle e imagen (svg)", () => {

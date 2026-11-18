@@ -1,5 +1,4 @@
-// Pruebas de los 20 services: que cada uno apunte a su ruta y herede de DefaultService.
-{  // bloque: evita que 'expect' choque con el de otros archivos de prueba
+{
 const { expect } = chai;
 
 describe("Rutas de los services", () => {
@@ -42,7 +41,6 @@ describe("Rutas de los services", () => {
     });
 });
 
-// Solo estos services tienen el metodo activos() (GET /activos)
 describe("Metodo activos()", () => {
     const conActivos = [
         ClinicaService,
@@ -50,7 +48,9 @@ describe("Metodo activos()", () => {
         TipoMedioContactoService
     ];
     let fetchFalso;
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { fetchFalso = sinon.stub(window, "fetch"); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => fetchFalso.restore());
 
     conActivos.forEach(Clase => {

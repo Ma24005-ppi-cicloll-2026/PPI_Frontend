@@ -1,5 +1,6 @@
 class ExamenTipoExamenService extends DefaultService {
+    // Vincula el servicio con su recurso REST.
     constructor() {
-        super("examen_tipo_examen");   // la misma ruta del @Path del resource
+        super("examen_tipo_examen");
     }
 }

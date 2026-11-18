@@ -1,12 +1,13 @@
-// HU3 · Dashboard
 {
 const { expect } = chai;
 describe("DashboardModel (HU3)", () => {
     let api, zona, modelo, irA;
+    // Prepara la sesión de la empleada usada en las pruebas.
     const ana = () => ({ idPersona: "p-ana", nombre: "Ana Mejía", contextos: [
         { idPersonaRol: "pr-ana-med-sa", idRol: "r-med", rol: "Médico", idClinica: "c-sa", clinica: "Santa Ana" },
         { idPersonaRol: "pr-ana-rec-sa", idRol: "r-rec", rol: "Recepcionista", idClinica: "c-sa", clinica: "Santa Ana" },
         { idPersonaRol: "pr-ana-med-sm", idRol: "r-med", rol: "Médico", idClinica: "c-sm", clinica: "San Miguel" }] });
+    // Prepara el entorno de las pruebas.
     beforeEach(async () => {
         Sesion.iniciar(ana());
         api = new ApiFalsa(Datos.bd());
@@ -15,20 +16,25 @@ describe("DashboardModel (HU3)", () => {
         modelo = new DashboardModel(zona, { irA });
         modelo.iniciar();
     });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => { api.restaurar(); zona.remove(); Sesion.cerrar(); });
+    // Busca un elemento de la pantalla de prueba por su ID.
     const q = id => zona.querySelector("#" + id);
+    // Selecciona la opción indicada.
     const elegir = async (clinica, rol) => {
         const ci = q("clinica").opciones.findIndex(c => c.nombre === clinica); Ayuda.elegir(q("clinica"), ci);
         const ri = q("rol").opciones.findIndex(r => r.rol === rol); Ayuda.elegir(q("rol"), ri);
         q("contexto").dispatchEvent(new Event("submit", { cancelable: true })); await Ayuda.esperar(15);
     };
+    // Devuelve las tarjetas que están visibles en el resultado.
     const tarjetas = () => [...zona.querySelectorAll("galeno-tarjeta-agenda")];
+    // Recoge los identificadores de las tarjetas visibles.
     const ids = () => tarjetas().map(t => t.datos.idConsulta);
 
     it("primero pide clinica y rol, y no muestra consultas ni filtros", () => {
         expect(q("filtros").hidden).to.equal(true);
         expect(tarjetas()).to.have.length(0);
-        expect(q("estado").estado).to.equal("vacio");   // invita a elegir clinica y rol
+        expect(q("estado").estado).to.equal("vacio");
     });
     it("solo ofrece SUS clinicas y, al elegir una, SUS roles en ella", () => {
         expect(q("clinica").opciones.map(c => c.nombre)).to.have.members(["Santa Ana", "San Miguel"]);
@@ -46,7 +52,7 @@ describe("DashboardModel (HU3)", () => {
     });
     it("el medico ve las consultas de HOY de su clinica: las abiertas que le tocan y las finalizadas (no las de otra clinica)", async () => {
         await elegir("Santa Ana", "Médico");
-        expect(ids()).to.deep.equal(["k-hoy", "k-cerrada"]);   // k-manana es de recepcion y k-sm de otra clinica
+        expect(ids()).to.deep.equal(["k-hoy", "k-cerrada"]);
     });
     it("recepcion ve otras (las que esperan su paso)", async () => {
         await elegir("Santa Ana", "Recepcionista");
@@ -108,7 +114,6 @@ describe("DashboardModel (HU3)", () => {
     });
     it("lista de a 12 tarjetas y agrega el resto con Mostrar más", async () => {
         await elegir("Santa Ana", "Médico");
-        // 28 consultas clonadas (sin pasos: le toca atender a cualquiera) para pasar de 12
         const base = modelo.datos.consultas.find(c => c.idConsulta === "k-hoy");
         modelo.datos.consultas = modelo.datos.consultas.concat(
             Array.from({ length: 28 }, (_, i) => ({ ...base, idConsulta: "k-clon-" + i })));
@@ -120,7 +125,6 @@ describe("DashboardModel (HU3)", () => {
         q("mostrar-mas").click();
         expect(tarjetas()).to.have.length(30);
         expect(q("mostrar-mas")).to.equal(null);
-        // al cambiar un filtro vuelve a la primera pagina
         Ayuda.escribir(q("paciente"), "luis");
         expect(tarjetas().length).to.be.at.most(12);
     });

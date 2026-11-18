@@ -1,26 +1,38 @@
-// Pruebas de la logica del service worker (EstrategiasCache): funciona con y sin conexion.
 {
 const { expect } = chai;
 
-// CacheStorage falso en memoria
+// Simula CacheStorage con mapas en memoria.
 function crearAlmacen() {
     const caches = new Map();
+    // Abre el recurso y deja listo su estado para usarlo.
     const abrir = nombre => {
         if (!caches.has(nombre)) caches.set(nombre, new Map());
         const datos = caches.get(nombre);
+        // Obtiene la clave con la que se guarda la petición.
         const clave = p => (typeof p === "string" ? p : p.url);
         return {
+            // Guarda una respuesta en la caché simulada.
             put: async (p, r) => { datos.set(clave(p), r); },
+            // Busca una respuesta por su clave en la caché simulada.
             match: async p => datos.get(clave(p)),
+            // Simula la precarga de los recursos indicados.
             addAll: async urls => { urls.forEach(u => datos.set(u, new Response("precargado " + u))); }
         };
     };
-    return { caches, open: async n => abrir(n), keys: async () => [...caches.keys()], delete: async n => caches.delete(n) };
+    return { caches,
+        // Abre una caché del almacén simulado.
+        open: async n => abrir(n),
+        // Enumera las cachés del almacén simulado.
+        keys: async () => [...caches.keys()],
+        // Elimina una caché del almacén simulado.
+        delete: async n => caches.delete(n) };
 }
+// Construye una petición para evaluar la estrategia de caché.
 const peticion = (url, modo = "cors") => ({ url, mode: modo });
 
 describe("EstrategiasCache (service worker)", () => {
     let almacen, e;
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { almacen = crearAlmacen(); });
 
     it("precargar guarda los archivos de la app en el cache", async () => {

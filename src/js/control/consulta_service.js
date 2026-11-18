@@ -1,10 +1,10 @@
 class ConsultaService extends DefaultService {
+    // Vincula el servicio con su recurso REST.
     constructor() {
-        super("consulta");   // la misma ruta del @Path del resource
+        super("consulta");
     }
 
-    // GET /consulta/{id}/ticket -> el PDF de la cita, generado por el backend.
-    // Devuelve { blob, nombre } (nombre sale de Content-Disposition; si no viene, uno por defecto).
+    // Obtiene el PDF de la cita y conserva una copia para usar sin red.
     async ticket(id) {
         const url = `${this.url}/${encodeURIComponent(id)}/ticket`;
         try {
@@ -14,7 +14,7 @@ class ConsultaService extends DefaultService {
             if (!r.ok) throw new Error("No se pudo generar el ticket (error " + r.status + ")");
             const disposicion = r.headers.get("Content-Disposition") ?? "";
             const ticket = { blob: await r.blob(), nombre: /filename="?([^";]+)"?/.exec(disposicion)?.[1] ?? "ticket-cita.pdf" };
-            ApiCache.guardar(url, ticket).catch(() => {}); // no bloquear la descarga por almacenamiento local
+            ApiCache.guardar(url, ticket).catch(() => {});
             return ticket;
         } catch (error) {
             if (!(error instanceof TypeError) && navigator.onLine !== false) throw error;
@@ -24,7 +24,7 @@ class ConsultaService extends DefaultService {
         }
     }
 
-    // Baja el PDF: lo ofrece al navegador como una descarga.
+    // Descarga el ticket PDF generado por el servidor.
     async descargarTicket(id) {
         const { blob, nombre } = await this.ticket(id);
         const direccion = URL.createObjectURL(blob);

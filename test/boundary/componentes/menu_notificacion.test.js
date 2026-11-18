@@ -1,16 +1,18 @@
-// Pruebas de galeno-menu (el menu del <nav>) y galeno-notificacion-emergente (los avisos).
-{  // bloque: evita que 'expect' choque con el de otros archivos de prueba
+{
 const { expect } = chai;
 
 describe("galeno-menu", () => {
     let menu;
+    // Prepara el entorno de las pruebas.
     beforeEach(() => {
         menu = document.createElement("galeno-menu");
         document.body.append(menu);
         menu.items = [{ texto: "Inicio", destino: "inicio" }, { texto: "Consultas", destino: "consulta" }];
     });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => menu.remove());
 
+    // Recoge los botones que muestra el menú.
     const botones = () => [...menu.shadowRoot.querySelectorAll("button")];
 
     it("dibuja una opcion por item", () => {
@@ -36,13 +38,16 @@ describe("galeno-menu", () => {
 
 describe("galeno-notificacion-emergente", () => {
     let aviso, reloj;
+    // Prepara el entorno de las pruebas.
     beforeEach(() => {
-        reloj = sinon.useFakeTimers();       // controla el tiempo para no esperar 4 segundos de verdad
+        reloj = sinon.useFakeTimers();
         aviso = document.createElement("galeno-notificacion-emergente");
         document.body.append(aviso);
     });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => { aviso.remove(); reloj.restore(); });
 
+    // Busca el cuadro visible dentro del componente.
     const caja = () => aviso.shadowRoot.querySelector("#caja");
 
     it("empieza escondida", () => {

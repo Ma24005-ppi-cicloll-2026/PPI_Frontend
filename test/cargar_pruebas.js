@@ -1,8 +1,8 @@
 import * as chaiLocal from "./js/lib/chai/index.js";
 
-// El runner y sus ayudantes se sirven desde el repositorio: las pruebas abren incluso sin internet.
 window.chai = chaiLocal;
 
+// Carga un script y espera a que termine antes de seguir.
 function cargar(src) {
     return new Promise((resolve, reject) => {
         const script = document.createElement("script");
@@ -13,6 +13,7 @@ function cargar(src) {
     });
 }
 
+// Carga las dependencias y suites en el orden declarado en el documento.
 for (const etiqueta of document.querySelectorAll("script[data-prueba]"))
     await cargar(etiqueta.dataset.prueba);
 

@@ -1,18 +1,21 @@
-// Pruebas de <galeno-invitacion-instalar> (invitacion tras la descarga exitosa del ticket).
 {
 const { expect } = chai;
+// Deja terminar las tareas asíncronas pendientes de la prueba.
 const esperar = () => new Promise(r => setTimeout(r, 0));
 
-// Pwa falso CON la logica de invitacion (como el servicio real, para probar las reglas)
+// Prepara un servicio PWA con el estado que requiere la prueba.
 function pwaFalso({ estado = "instalable", resultado = "accepted", aplazado = false } = {}) {
     const ventana = new EventTarget();
     return {
         ventana, estado, mostrada: false, aplazadoFlag: aplazado, aplazos: 0,
+        // Comprueba si corresponde ofrecer la invitación en esta sesión.
         puedeInvitar() {
             const bueno = this.estado === "instalable" || this.estado === "ios_manual";
             return bueno && !this.aplazadoFlag && !this.mostrada;
         },
+        // Registra que la invitación ya se mostró en esta sesión.
         marcarInvitacionMostrada() { this.mostrada = true; },
+        // Guarda la fecha desde la que se cuenta el aplazamiento.
         aplazar() { this.aplazos++; },
         instalar: sinon.spy(async function () {
             if (resultado === "accepted") this.estado = "instalada";
@@ -23,10 +26,15 @@ function pwaFalso({ estado = "instalable", resultado = "accepted", aplazado = fa
 
 describe("<galeno-invitacion-instalar>", () => {
     let el;
+    // Busca el elemento de tarjeta dentro del componente.
     const tarjeta = () => el.shadowRoot.querySelector(".tarjeta");
+    // Comprueba si se muestra la interfaz de prueba.
     const visible = () => !tarjeta().hidden;
+    // Busca la acción principal de la invitación.
     const primario = () => tarjeta().querySelector(".primario");
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { el = document.createElement("galeno-invitacion-instalar"); document.body.append(el); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => el.remove());
 
     it("empieza escondida", () => {
@@ -61,7 +69,6 @@ describe("<galeno-invitacion-instalar>", () => {
         pwa.ventana.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
         expect(pwa.mostrada, "el servicio ya la marco").to.equal(true);
         expect(visible(), "sigue visible la primera, no aparece otra").to.equal(true);
-        // cerrada y nueva descarga: no vuelve (marca de sesion)
         tarjeta().querySelector(".ahora-no").click();
         pwa.ventana.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
         expect(visible()).to.equal(false);

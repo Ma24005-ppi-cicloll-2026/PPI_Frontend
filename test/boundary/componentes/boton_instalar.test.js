@@ -1,9 +1,9 @@
-// Pruebas de <galeno-boton-instalar> (pildora de la cabecera).
 {
 const { expect } = chai;
+// Deja terminar las tareas asíncronas pendientes de la prueba.
 const esperar = () => new Promise(r => setTimeout(r, 0));
 
-// Pwa falso con estado (el componente solo lee pwa.estado y llama pwa.instalar())
+// Prepara un servicio PWA con el estado que requiere la prueba.
 function pwaFalso({ estado = "instalable", resultado = "accepted" } = {}) {
     const ventana = new EventTarget();
     return {
@@ -17,9 +17,13 @@ function pwaFalso({ estado = "instalable", resultado = "accepted" } = {}) {
 
 describe("<galeno-boton-instalar>", () => {
     let el;
+    // Busca el botón que se usa en la prueba.
     const boton = () => el.shadowRoot.querySelector("button");
+    // Comprueba si se muestra la interfaz de prueba.
     const visible = () => !boton().hidden;
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { el = document.createElement("galeno-boton-instalar"); document.body.append(el); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => el.remove());
 
     it("esta oculto sin servicio asignado (nada que instalar)", () => {
@@ -64,7 +68,6 @@ describe("<galeno-boton-instalar>", () => {
         boton().click(); await esperar();
         expect(pwa.instalar.calledOnce).to.equal(true);
         expect(oyente.firstCall.args[0].detail.resultado).to.equal("accepted");
-        // al aceptar: toast de exito y el boton se esconde
         expect(avisoFalso.mostrar.calledWith("¡GalenoSV instalada!", "exito")).to.equal(true);
         expect(visible()).to.equal(false);
     });

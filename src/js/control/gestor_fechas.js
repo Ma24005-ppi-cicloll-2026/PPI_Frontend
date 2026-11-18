@@ -1,16 +1,15 @@
-// Convierte las fechas que manda el backend para mostrarlas.
-// JSON-B las manda como "2026-11-04T15:17:01Z[UTC]" y JavaScript no entiende el "[UTC]".
 class GestorFechas {
+    // Interpreta el texto de JSON-B quitando el sufijo de zona entre corchetes.
     static leer(valor) {
         const d = new Date(String(valor).replace(/\[.*\]$/, ""));
         return isNaN(d) ? null : d;
     }
-    // solo dia (fecha de nacimiento): se lee en UTC para que no salte un dia
+    // Formatea el día en UTC para conservar la fecha de origen.
     static aFecha(valor) {
         const d = valor ? GestorFechas.leer(valor) : null;
         return d ? d.toLocaleDateString("es-SV", { timeZone: "UTC" }) : "—";
     }
-    // fecha y hora (consultas, procedimientos)
+    // Formatea la fecha y la hora para mostrarlas en la interfaz.
     static aFechaHora(valor) {
         const d = valor ? GestorFechas.leer(valor) : null;
         return d ? d.toLocaleString("es-SV") : "—";

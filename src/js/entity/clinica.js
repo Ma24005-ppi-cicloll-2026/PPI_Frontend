@@ -1,4 +1,5 @@
 class Clinica {
+    // Inicializa los campos del registro con sus valores por defecto.
     constructor() {
         this.idClinica = null;
         this.nombre = "";

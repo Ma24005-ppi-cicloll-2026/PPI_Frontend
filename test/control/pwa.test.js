@@ -1,8 +1,7 @@
-// Pruebas de Pwa: registro del service worker e instalacion de la app.
 {
 const { expect } = chai;
 
-// ventana y navegador falsos: no se toca el navegador real
+// Prepara un navegador simulado para probar la instalación.
 function crearEntorno({ standalone = false, agente = "Chrome", conSw = true } = {}) {
     const ventana = new EventTarget();
     ventana.matchMedia = () => ({ matches: standalone });
@@ -10,6 +9,7 @@ function crearEntorno({ standalone = false, agente = "Chrome", conSw = true } = 
     if (conSw) navegador.serviceWorker = { register: sinon.stub().resolves({ scope: "./" }) };
     return { ventana, navegador };
 }
+// Simula el evento y la respuesta del diálogo de instalación.
 function eventoInstalacion(resultado = "accepted") {
     const e = new Event("beforeinstallprompt", { cancelable: true });
     e.prompt = sinon.stub().resolves();

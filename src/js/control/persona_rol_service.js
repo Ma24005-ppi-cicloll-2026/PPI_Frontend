@@ -1,5 +1,6 @@
 class PersonaRolService extends DefaultService {
+    // Vincula el servicio con su recurso REST.
     constructor() {
-        super("persona_rol");   // la misma ruta del @Path del resource
+        super("persona_rol");
     }
 }

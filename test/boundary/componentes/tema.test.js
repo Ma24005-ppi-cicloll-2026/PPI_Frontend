@@ -1,30 +1,36 @@
-// Pruebas de <galeno-tema>: interruptor de tema claro/oscuro/automatico, persistido en
-// localStorage (clave "galeno-tema") y aplicado con data-tema en <html>.
 {
 const { expect } = chai;
 const CLAVE = "galeno-tema";
+// Elimina la preferencia de tema guardada para la prueba.
 const quitarClave = () => { try { localStorage.removeItem(CLAVE); } catch (e) {} };
 
 describe("<galeno-tema>", () => {
     let tema;
+    // Prepara el entorno de las pruebas.
     beforeEach(() => {
         quitarClave();
         document.documentElement.removeAttribute("data-tema");
         tema = document.createElement("galeno-tema");
         document.body.append(tema);
     });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => {
         tema.remove();
         quitarClave();
         document.documentElement.removeAttribute("data-tema");
     });
 
+    // Busca el botón que se usa en la prueba.
     const boton = () => tema.shadowRoot.querySelector("button");
 
     it("por defecto queda automatico: sin data-tema en <html> y sin marcarse oscuro", () => {
         const mm = sinon.stub(window, "matchMedia").returns({
-            matches: false, addEventListener() {}, removeEventListener() {}
-        });   // determinista: aunque el navegador del probador este en oscuro
+            matches: false,
+                // Simula la suscripción a un evento del navegador.
+                addEventListener() {},
+                // Simula la retirada de una suscripción del navegador.
+                removeEventListener() {}
+        });
         const otro = document.createElement("galeno-tema");
         document.body.append(otro);
         expect(otro.valor).to.equal("auto");
@@ -73,13 +79,17 @@ describe("<galeno-tema>", () => {
 
     it("en automatico con el sistema en oscuro, se ve oscuro sin fijar data-tema", () => {
         const mm = sinon.stub(window, "matchMedia").returns({
-            matches: true, addEventListener() {}, removeEventListener() {}
+            matches: true,
+                // Simula la suscripción a un evento del navegador.
+                addEventListener() {},
+                // Simula la retirada de una suscripción del navegador.
+                removeEventListener() {}
         });
         const otro = document.createElement("galeno-tema");
         document.body.append(otro);
         expect(otro.oscuro).to.equal(true);
         expect(otro.shadowRoot.querySelector("button").getAttribute("aria-checked")).to.equal("true");
-        expect(document.documentElement.hasAttribute("data-tema")).to.equal(false);   // lo decide el CSS
+        expect(document.documentElement.hasAttribute("data-tema")).to.equal(false);
         otro.remove();
         mm.restore();
     });
@@ -106,7 +116,9 @@ describe("<galeno-tema>", () => {
         let oyentes = [];
         const mm = sinon.stub(window, "matchMedia").returns({
             matches: false,
+            // Simula la suscripción a un evento del navegador.
             addEventListener: (tipo, f) => oyentes.push(f),
+            // Simula la retirada de una suscripción del navegador.
             removeEventListener: (tipo, f) => { oyentes = oyentes.filter(o => o !== f); }
         });
         const otro = document.createElement("galeno-tema");
@@ -114,12 +126,14 @@ describe("<galeno-tema>", () => {
         try {
             expect(otro.valor).to.equal("auto");
             expect(otro.shadowRoot.querySelector("button").getAttribute("aria-checked")).to.equal("false");
-            // el sistema pasa a oscuro: matchMedia.matches ahora devuelve true
-            mm.returns({ matches: true, addEventListener() {}, removeEventListener() {} });
+            mm.returns({ matches: true,
+                // Simula la suscripción a un evento del navegador.
+                addEventListener() {},
+                // Simula la retirada de una suscripción del navegador.
+                removeEventListener() {} });
             oyentes.forEach(f => f());
             expect(otro.shadowRoot.querySelector("button").getAttribute("aria-checked")).to.equal("true");
-            expect(document.documentElement.hasAttribute("data-tema")).to.equal(false);   // en auto lo decide el CSS
-            // con eleccion manual el cambio del sistema NO repinta (el usuario manda)
+            expect(document.documentElement.hasAttribute("data-tema")).to.equal(false);
             otro.elegir("claro");
             oyentes.forEach(f => f());
             expect(otro.shadowRoot.querySelector("button").getAttribute("aria-checked")).to.equal("false");
@@ -134,15 +148,19 @@ describe("<galeno-tema>", () => {
         meta.name = "theme-color";
         document.head.append(meta);
         const mm = sinon.stub(window, "matchMedia").returns({
-            matches: false, addEventListener() {}, removeEventListener() {}
-        });   // determinista: en automatico se ve claro aunque el navegador este en oscuro
+            matches: false,
+                // Simula la suscripción a un evento del navegador.
+                addEventListener() {},
+                // Simula la retirada de una suscripción del navegador.
+                removeEventListener() {}
+        });
         try {
             tema.elegir("oscuro");
             expect(meta.content).to.equal("#0F1E26");
             tema.elegir("claro");
             expect(meta.content).to.equal("#F1F8FB");
             tema.elegir("auto");
-            expect(meta.content).to.equal("#F1F8FB");   // en automatico se ve claro (matches: false)
+            expect(meta.content).to.equal("#F1F8FB");
         } finally {
             meta.remove();
             mm.restore();

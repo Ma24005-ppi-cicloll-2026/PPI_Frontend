@@ -1,43 +1,50 @@
-// <galeno-registro-paso>: ventana que muestra QUE SE REGISTRO en un paso (boton "Registro" del Dashboard).
-//   ventana.datos = { procedimiento, paso, estado, quien, rol, inicio, fin, nota, examenes: [{ nombre, resultado }] };
-//   ventana.abrir();   ventana.cerrar();
-// Se cierra con el boton Cerrar o con Escape. Panel centrado en escritorio; en celular es una hoja
-// inferior (bottom sheet). El foco vuelve al elemento que la abrio (tambien con Escape).
 class GalenoRegistroPaso extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
         this._datos = null;
-        this._retorno = null;      // a quien devolverle el foco al cerrar
+        this._retorno = null;
     }
 
+    // Actualiza los datos de la vista.
     set datos(v) { this._datos = v; this.pintar(); }
+    // Devuelve los datos de la vista.
     get datos() { return this._datos; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Devuelve el diálogo interno.
     get dialogo() { return this.shadowRoot.querySelector("dialog"); }
+    // Indica si el diálogo de registro está abierto.
     get abierta() { return Boolean(this.dialogo?.open); }
 
+    // Abre el detalle y recuerda dónde devolver el foco.
     abrir() {
         if (this.abierta) return;
         this._retorno = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         this.dialogo.showModal();
     }
+    // Cierra el detalle si sigue abierto.
     cerrar() { if (this.abierta) this.dialogo.close(); }
 
+    // Devuelve el foco al elemento que abrió la interfaz.
     devolverFoco() {
         if (this._retorno?.isConnected) { this._retorno.focus(); this._retorno = null; }
     }
 
+    // Escapa los caracteres con significado en HTML.
     escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const d = this._datos || {};
+        // Escapa los textos que se insertan en la plantilla.
         const e = t => this.escapar(t);
         const examenes = d.examenes?.length
             ? `<ul>${d.examenes.map(x => `<li><strong>${e(x.nombre)}</strong>: ${e(x.resultado || "sin resultado todavía")}</li>`).join("")}</ul>`
@@ -72,12 +79,10 @@ class GalenoRegistroPaso extends HTMLElement {
                      transition:background var(--velocidad, 180ms); }
             button:hover { background:var(--primario-oscuro, #25585B); }
             button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-          /* celular: hoja inferior (bottom sheet) pegada al borde de abajo */
             @media (max-width:47.99em) {
               dialog { position:fixed; inset:auto 0 0 0; margin:0; width:100%; max-width:none;
                        border-radius:1rem 1rem 0 0; max-height:85vh; overflow:auto; }
             }
-          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
             @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <dialog aria-labelledby="titulo">

@@ -1,45 +1,40 @@
-// <galeno-tarjeta-agenda>: una consulta del Dashboard del empleado (HU3).
-//   tarjeta.datos = {
-//     idConsulta, paciente: { nombre, edad, documento }, fechaInicio, titulo,
-//     procedimientos: [{ nombre, total, pasos: [{ idPaso, nombre, estado, quien, rol, fecha }] }],
-//     finalizada, puedeAtender }
-// (el total de pasos definidos lo agrega el dashboard; si no viene, se usa la cantidad de pasos hechos)
-// Card compacta: franja de acento segun el estado, avatar de iniciales con tono segun el nombre,
-// insignia de estado, chip de fecha/hora, barra de progreso "N de M pasos" y linea de tiempo
-// compacta (por defecto los 3 pasos mas recientes, con "Ver N pasos mas" para expandir). Eventos:
-//   "galeno-ver-registro" { idPaso }      boton "Registro" de un paso
-//   "galeno-atender" { idConsulta }       boton "Atender consulta"
 class GalenoTarjetaAgenda extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
         this._datos = null;
     }
 
+    // Actualiza los datos de la vista.
     set datos(v) { this._datos = v; this.pintar(); }
+    // Devuelve los datos de la vista.
     get datos() { return this._datos; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Escapa los caracteres con significado en HTML.
     escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
-    // iniciales del paciente: primera letra de los dos primeros nombres/apellidos
+    // Obtiene las iniciales que se muestran en el avatar.
     static iniciales(nombre) {
         return String(nombre ?? "").trim().split(/\s+/).slice(0, 2)
             .map(p => p[0] ? p[0].toUpperCase() : "").join("") || "?";
     }
 
-    // tono del avatar (0..4) segun el nombre: hash simple y estable
+    // Elige el estilo visual para el estado recibido.
     static tono(nombre) {
         let h = 0;
         for (const c of String(nombre ?? "")) h = (h * 31 + c.charCodeAt(0)) % 997;
         return h % 5;
     }
 
+    // Actualiza el indicador al recuperar la conexión.
     conectar() {
         this.shadowRoot.querySelectorAll(".ver").forEach(b => b.addEventListener("click", () =>
             this.dispatchEvent(new CustomEvent("galeno-ver-registro",
@@ -57,18 +52,23 @@ class GalenoTarjetaAgenda extends HTMLElement {
         });
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const d = this._datos || {};
         const p = d.paciente || {};
+        // Escapa los textos que se insertan en la plantilla.
         const e = t => this.escapar(t);
         const finalizada = Boolean(d.finalizada);
+        // Ajusta el singular o plural del contador de pasos.
         const texto = (n) => `paso${n === 1 ? "" : "s"}`;
 
+        // Resume el avance de un procedimiento y prepara sus filas.
         const proc = pr => {
             if (!pr.pasos.length) return `<p class="sin">Aún sin pasos realizados</p>`;
             const total = pr.total ?? pr.pasos.length;
             const hechos = pr.pasos.filter(s => s.estado === DatosClinica.COMPLETADO).length;
             const pct = total > 0 ? Math.round(hechos * 100 / total) : 0;
+            // Genera una fila con el resumen del paso.
             const li = (s, extra) => `
                 <li ${extra ? 'class="extra" hidden' : ""}>
                   <span class="marca ${s.estado === DatosClinica.COMPLETADO ? "hecho" : "curso"}" aria-hidden="true">${s.estado === DatosClinica.COMPLETADO ? "✓" : "…"}</span>
@@ -163,7 +163,6 @@ class GalenoTarjetaAgenda extends HTMLElement {
             .final { margin:auto 0 0; font-weight:600; color:var(--tinta-suave, #44577B); }
             .sin { margin:.2rem 0 0; color:var(--tinta-suave, #44577B); font-size:var(--fs-1, .875rem); }
             button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
             @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
             @container (max-width:21.99rem) {
               .pasos li { grid-template-columns:auto minmax(0, 1fr) auto auto; }

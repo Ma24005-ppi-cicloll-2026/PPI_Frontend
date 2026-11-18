@@ -1,12 +1,6 @@
-// <galeno-selector>: una lista desplegable para ELEGIR una opcion (clinica, rol, categoria...).
-//   <galeno-selector label="Clínica" placeholder="Selecciona tu clínica..."></galeno-selector>
-//   selector.opciones = [{ idClinica: "c1", nombre: "Santa Ana" }, ...];
-//   selector.formatoTexto = o => o.nombre;           // como se ve cada opcion (por defecto, su "nombre")
-//   selector.seleccionado                             // la opcion elegida (objeto) o null
-//   selector.seleccionar(opcion);  selector.error("Elija una clínica");  selector.deshabilitado = true;
-//   selector.addEventListener("galeno-seleccion", e => e.detail.valor);   // la opcion elegida, o null
 class GalenoSelector extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -15,40 +9,51 @@ class GalenoSelector extends HTMLElement {
         this._deshabilitado = false;
     }
 
+    // Obtiene la etiqueta que se muestra para la opción.
     texto(opcion) {
         if (typeof this.formatoTexto === "function") return String(this.formatoTexto(opcion) ?? "");
         return String(opcion?.nombre ?? "");
     }
 
+    // Actualiza las opciones disponibles.
     set opciones(lista) {
         this._opciones = Array.isArray(lista) ? lista : [];
         if (!this._opciones.includes(this._seleccionado)) this._seleccionado = null;
         this.pintar();
     }
+    // Devuelve las opciones disponibles.
     get opciones() { return this._opciones; }
+    // Devuelve el valor seleccionado.
     get seleccionado() { return this._seleccionado; }
 
+    // Actualiza el bloqueo de la entrada.
     set deshabilitado(v) { this._deshabilitado = Boolean(v); this.pintar(); }
+    // Devuelve el bloqueo de la entrada.
     get deshabilitado() { return this._deshabilitado; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.pintar(); }
 
+    // Fija la opción seleccionada y sincroniza el control.
     seleccionar(opcion) {
         this._seleccionado = this._opciones.includes(opcion) ? opcion : null;
         this.pintar();
     }
 
+    // Actualiza el mensaje de validación del control.
     error(mensaje) {
         const e = this.shadowRoot.querySelector("#error");
         if (e) e.textContent = mensaje || "";
         this.shadowRoot.querySelector("select")?.setAttribute("aria-invalid", String(Boolean(mensaje)));
     }
 
+    // Escapa los caracteres con significado en HTML.
     escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const indice = this._opciones.indexOf(this._seleccionado);
         this.shadowRoot.innerHTML = `
@@ -65,9 +70,7 @@ class GalenoSelector extends HTMLElement {
             select[aria-invalid=true] { border-color:var(--error, #A8402F); border-width:2px; }
             select:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
             #error { color:var(--error, #A8402F); font-weight:600; min-height:1.2em; font-size:var(--fs-1, .875rem); }
-          /* sin mensaje no queda fila reservada: el error solo ocupa cuando hay algo que mostrar */
             #error:empty { display:none; }
-          /* respeta la preferencia de menos movimiento (las transiciones usan --velocidad) */
             @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
           </style>
           <label for="s">${this.escapar(this.getAttribute("label") || "")}</label>

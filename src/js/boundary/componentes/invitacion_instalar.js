@@ -1,17 +1,6 @@
-// <galeno-invitacion-instalar>: invitacion amable y NO bloqueante a instalar la PWA.
-// Se activa cuando la descarga del ticket termina BIEN (galeno-app le pasa el servicio):
-//   invitacion.pwa = pwa;          // el servicio unico (control/pwa.js) decide si toca mostrarla
-//   invitacion.aviso = componente; // <galeno-notificacion-emergente> para el toast de exito
-// La pantalla de citas avisa en window con "galeno-ticket-descargado" y aqui se reacciona.
-// Reglas (las decide pwa, esta tarjeta solo las obedece):
-//   - sale como maximo UNA vez por sesion (pwa.puedeInvitar() ya lo garantiza);
-//   - no sale si ya esta instalada ni si no hay forma de instalar;
-//   - "Ahora no", la X o Escape aplazan la invitacion 7 dias (pwa.aplazar()).
-// Presentacion: hoja inferior (bottom sheet) en celular, tarjeta flotante abajo a la derecha
-// en escritorio; entrada suave de 200 ms que respeta prefers-reduced-motion; NO roba el foco.
-// Emite "galeno-instalacion" con { resultado }: "accepted", "dismissed" o "manual".
 class GalenoInvitacionInstalar extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -23,32 +12,41 @@ class GalenoInvitacionInstalar extends HTMLElement {
         this.alTecla = e => { if (e.key === "Escape" && this._abierta) this.cerrar(); };
     }
 
+    // Actualiza el servicio de instalación.
     set pwa(valor) {
         this.quitarEscuchas();
         this._pwa = valor;
         this.ponerEscuchas();
         this.pintar();
     }
+    // Devuelve el servicio de instalación.
     get pwa() { return this._pwa; }
 
+    // Actualiza el componente que muestra avisos.
     set aviso(valor) { this._aviso = valor; }
+    // Devuelve el componente que muestra avisos.
     get aviso() { return this._aviso; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.ponerEscuchas(); this.pintar(); }
+    // Libera las escuchas y recursos al retirar el componente.
     disconnectedCallback() { this.quitarEscuchas(); }
 
+    // Suscribe los eventos que necesita el componente.
     ponerEscuchas() {
         if (!this._pwa || !this.isConnected) return;
         this._pwa.ventana.addEventListener("galeno-ticket-descargado", this.alTicket);
+        // Atiende las teclas que controla esta vista.
         this._pwa.ventana.addEventListener("keydown", this.alTecla);
     }
+    // Retira las suscripciones del componente.
     quitarEscuchas() {
         if (!this._pwa) return;
         this._pwa.ventana.removeEventListener("galeno-ticket-descargado", this.alTicket);
         this._pwa.ventana.removeEventListener("keydown", this.alTecla);
     }
 
-    // intenta mostrar la invitacion; el servicio decide si corresponde
+    // Muestra la invitación cuando el estado de instalación lo permite.
     invitar() {
         if (!this._pwa || !this._pwa.puedeInvitar()) return false;
         this._pwa.marcarInvitacionMostrada();
@@ -57,7 +55,7 @@ class GalenoInvitacionInstalar extends HTMLElement {
         return true;
     }
 
-    // cierre por el usuario ("Ahora no", la X o Escape): se aplaza 7 dias
+    // Cierra el estado abierto y libera sus recursos.
     cerrar() {
         this._abierta = false;
         this._pwa?.aplazar();
@@ -66,6 +64,7 @@ class GalenoInvitacionInstalar extends HTMLElement {
             { detail: { resultado: "dismissed" }, bubbles: true, composed: true }));
     }
 
+    // Procesa la aceptación de la invitación de instalación.
     async aceptar() {
         const pwa = this._pwa;
         if (!pwa || this._ocupada) return;
@@ -93,6 +92,7 @@ class GalenoInvitacionInstalar extends HTMLElement {
         }
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const pwa = this._pwa;
         const ios = pwa?.estado === "ios_manual";
@@ -106,12 +106,10 @@ class GalenoInvitacionInstalar extends HTMLElement {
                        padding:.9rem 1rem; font-family:inherit; max-width:20rem;
                        animation:invitacion-entrada 200ms ease-out; }
             .tarjeta[hidden] { display:none; }
-            /* celular: hoja inferior que no tapa la barra de navegacion ni el pie */
             @media (max-width:47.9999em) {
                 .tarjeta { left:.5rem; right:.5rem; bottom:calc(var(--barra-movil, 0rem) + env(safe-area-inset-bottom, 0px) + .5rem);
                            max-width:none; }
             }
-            /* escritorio: tarjeta flotante abajo a la derecha */
             @media (min-width:48em) {
                 .tarjeta { right:1rem; bottom:1.2rem; }
             }

@@ -2,16 +2,21 @@
 const { expect } = chai;
 describe("galeno-selector, galeno-campo textarea y galeno-estado-vista", () => {
     let el;
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => el?.remove());
+    // Crea el registro o elemento que necesita este flujo.
     const crear = (tag, attrs = {}) => { el = document.createElement(tag); Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v)); document.body.append(el); return el; };
 
     describe("selector", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => { crear("galeno-selector", { label: "Clínica" }); el.opciones = [{ nombre: "Santa Ana" }, { nombre: "San Miguel" }]; });
         it("lista las opciones por su nombre", () => {
             expect(Ayuda.textos(el, "option")).to.deep.equal(["Seleccione...", "Santa Ana", "San Miguel"]);
         });
         it("emite galeno-seleccion con la opcion elegida", () => {
-            let v; el.addEventListener("galeno-seleccion", e => { v = e.detail.valor; });
+            let v;
+                // Actualiza los datos que dependen de la opción seleccionada.
+                el.addEventListener("galeno-seleccion", e => { v = e.detail.valor; });
             Ayuda.elegir(el, 1);
             expect(v.nombre).to.equal("San Miguel");
             expect(el.seleccionado.nombre).to.equal("San Miguel");
@@ -42,6 +47,7 @@ describe("galeno-selector, galeno-campo textarea y galeno-estado-vista", () => {
     });
 
     describe("campo type=textarea", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => crear("galeno-campo", { label: "Notas", type: "textarea" }));
         it("usa un textarea y entrega lo escrito", () => {
             expect(el.shadowRoot.querySelector("textarea")).to.not.equal(null);
@@ -58,6 +64,7 @@ describe("galeno-selector, galeno-campo textarea y galeno-estado-vista", () => {
     });
 
     describe("estado-vista", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => crear("galeno-estado-vista"));
         it("cargando y vacio muestran su texto; contenido no dibuja nada", () => {
             el.mostrar("cargando"); expect(el.shadowRoot.textContent).to.contain("Cargando");
@@ -65,7 +72,9 @@ describe("galeno-selector, galeno-campo textarea y galeno-estado-vista", () => {
             el.mostrar("contenido"); expect(el.shadowRoot.querySelector("div")).to.equal(null);
         });
         it("error muestra Reintentar y lo avisa", () => {
-            let n = 0; el.addEventListener("galeno-reintentar", () => n++);
+            let n = 0;
+                // Repite la operación que produjo el error.
+                el.addEventListener("galeno-reintentar", () => n++);
             el.mostrar("error", "Falló"); Ayuda.clic(el, "button");
             expect(n).to.equal(1);
         });

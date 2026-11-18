@@ -2,10 +2,13 @@
 const { expect } = chai;
 describe("Registro de paso, indicador de pasos y lista de exámenes", () => {
     let el;
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => { el?.cerrar?.(); el?.remove(); });
+    // Crea el registro o elemento que necesita este flujo.
     const crear = tag => { el = document.createElement(tag); document.body.append(el); return el; };
 
     describe("galeno-registro-paso", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => {
             crear("galeno-registro-paso");
             el.datos = { procedimiento: "Consulta general", paso: "Triaje", estado: "Completado", quien: "Ana Mejía", rol: "Médico",
@@ -27,6 +30,7 @@ describe("Registro de paso, indicador de pasos y lista de exámenes", () => {
     });
 
     describe("galeno-indicador-pasos", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => {
             crear("galeno-indicador-pasos");
             el.pasos = [{ nombre: "Triaje", estado: "hecho" }, { nombre: "Consulta", estado: "actual" }, { nombre: "Cierre", estado: "pendiente" }];
@@ -47,8 +51,11 @@ describe("Registro de paso, indicador de pasos y lista de exámenes", () => {
 
     describe("galeno-lista-examenes", () => {
         const examenes = [{ id: "a", nombre: "Hemograma", categoria: "Laboratorio" }, { id: "b", nombre: "Radiografía", categoria: "Imagen" }, { id: "c", nombre: "Glucosa", categoria: "Laboratorio" }];
+        // Prepara el entorno de las pruebas.
         beforeEach(() => { crear("galeno-lista-examenes"); el.examenes = examenes; });
+        // Recoge los nombres que el componente muestra.
         const nombres = () => [...el.shadowRoot.querySelectorAll("li span")].map(s => s.firstChild.textContent);
+        // Marca una opción de examen en el componente.
         const marcar = id => { const i = el.shadowRoot.querySelector(`input[data-id="${id}"]`); i.checked = !i.checked; i.dispatchEvent(new Event("change")); };
 
         it("lista todos los examenes y las categorias disponibles", () => {

@@ -2,8 +2,11 @@
 const { expect } = chai;
 describe("Expediente", () => {
     let api, datos;
+    // Prepara el entorno de las pruebas.
     beforeEach(async () => { api = new ApiFalsa(Datos.bd()); datos = await Expediente.cargar(); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => api.restaurar());
+    // Construye los datos de una consulta de prueba.
     const consulta = id => datos.consultas.find(c => c.idConsulta === id);
 
     it("carga todas las listas", () => {

@@ -1,11 +1,6 @@
-// HU4 · Consulta (seguimiento paso a paso). Ruta: #/consulta/<idConsulta>
-//   Muestra la barra de pasos del procedimiento; en el paso actual el empleado escribe sus notas, asigna examenes
-//   (con filtro por categoria) y usa "Guardar y avanzar al siguiente paso"; "Anterior" mira el paso previo en
-//   solo lectura; en el ultimo paso aparece "Finalizar consulta".
-// Convenciones (el backend no tiene campos para esto): el paso realizado N corresponde al paso definido N; las notas
-// van en ConsultaProcedimiento.observaciones (NotasPaso); el examen asignado guarda su nombre en OrdenExamen.indicaciones.
 class SeguimientoModel {
 
+    // Conserva el ID de la consulta y prepara el estado del seguimiento.
     constructor(contenedor, idConsulta, { irA = () => {} } = {}) {
         this.contenedor = contenedor;
         this.idConsulta = idConsulta;
@@ -16,8 +11,10 @@ class SeguimientoModel {
         this._carga = 0;
     }
 
+    // Prepara la marca de tiempo que se envía al servidor.
     static ahora() { return new Date().toISOString(); }
 
+    // Prepara el estado y las escuchas que necesita este flujo.
     async iniciar() {
         this.sesion = Sesion.obtener();
         this.contenedor.innerHTML = `
@@ -57,6 +54,7 @@ class SeguimientoModel {
                     </div>
                 </div>
             </section>`;
+        // Busca un elemento de la vista por su ID.
         const $ = id => this.contenedor.querySelector("#" + id);
         ["estado", "cuerpo", "iniciales", "paciente", "procedimiento", "pasos", "paso", "lectura",
          "notas", "examenes", "mensaje", "anterior", "avanzar", "finalizar", "volver"]
@@ -65,7 +63,9 @@ class SeguimientoModel {
         this.notaFinalizar = $("nota-finalizar");
         this.aviso = this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
         this.procedimiento.formatoTexto = o => o.nombre;
+        // Repite la operación que produjo el error.
         this.estado.addEventListener("galeno-reintentar", () => this.iniciar());
+        // Actualiza los datos que dependen de la opción seleccionada.
         this.procedimiento.addEventListener("galeno-seleccion", e => {
             const i = this.procs.indexOf(e.detail.valor);
             if (i >= 0) { this.indiceProc = i; this.vista = this.actual(); this.pintar(); }
@@ -79,8 +79,10 @@ class SeguimientoModel {
         return this.cargar();
     }
 
+    // Descarta el trabajo pendiente de la vista al salir.
     destruir() { this._carga++; }
 
+    // Carga el expediente y el catálogo de exámenes de la consulta.
     async cargar() {
         const carga = ++this._carga;
         this.estado.mostrar("cargando");
@@ -117,17 +119,20 @@ class SeguimientoModel {
         return true;
     }
 
+    // Devuelve el procedimiento seleccionado.
     get proc() { return this.procs[this.indiceProc]; }
-    // posicion del paso que toca (si ya termino, el ultimo)
+    // Devuelve el índice del paso que corresponde atender.
     actual() { const e = this.proc?.estado; return e ? (e.actual ?? e.definidos.length - 1) : 0; }
+    // Comprueba si el procedimiento aún admite seguimiento.
     enCurso() { return this.proc && !this.proc.estado.completo && !this.consulta.fechaFin; }
-    // el paso que toca solo lo atiende el rol al que pertenece (los pasos sin rol, cualquiera):
-    // si el recepcionista termina su paso y el siguiente es del medico, ya no puede seguir
+    // Comprueba si el rol elegido puede atender el paso actual.
     leToca() { return FlujoPasos.loAtiende(this.proc.estado, Sesion.contexto()?.idRol); }
+    // Comprueba si el usuario puede editar el paso que está viendo.
     editable() { return this.enCurso() && this.vista === this.proc.estado.actual && this.leToca(); }
-    // nombre del rol del paso que toca (para avisar a quien le corresponde)
+    // Devuelve el nombre del rol que atiende el paso actual.
     rolDelPaso() { return this.proc.estado.definidos[this.proc.estado.actual]?.idRol?.nombre ?? "otro rol"; }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         if (!this.proc) { ["anterior", "avanzar", "finalizar"].forEach(id => this[id].hidden = true); return; }
         const e = this.proc.estado, n = e.definidos.length;
@@ -137,7 +142,6 @@ class SeguimientoModel {
         this.pasos.vista = this.vista;
         this.paso.textContent = `Paso ${this.vista + 1} de ${n}: ${e.definidos[this.vista].nombre}`;
         const editable = this.editable();
-        // el paso ya registrado se ve distinto: sin edicion y con su insignia de solo lectura
         this.lectura.hidden = editable;
         this.lectura.textContent = this.enCurso() && this.vista === e.actual && !this.leToca()
             ? `Este paso le corresponde al rol ${this.rolDelPaso()}`
@@ -153,10 +157,10 @@ class SeguimientoModel {
         this.anterior.disabled = this.ocupado;
         this.avanzar.disabled = this.ocupado;
         this.finalizar.disabled = this.ocupado;
-        this.notaFinalizar.hidden = this.finalizar.hidden;   // la nota de confirmacion acompana al boton
+        this.notaFinalizar.hidden = this.finalizar.hidden;
     }
 
-    // examenes disponibles para el paso definido que se esta viendo
+    // Prepara el catálogo y las órdenes visibles del paso.
     pintarExamenes(editable) {
         const def = this.proc.estado.definidos[this.vista];
         const { examenes, relaciones, cats, tipos } = this.catalogo;
@@ -172,8 +176,7 @@ class SeguimientoModel {
         this.examenes.deshabilitada = !editable || this.ocupado;
     }
 
-    // Mientras se guarda solo se bloquean o liberan los controles. NO se vuelve a dibujar la pantalla:
-    // pintar() repone las notas guardadas y borraria lo que el empleado acaba de escribir.
+    // Bloquea las acciones mientras hay una escritura en curso.
     marcarOcupado(ocupado) {
         this.ocupado = ocupado;
         this.anterior.disabled = ocupado;
@@ -182,9 +185,10 @@ class SeguimientoModel {
         this.examenes.deshabilitada = !this.editable() || ocupado;
     }
 
+    // Devuelve el registro del paso indicado si ya existe.
     pasoRealizado(i) { return this.proc.estado.realizados[i] ?? null; }
 
-    // El registro del paso actual se crea al primer cambio ("En proceso", con el empleado que lo atiende)
+    // Reutiliza el paso en curso o crea su registro antes de escribir.
     async asegurarPaso() {
         let r = this.pasoRealizado(this.vista);
         if (r) return r;
@@ -197,6 +201,7 @@ class SeguimientoModel {
         return r;
     }
 
+    // Guarda las observaciones del paso cuando cambia el texto.
     async guardarNotas() {
         const def = this.proc.estado.definidos[this.vista];
         const cp = this.proc.cp;
@@ -206,6 +211,7 @@ class SeguimientoModel {
         this.proc.cp = Object.assign(cp, nuevo && typeof nuevo === "object" ? nuevo : {}, { observaciones: obs });
     }
 
+    // Crea las órdenes para los exámenes seleccionados en el paso.
     async asignar(ids) {
         if (this.ocupado) return;
         if (!ids.length) { this.mensaje.textContent = "Marque al menos un examen"; return; }
@@ -225,6 +231,7 @@ class SeguimientoModel {
         finally { this.marcarOcupado(false); }
     }
 
+    // Guarda las notas antes de marcar el paso como completado.
     async completarPaso() {
         const paso = await this.asegurarPaso();
         await this.guardarNotas();
@@ -233,11 +240,13 @@ class SeguimientoModel {
         Object.assign(paso, hecho && typeof hecho === "object" ? hecho : {}, { estado: DatosClinica.COMPLETADO });
     }
 
+    // Vuelve a determinar el avance a partir de los pasos guardados.
     recalcular() {
         const e = this.proc.estado;
         this.proc.estado = FlujoPasos.estado(e.definidos.length === 1 && !e.definidos[0].idProcedimientoPaso ? [] : e.definidos, e.realizados);
     }
 
+    // Completa el paso y recalcula cuál corresponde atender.
     async guardarYAvanzar() {
         if (this.ocupado) return;
         this.marcarOcupado(true);
@@ -252,6 +261,7 @@ class SeguimientoModel {
         finally { this.marcarOcupado(false); }
     }
 
+    // Completa el paso y guarda las fechas de cierre.
     async finalizarConsulta() {
         if (this.ocupado) return;
         this.marcarOcupado(true);

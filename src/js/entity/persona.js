@@ -1,4 +1,5 @@
 class Persona {
+    // Inicializa los campos del registro con sus valores por defecto.
     constructor() {
         this.idPersona = null;
         this.nombres = "";

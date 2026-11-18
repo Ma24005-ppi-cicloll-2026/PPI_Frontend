@@ -1,4 +1,3 @@
-// Pruebas de DatosClinica: las funciones pequeñas que usan varias pantallas.
 {
 const { expect } = chai;
 

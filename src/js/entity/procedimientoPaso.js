@@ -1,4 +1,5 @@
 class ProcedimientoPaso {
+    // Inicializa los campos del registro con sus valores por defecto.
     constructor() {
         this.idProcedimientoPaso = null;
         this.nombre = "";

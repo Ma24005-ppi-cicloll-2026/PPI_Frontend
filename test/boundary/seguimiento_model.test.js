@@ -1,17 +1,21 @@
-// HU4 · Consulta
 {
 const { expect } = chai;
 describe("SeguimientoModel (HU4)", () => {
     let api, zona, irA;
+    // Prepara la sesión de prueba con el rol de médico.
     const medico = () => { Sesion.iniciar({ idPersona: "p-ana", nombre: "Ana Mejía", contextos: [] });
         Sesion.elegirContexto({ idPersonaRol: "pr-ana-med-sa", idRol: "r-med", rol: "Médico", idClinica: "c-sa", clinica: "Santa Ana" }); };
+    // Abre el recurso y deja listo su estado para usarlo.
     const abrir = async id => {
         const m = new SeguimientoModel(zona, id, { irA });
         await m.iniciar(); await Ayuda.esperar(15);
         return m;
     };
+    // Prepara el entorno de las pruebas.
     beforeEach(() => { medico(); api = new ApiFalsa(Datos.bd()); zona = document.createElement("div"); document.body.append(zona); irA = sinon.spy(); });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => { api.restaurar(); zona.remove(); Sesion.cerrar(); });
+    // Busca un elemento de la pantalla de prueba por su ID.
     const q = id => zona.querySelector("#" + id);
 
     it("consulta que no existe: error", async () => {
@@ -82,7 +86,7 @@ describe("SeguimientoModel (HU4)", () => {
         expect(q("paso").textContent).to.equal("Paso 2 de 2: Consulta médica");
         expect(q("notas").value).to.equal("");
         expect(api.enviados("PUT", "consulta_procedimiento")[0].cuerpo.observaciones).to.contain("Paso 1 (Triaje)");
-        expect(api.enviados("PUT", "consulta")).to.have.length(0);   // la consulta sigue abierta
+        expect(api.enviados("PUT", "consulta")).to.have.length(0);
     });
     it("asignar examenes no borra las notas que se estan escribiendo", async () => {
         await abrir("k-hoy");

@@ -1,14 +1,12 @@
-// Pruebas de DefaultService (la clase de la que heredan los 20 services).
-{  // bloque: evita que 'expect' choque con el de otros archivos de prueba
-// No necesitan el backend: se reemplaza fetch por uno falso (sinon.stub).
+{
 const { expect } = chai;
 
-// Crea una respuesta falsa, como si la mandara el servidor
+// Construye la respuesta HTTP que espera la prueba.
 function respuesta(estado, cuerpo) {
     return new Response(cuerpo === undefined ? null : JSON.stringify(cuerpo), { status: estado });
 }
 
-// Ejecuta una funcion que debe fallar y devuelve el error para revisarlo
+// Comprueba el rechazo de la operación y su mensaje.
 async function esperarError(funcion) {
     try {
         await funcion();
@@ -25,13 +23,15 @@ describe("DefaultService", () => {
     let guardarCache;
     let leerCache;
 
+    // Prepara el entorno de las pruebas.
     beforeEach(() => {
         copias = new Map();
         guardarCache = sinon.stub(ApiCache, "guardar").callsFake(async (url, valor) => { copias.set(url, valor); return true; });
         leerCache = sinon.stub(ApiCache, "leer").callsFake(async url => copias.get(url) ?? null);
-        fetchFalso = sinon.stub(window, "fetch");   // reemplaza fetch por uno falso
+        fetchFalso = sinon.stub(window, "fetch");
         servicio = new DefaultService("documento");
     });
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => {
         fetchFalso.restore();
         guardarCache.restore(); leerCache.restore();

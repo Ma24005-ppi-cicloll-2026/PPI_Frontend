@@ -1,10 +1,9 @@
-// Service Worker de GalenoSV: hace que la app sea instalable y que abra sin conexion.
-// Cuando agregue un archivo nuevo a la app: agreguelo a ARCHIVOS y suba el numero de VERSION
-// (el numero nuevo hace que los usuarios descarguen la version actualizada).
 importScripts("js/control/sw_estrategias.js");
 
-const VERSION = "galeno-v15";
+// Cambia la versión una vez por entrega para renovar los archivos precargados.
+const VERSION = "galeno-v18";
 
+// Enumera los recursos necesarios para abrir la aplicación sin conexión.
 const ARCHIVOS = [
     "./",
     "index.html",
@@ -17,6 +16,7 @@ const ARCHIVOS = [
     "js/boundary/componentes/estado_conexion.js",
     "js/boundary/componentes/estado_vista.js",
     "js/boundary/componentes/boton_instalar.js",
+    "js/boundary/componentes/marca_acceso.js",
     "js/boundary/componentes/indicador_pasos.js",
     "js/boundary/componentes/invitacion_instalar.js",
     "js/boundary/componentes/guia_instalacion.js",
@@ -102,15 +102,17 @@ const ARCHIVOS = [
 
 const estrategias = new EstrategiasCache(VERSION, caches, peticion => fetch(peticion));
 
+// Precarga los recursos antes de activar esta versión del service worker.
 self.addEventListener("install", evento => {
     evento.waitUntil(estrategias.precargar(ARCHIVOS).then(() => self.skipWaiting()));
 });
 
+// Retira las versiones anteriores y toma control de la aplicación.
 self.addEventListener("activate", evento => {
     evento.waitUntil(estrategias.limpiarViejos().then(() => self.clients.claim()));
 });
 
-// Solo se interceptan las lecturas (GET). Crear/editar/eliminar siempre van directo al backend.
+// Decide qué solicitudes puede resolver el service worker.
 self.addEventListener("fetch", evento => {
     if (evento.request.method !== "GET") return;
     evento.respondWith(estrategias.redPrimero(evento.request));

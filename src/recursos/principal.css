@@ -1,47 +1,37 @@
-/* ============================================================
-   GalenoSV · estilos base y tokens (hechos a mano, sin librerias)
-   Concepto "consultorio sereno": celestes y salvia, limpio y profesional.
-   Primero celular; con @media se amplía a pantallas grandes.
-   El modo oscuro usa la MISMA paleta en version nocturna y se activa
-   con prefers-color-scheme o con el interruptor <galeno-tema>
-   (que pone data-tema="claro"/"oscuro" en <html>).
-   ============================================================ */
 
+/* Los componentes heredan de aquí los colores, tamaños y estados compartidos. */
 :root{
     color-scheme:light dark;
 
-    /* ---- paleta clara (alineada con el backend) ---- */
-    --tinta:#1D3461;            /* azul marino: titulos, marca, iconos */
-    --tinta-suave:#44577B;      /* texto secundario sobre blanco */
-    --texto:#26354E;            /* texto principal, contraste alto */
-    --fondo:#F5F8F8;            /* crema azulado muy claro */
-    --superficie:#FFFFFF;       /* tarjetas y paneles */
-    --borde:#DCE9F0;            /* borde sutil de superficies (celeste) */
-    --borde-fuerte:#9FB0B8;     /* controles de formulario */
+    --tinta:#1D3461;
+    --tinta-suave:#44577B;
+    --texto:#26354E;
+    --fondo:#F5F8F8;
+    --superficie:#FFFFFF;
+    --borde:#DCE9F0;
+    --borde-fuerte:#9FB0B8;
     --inactivo:#8CA0A8;
 
-    /* celestes del sistema (menu, acentos suaves) */
     --celeste-claro:#F1F8FB;
     --celeste:#E3F1F7;
     --celeste-medio:#CFE6F0;
     --celeste-fuerte:#B5D8E8;
 
-    /* menu lateral: degradado celeste con borde */
     --menu-fondo:linear-gradient(180deg, #E8F4F9, #D5EAF3);
     --menu-borde:#C5DEE9;
 
-    /* cabecera translucida con desenfoque */
     --cabecera-fondo:rgba(245, 248, 248, .82);
+    --instalar-fondo:#E9F1EF; --instalar-hover:#CFE3DD; --instalar-borde:#527C80;
 
-    --primario:#2F6F73;         /* verde azulado apagado */
+    --primario:#2F6F73;
     --primario-oscuro:#0F6461;
     --primario-suave:#E9F1EF;
     --sobre-primario:#FFFFFF;
 
-    --secundario:#CFE3DD;       /* salvia suave */
+    --secundario:#CFE3DD;
     --secundario-borde:#AECFC6;
 
-    --acento:#C9775B;           /* terracota apagado: solo la accion principal y detalles */
+    --acento:#C9775B;
     --acento-oscuro:#B05F44;
     --sobre-acento:#FFFFFF;
 
@@ -50,40 +40,28 @@
     --error:#B5524A;      --error-fondo:#F9EAE6;
     --info:#3F78A8;       --info-fondo:#EDF3F2;
 
-    /* textos y estados sobre fondos oscuros (panel de marca del login) */
-    --sobre-tinta:#F2F6F9;          /* texto claro sobre azul marino (contraste > 12:1) */
-    --sobre-tinta-suave:#C7D3E1;    /* texto secundario sobre azul marino (contraste > 7:1) */
-    --tinta-hover:#254370;          /* azul marino apenas mas claro, para hover */
+    --sobre-tinta:#F2F6F9;
+    --sobre-tinta-suave:#C7D3E1;
+    --tinta-hover:#254370;
 
-    --foco:#2F6F73;             /* anillo de foco visible */
+    --foco:#2F6F73;
 
-    /* ---- elevacion y forma ---- */
     --sombra-1:0 1px 2px rgba(29,52,97,.05), 0 2px 10px rgba(29,52,97,.05);
     --sombra-2:0 6px 18px rgba(29,52,97,.10);
-    --radio-tarjeta:.875rem;    /* 14px: tarjetas */
-    --radio-item:.75rem;        /* 12px: items del menu */
-    --radio-control:.625rem;    /* 10px: botones y campos */
+    --radio-tarjeta:.875rem;
+    --radio-item:.75rem;
+    --radio-control:.625rem;
 
-    /* ---- ritmo ---- */
     --espacio:1rem;
-    --velocidad:180ms;          /* transiciones 150–200 ms */
+    --velocidad:180ms;
     --fuente:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-    /* ---- escala tipografica 12/14/16/20/28 ---- */
     --fs-0:.75rem;  --fs-1:.875rem;  --fs-2:1rem;  --fs-3:1.25rem;  --fs-4:1.75rem;
 
-    /* barra inferior del menu en celular (para que no tape el contenido) */
     --barra-movil:4.4rem;
-
-    /* constantes del panel de marca del login (siempre azul marino, en claro y en oscuro) */
-    --tinta-marca:#1D3461;
-    --salvia-marca:#CFE3DD;
-    --celeste-marca:#B5D8E8;
 }
 
-/* ---- modo oscuro automatico (prefiere el sistema) ----
-   El interruptor <galeno-tema> fija data-tema="claro"/"oscuro" en <html>,
-   que manda sobre la preferencia del sistema. */
+/* Sigue el tema del sistema mientras el usuario no elija uno. */
 @media (prefers-color-scheme: dark){
     :root:not([data-tema="claro"]):not([data-tema="oscuro"]){
         color-scheme:dark;
@@ -95,6 +73,7 @@
         --menu-fondo:linear-gradient(180deg, #13262F, #10202A);
         --menu-borde:#24404E;
         --cabecera-fondo:rgba(15, 30, 38, .82);
+        --instalar-fondo:#203B47; --instalar-hover:#2B4C58; --instalar-borde:#7698A6;
         --primario:#2F6F73;  --primario-oscuro:#3E8A85;  --primario-suave:#1E3A42;
         --secundario:#2A4A52;  --secundario-borde:#3A5F66;
         --acento:#D08A6F;  --acento-oscuro:#B05F44;
@@ -109,7 +88,7 @@
     }
 }
 
-/* ---- modo oscuro manual (data-tema="oscuro" en <html>) ---- */
+/* La elección manual del tema oscuro tiene prioridad sobre el sistema. */
 [data-tema="oscuro"]{
     color-scheme:dark;
     --tinta:#E4EFF4;  --tinta-suave:#A8BFCC;  --texto:#DCE8EE;
@@ -120,6 +99,7 @@
     --menu-fondo:linear-gradient(180deg, #13262F, #10202A);
     --menu-borde:#24404E;
     --cabecera-fondo:rgba(15, 30, 38, .82);
+    --instalar-fondo:#203B47; --instalar-hover:#2B4C58; --instalar-borde:#7698A6;
     --primario:#2F6F73;  --primario-oscuro:#3E8A85;  --primario-suave:#1E3A42;
     --secundario:#2A4A52;  --secundario-borde:#3A5F66;
     --acento:#D08A6F;  --acento-oscuro:#B05F44;
@@ -133,7 +113,6 @@
     --sombra-2:0 6px 18px rgba(0,0,0,.40);
 }
 
-/* modo claro fijo por el interruptor: nada que cambiar (los tokens base son claros) */
 
 *, *::before, *::after { box-sizing:border-box; }
 
@@ -146,7 +125,6 @@ body{
     line-height:1.5;
     color:var(--texto);
     background-color:var(--fondo);
-    /* decoracion propia: manchas organicas celestes apenas visibles, sin imagenes externas */
     background-image:
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' aria-hidden='true'%3E%3Cpath d='M760 120c90 60 110 200 30 280S590 500 530 400s30-220 130-260 120-60 100-20z' fill='%23CFE6F0' opacity='.35'/%3E%3C/svg%3E") top right / min(46rem, 60vw) auto no-repeat,
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900' aria-hidden='true'%3E%3Cpath d='M120 700c-70-80-60-210 40-260s230-10 280 80-10 210-130 240-140 10-190-60z' fill='%23B5D8E8' opacity='.3'/%3E%3C/svg%3E") bottom left / min(40rem, 55vw) auto no-repeat;
@@ -157,25 +135,16 @@ h1, h2, h3 { line-height:1.25; color:var(--tinta); }
 h2 { font-size:var(--fs-4); margin:.2rem 0 .3rem; }
 h3 { font-size:var(--fs-3); }
 
-/* ---- estructura ----
-   Una sola fuente de altura: html/body al 100% y .app con min-height:100dvh.
-   Rejilla de 3 filas (cabecera auto / contenido 1fr / pie auto): la cabecera arriba,
-   la pantalla justo debajo y el pie al fondo, dentro de la columna de contenido.
-   El nav es barra inferior fija en celular (fuera del flujo) y panel lateral en escritorio:
-   el MISMO breakpoint (48em) define el menu lateral y la rejilla de 2 columnas. */
 html, body{ height:100%; }
 
+/* Fija la altura del shell para que el desplazamiento quede dentro de la región central. */
 .app{
     display:grid;
-    /* altura DEFINIDA (no min-height): con ella la fila 1fr queda fijada al viewport y
-       la pantalla scrollea por dentro (#pantalla{overflow:auto}); con min-height la fila
-       crece con el contenido y sobra scroll de pagina (medido: docH 999 vs clientH 813) */
     height:100vh;
     height:100dvh;
     grid-template-columns:minmax(0, 1fr);
     grid-template-rows:auto 1fr auto;
     grid-template-areas:"cabecera" "centro" "pie";
-    /* deja sitio a la barra inferior de navegacion en celular (que no tape el pie) */
     padding-bottom:calc(var(--barra-movil) + env(safe-area-inset-bottom, 0px));
 }
 
@@ -191,8 +160,8 @@ header{
 
 main{
     grid-area:centro;
-    min-height:0;              /* deja que el contenido scrollee dentro de la pantalla */
-    min-width:0;               /* deja que tablas anchas hagan scroll en vez de ensanchar la pagina */
+    min-height:0;
+    min-width:0;
 }
 
 footer{
@@ -205,18 +174,15 @@ footer{
     text-align:center;
 }
 
+/* En móvil la barra inferior queda fuera de la rejilla. */
 nav{
-    /* celular: barra inferior tipo app, FUERA del flujo de la rejilla (sin grid-area) */
     position:fixed; inset:auto 0 0 0; z-index:50;
     background:var(--menu-fondo);
     border-top:1px solid var(--menu-borde);
     padding-bottom:env(safe-area-inset-bottom, 0px);
 }
 
-/* los avisos y las invitaciones flotantes viven FUERA de la rejilla (despues de .app): sus
-   hosts estan vacios (la tarjeta/caja real es position:fixed) pero igual forman una caja de
-   linea anonima que anade ~24px de scroll sobrante; los aplanamos (las reglas del documento
-   mandan sobre :host y no afectan a los componentes cuando se usan sueltos en las pruebas) */
+/* Los avisos flotantes no necesitan espacio en el flujo del documento. */
 galeno-app > galeno-notificacion-emergente,
 galeno-app > galeno-invitacion-instalar,
 galeno-app > galeno-guia-instalacion,
@@ -224,7 +190,7 @@ body > galeno-notificacion-emergente,
 body > galeno-invitacion-instalar,
 body > galeno-guia-instalacion{ display:block; height:0; margin:0; }
 
-/* ---- pantallas medianas y grandes: menu celeste a la izquierda ---- */
+/* En escritorio el menú ocupa las tres filas de la columna lateral. */
 @media screen and (min-width: 48em){
     .app{
         grid-template-columns:16rem minmax(0, 1fr);
@@ -232,8 +198,6 @@ body > galeno-guia-instalacion{ display:block; height:0; margin:0; }
         grid-template-areas:"menu cabecera" "menu centro" "menu pie";
         padding-bottom:0;
     }
-    /* el nav SIEMPRE se coloca con grid-area:menu (span de las 3 filas): si quedara
-       auto-colocado ocuparia una sola celda y su altura 100dvh romperla la rejilla */
     nav{
         grid-area:menu;
         position:sticky; top:0; inset:auto;
@@ -245,8 +209,7 @@ body > galeno-guia-instalacion{ display:block; height:0; margin:0; }
     nav > galeno-menu{ flex:1 1 auto; min-height:0; }
 }
 
-/* ---- accesibilidad ---- */
-/* visualmente oculto pero disponible para lectores de pantalla (marca h1, titulos, anuncios) */
+/* Oculta el texto visualmente y lo conserva para lectores de pantalla. */
 .sr{
     position:absolute; width:1px; height:1px; padding:0; margin:-1px;
     overflow:hidden; clip-path:inset(50%); white-space:nowrap;
@@ -264,7 +227,7 @@ main:focus{ outline:none; }
     *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
 }
 
-/* ---- al imprimir solo se ve el contenido ---- */
+/* Deja solo el contenido principal al imprimir. */
 @media print{
     nav, header, footer, galeno-conexion, galeno-tema, .saltar{ display:none !important; }
     .app{ display:block; }

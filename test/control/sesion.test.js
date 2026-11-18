@@ -1,8 +1,8 @@
-// Pruebas de Sesion: solo el empleado inicia sesion; elige clinica y rol; que pantallas le tocan.
 {
 const { expect } = chai;
 
 describe("Sesion", () => {
+    // Limpia el entorno al terminar las pruebas.
     afterEach(() => Sesion.cerrar());
     const empleado = { idPersona: "p1", nombre: "Ana Mejía", contextos: [
         { idPersonaRol: "pr1", idRol: "r1", rol: "Médico", idClinica: "c1", clinica: "Santa Ana" }] };
@@ -23,6 +23,7 @@ describe("Sesion", () => {
     });
     it("iniciar avisa con galeno-sesion y guarda los contextos", () => {
         let avisos = 0;
+        // Captura el evento de sesión durante la prueba.
         const f = () => avisos++;
         window.addEventListener("galeno-sesion", f);
         Sesion.iniciar(empleado);
@@ -37,6 +38,7 @@ describe("Sesion", () => {
     it("elegirContexto guarda rol y clinica y avisa con galeno-contexto", () => {
         Sesion.iniciar(empleado);
         let avisos = 0;
+        // Captura el evento de sesión durante la prueba.
         const f = () => avisos++;
         window.addEventListener("galeno-contexto", f);
         Sesion.elegirContexto(empleado.contextos[0]);

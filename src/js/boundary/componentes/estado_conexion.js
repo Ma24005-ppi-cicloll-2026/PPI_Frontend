@@ -1,9 +1,3 @@
-// <galeno-conexion>: franja delgada bajo la cabecera que avisa si se perdio o volvio la conexion.
-// No necesita nada: escucha "online" y "offline" de window.
-//   Sin conexion  -> "Sin conexión: mostrando los datos guardados en este dispositivo."
-//   Al volver     -> "Conexión restablecida" (se esconde sola a los 3 segundos)
-// role="status": los lectores de pantalla lo anuncian sin interrumpir. El texto va en un span
-// (el svg del icono no aporta texto), con fondo suave y borde del color del estado.
 class GalenoConexion extends HTMLElement {
 
     static ICONOS = {
@@ -11,10 +5,11 @@ class GalenoConexion extends HTMLElement {
         ok:  '<svg class="icono" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="19" cy="18" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m17 18 1.4 1.4L21.4 16.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     };
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
-        this._estado = "oculto";              // "oculto" | "sin-conexion" | "restablecida"
+        this._estado = "oculto";
         this.temporizador = null;
         this.alPerder = () => this.perder();
         this.alVolver = () => this.volver();
@@ -22,8 +17,10 @@ class GalenoConexion extends HTMLElement {
         this.alApiDisponible = () => { if (this._estado === "sin-conexion") this.volver(); };
     }
 
+    // Devuelve el estado actual.
     get estado() { return this._estado; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() {
         window.addEventListener("offline", this.alPerder);
         window.addEventListener("online", this.alVolver);
@@ -33,6 +30,7 @@ class GalenoConexion extends HTMLElement {
         this.pintar();
     }
 
+    // Libera las escuchas y recursos al retirar el componente.
     disconnectedCallback() {
         window.removeEventListener("offline", this.alPerder);
         window.removeEventListener("online", this.alVolver);
@@ -41,6 +39,7 @@ class GalenoConexion extends HTMLElement {
         clearTimeout(this.temporizador);
     }
 
+    // Actualiza el indicador al perder la conexión.
     perder() {
         clearTimeout(this.temporizador);
         this._estado = "sin-conexion";
@@ -48,6 +47,7 @@ class GalenoConexion extends HTMLElement {
         this.pintar();
     }
 
+    // Avisa de que la información procede de una copia local.
     mostrarCache() {
         clearTimeout(this.temporizador);
         this._estado = "sin-conexion";
@@ -55,6 +55,7 @@ class GalenoConexion extends HTMLElement {
         this.pintar();
     }
 
+    // Actualiza la vista al recuperar la conexión o regresar al listado.
     volver() {
         clearTimeout(this.temporizador);
         this._estado = "restablecida";
@@ -63,6 +64,7 @@ class GalenoConexion extends HTMLElement {
         this.temporizador = setTimeout(() => { this._estado = "oculto"; this.pintar(); }, 3000);
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const textos = {
             "sin-conexion": this.textoEstado || "Sin conexión: mostrando los datos guardados en este dispositivo.",

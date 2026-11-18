@@ -1,20 +1,21 @@
-// Pruebas de autocomplete y de los buscadores que heredan de el
-// (buscador_tipo_documentos).
-{  // bloque: evita que 'expect' choque con el de otros archivos de prueba
+{
 const { expect } = chai;
 
-// Escribe en el campo de busqueda del componente, como lo haria el usuario
+// Simula la entrada de texto y notifica el cambio.
 function escribir(componente, texto) {
     const entrada = componente.shadowRoot.querySelector("#q");
     entrada.value = texto;
     entrada.dispatchEvent(new Event("input"));
 }
+// Lee el texto de las sugerencias renderizadas.
 const opcionesVisibles = c => [...c.shadowRoot.querySelectorAll("li")].map(li => li.textContent);
 
 describe("Buscadores", () => {
     let componente;
-    afterEach(() => componente.remove());   // limpia el DOM despues de cada prueba
+    // Limpia el entorno al terminar las pruebas.
+    afterEach(() => componente.remove());
 
+    // Crea el registro o elemento que necesita este flujo.
     function crear(etiqueta) {
         componente = document.createElement(etiqueta);
         document.body.append(componente);
@@ -22,6 +23,7 @@ describe("Buscadores", () => {
     }
 
     describe("galeno-autocomplete", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => {
             crear("galeno-autocomplete");
             componente.opciones = [{ nombre: "Ana" }, { nombre: "Beto" }, { nombre: "Anabel" }];
@@ -49,6 +51,7 @@ describe("Buscadores", () => {
         });
         it("emite galeno-seleccion con la opcion elegida", () => {
             let elegido = null;
+            // Actualiza los datos que dependen de la opción seleccionada.
             componente.addEventListener("galeno-seleccion", e => { elegido = e.detail.valor; });
             escribir(componente, "beto");
             componente.shadowRoot.querySelector("li").click();
@@ -92,12 +95,13 @@ describe("Buscadores", () => {
     });
 
     describe("galeno-buscador-tipo-documentos", () => {
+        // Prepara el entorno de las pruebas.
         beforeEach(() => {
             crear("galeno-buscador-tipo-documentos");
             componente.opciones = [
                 { nombre: "DUI", activo: true },
                 { nombre: "Pasaporte viejo", activo: false },
-                { nombre: "NIT" }                       // sin dato de activo: se muestra
+                { nombre: "NIT" }
             ];
         });
         it("oculta los tipos inactivos", () => {
@@ -107,8 +111,20 @@ describe("Buscadores", () => {
             escribir(componente, "d");
             expect(opcionesVisibles(componente)).to.deep.equal(["DUI"]);
         });
+        it("ofrece un botón enfocable y devuelve el foco al confirmar la opción", () => {
+            escribir(componente, "nit");
+            const raiz = componente.shadowRoot;
+            const opcion = raiz.querySelector("li button");
+            opcion.focus();
+            expect(raiz.activeElement).to.equal(opcion);
+            opcion.click();
+            expect(componente.seleccionado.nombre).to.equal("NIT");
+            expect(raiz.activeElement).to.equal(raiz.querySelector("#q"));
+            expect(raiz.querySelector("ul").hidden).to.equal(true);
+        });
         it("emite galeno-seleccion con el tipo elegido", () => {
             let elegido = null;
+            // Actualiza los datos que dependen de la opción seleccionada.
             componente.addEventListener("galeno-seleccion", e => { elegido = e.detail.valor; });
             escribir(componente, "nit");
             componente.shadowRoot.querySelector("li").click();

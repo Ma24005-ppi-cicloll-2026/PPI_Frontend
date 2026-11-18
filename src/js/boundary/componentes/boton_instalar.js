@@ -1,15 +1,6 @@
-// <galeno-boton-instalar>: pildora discreta de la cabecera para instalar la PWA. Es SOLO
-// presentacion: el estado y el dialogo viven en el servicio unico (control/pwa.js).
-//   boton.pwa = pwa;            // el objeto Pwa
-//   boton.aviso = componente;   // <galeno-notificacion-emergente> para el toast de exito (opcional)
-// Visible solo con estado "instalable" o "ios_manual"; oculto si "instalada" o "no_soportado".
-// Al pulsar:
-//   - "instalable"  -> pwa.instalar(); si acepta, toast "¡GalenoSV instalada!" y desaparece.
-//   - "ios_manual"  -> avisa en window con "galeno-abrir-guia" (la abre <galeno-guia-instalacion>).
-// En celular queda como icono solo (aria-label + title "Instalar app"); en escritorio, icono + texto.
-// Emite "galeno-instalacion" con { resultado }: "accepted", "dismissed" o "manual".
 class GalenoBotonInstalar extends HTMLElement {
 
+    // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -19,32 +10,40 @@ class GalenoBotonInstalar extends HTMLElement {
         this.alCambiar = () => this.pintar();
     }
 
+    // Actualiza el servicio de instalación.
     set pwa(valor) {
         this.quitarEscuchas();
         this._pwa = valor;
         this.ponerEscuchas();
         this.pintar();
     }
+    // Devuelve el servicio de instalación.
     get pwa() { return this._pwa; }
 
-    // toast de exito (opcional: si nadie lo asigna, no se avisa)
+    // Actualiza el componente que muestra avisos.
     set aviso(valor) { this._aviso = valor; }
+    // Devuelve el componente que muestra avisos.
     get aviso() { return this._aviso; }
 
+    // Prepara el componente cuando se incorpora al documento.
     connectedCallback() { this.ponerEscuchas(); this.pintar(); }
+    // Libera las escuchas y recursos al retirar el componente.
     disconnectedCallback() { this.quitarEscuchas(); }
 
+    // Suscribe los eventos que necesita el componente.
     ponerEscuchas() {
         if (!this._pwa || !this.isConnected) return;
         this._pwa.ventana.addEventListener("galeno-instalable", this.alCambiar);
         this._pwa.ventana.addEventListener("galeno-instalada", this.alCambiar);
     }
+    // Retira las suscripciones del componente.
     quitarEscuchas() {
         if (!this._pwa) return;
         this._pwa.ventana.removeEventListener("galeno-instalable", this.alCambiar);
         this._pwa.ventana.removeEventListener("galeno-instalada", this.alCambiar);
     }
 
+    // Resuelve la acción del botón según el estado de instalación.
     async pulsar() {
         const pwa = this._pwa;
         if (!pwa || this._ocupada) return;
@@ -61,7 +60,6 @@ class GalenoBotonInstalar extends HTMLElement {
             const resultado = await pwa.instalar();
             if (resultado === "accepted") this._aviso?.mostrar("¡GalenoSV instalada!", "exito");
             else if (resultado === "no-disponible")
-                // Chromium con el evento retrasado (o app ya instalada): se explica el camino del navegador
                 this._aviso?.mostrar("También puedes instalarla desde el menú o la barra de direcciones de tu navegador", "info");
             this.dispatchEvent(new CustomEvent("galeno-instalacion",
                 { detail: { resultado }, bubbles: true, composed: true }));
@@ -74,31 +72,29 @@ class GalenoBotonInstalar extends HTMLElement {
         }
     }
 
+    // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const pwa = this._pwa;
         const estado = pwa?.estado ?? "no_soportado";
         const visible = estado === "instalable" || estado === "ios_manual";
-        this.hidden = !visible;   // sin pildora, el anfitrión sale del flujo (no deja hueco)
+        this.hidden = !visible;
         this.shadowRoot.innerHTML = `
           <style>
             :host { display:inline-block; }
             :host([hidden]) { display:none; }
             button { display:inline-flex; align-items:center; gap:.4rem; min-height:2.75rem;
-                     padding:.35rem .85rem; border:1px solid var(--primario, #2F6F73);
-                     border-radius:999px; background:var(--primario-suave, #E9F1EF);
-                     color:var(--primario, #2F6F73); cursor:pointer; font:inherit;
-                     font-size:var(--fs-1, .875rem); font-weight:600;
-                     transition:background var(--velocidad, 180ms), border-color var(--velocidad, 180ms); }
-            button:hover { background:var(--secundario, #CFE3DD); border-color:var(--primario-oscuro, #0F6461); }
+                     padding:.35rem .85rem; border:1px solid var(--instalar-borde, #527C80);
+                     border-radius:999px; background:var(--instalar-fondo, #E9F1EF);
+                     color:var(--tinta, #1D3461); cursor:pointer; font:inherit;
+                     font-size:var(--fs-1, .875rem); font-weight:600; }
+            button:hover { background:var(--instalar-hover, #CFE3DD); border-color:var(--foco, #2F6F73); }
             button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
             button svg { width:1.1rem; height:1.1rem; flex:0 0 auto; }
             button[hidden] { display:none; }
-            /* celular: icono solo (el nombre accesible vive en aria-label y title) */
             @media (max-width:47.9999em) {
                 button { padding:.35rem .6rem; }
                 .texto { display:none; }
             }
-            @media (prefers-reduced-motion: reduce) { button { transition:none; } }
           </style>
           <button type="button" ${visible ? "" : "hidden"} aria-label="Instalar app" title="Instalar app">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"

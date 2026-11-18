@@ -1,14 +1,13 @@
-// Fechas de la agenda del dashboard: los rangos "Hoy / Pasado / Futuro / Rango" y la edad de un paciente.
 class Agenda {
 
     static MODOS = ["Hoy", "Pasado", "Futuro", "Rango"];
 
+    // Devuelve el primer instante del día en la zona local.
     static inicioDelDia(fecha) { const d = new Date(fecha); d.setHours(0, 0, 0, 0); return d; }
+    // Devuelve el último instante del día en la zona local.
     static finDelDia(fecha) { const d = new Date(fecha); d.setHours(23, 59, 59, 999); return d; }
 
-    // Devuelve { desde, hasta } (null = sin limite).
-    //   Hoy: de 00:00 a 23:59 de hoy · Pasado: antes de hoy · Futuro: despues de hoy
-    //   Rango: lo que escribio el usuario (texto AAAA-MM-DD en `desde` y `hasta`, cualquiera puede faltar)
+    // Calcula los límites del filtro según el modo elegido.
     static rango(modo, desde = "", hasta = "", ahora = new Date()) {
         switch (modo) {
             case "Pasado": return { desde: null, hasta: new Date(Agenda.inicioDelDia(ahora).getTime() - 1) };
@@ -20,21 +19,20 @@ class Agenda {
         }
     }
 
-    // "2026-11-11" -> Date a mediodia local (asi la zona horaria no la corre de dia)
+    // Convierte una fecha del formulario a mediodía local.
     static fecha(texto) {
         const [a, m, d] = String(texto).split("-").map(Number);
         return new Date(a, (m || 1) - 1, d || 1, 12, 0, 0);
     }
 
+    // Comprueba si la fecha cae dentro de los límites indicados.
     static enRango(fecha, rango) {
         const f = GestorFechas.leer(fecha);
         if (!f) return false;
         return (!rango.desde || f >= rango.desde) && (!rango.hasta || f <= rango.hasta);
     }
 
-    // Edad en años cumplidos; null si no hay fecha de nacimiento
-    // Edad en años cumplidos; null si no hay fecha de nacimiento.
-    // "1990-11-12" es solo un dia: se lee tal cual (sin zona horaria) para que el cumpleaños no se corra de dia.
+    // Calcula los años cumplidos usando la fecha de nacimiento.
     static edad(nacimiento, hoy = new Date()) {
         const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(nacimiento ?? ""));
         let a, mes, dia;
@@ -48,11 +46,13 @@ class Agenda {
         return hoy.getFullYear() - a - (cumplio ? 0 : 1);
     }
 
+    // Formatea la hora para mostrarla en la agenda.
     static hora(fecha) {
         const f = GestorFechas.leer(fecha);
         return f ? f.toLocaleTimeString("es-SV", { hour: "2-digit", minute: "2-digit" }) : "—";
     }
 
+    // Formatea el día para mostrarlo en la agenda.
     static dia(fecha) {
         const f = GestorFechas.leer(fecha);
         return f ? f.toLocaleDateString("es-SV", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
