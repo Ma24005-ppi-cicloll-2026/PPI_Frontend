@@ -1,5 +1,5 @@
 ID:
-URL:
+URL:https://github.com/Ma24005-ppi-cicloll-2026/PPI_Frontend.git
 Grupo 11
 Integrantes
 Santiago Steven Morales Sagastume MS24017
