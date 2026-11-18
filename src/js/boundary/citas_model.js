@@ -4,7 +4,7 @@ class CitasModel {
     static BOTON = CitasModel.LUPA + "<span>Buscar citas</span>";
 
     // Guarda el contenedor y la operación de descarga del ticket.
-    constructor(contenedor, { descargar = id => new ConsultaService().descargarTicket(id) } = {}) {
+    constructor(contenedor, { descargar } = {}) {
         this.contenedor = contenedor;
         this.descargar = descargar;
         this.personasRoles = [];
@@ -248,18 +248,58 @@ class CitasModel {
         }
     }
 
-    // Descarga el PDF y mantiene el estado de carga en su tarjeta.
+    // Carga el PDF y mantiene el estado de carga en su tarjeta.
     async bajarTicket(e) {
         const tarjeta = e.target.closest("galeno-tarjeta-cita");
         tarjeta.ocupada = true;
         try {
-            await this.descargar(e.detail.idConsulta);
-            this.aviso?.mostrar("Ticket descargado", "exito");
-            window.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
+            const { idConsulta } = e.detail;
+            if (this.descargar) {
+                await this.descargar(idConsulta);
+                this.avisarDescarga();
+            } else {
+                const ticket = await new ConsultaService().ticket(idConsulta);
+                this.mostrarVistaPrevia(ticket);
+            }
         } catch (err) {
             this.aviso?.mostrar(err.message || "No se pudo generar el ticket", "error");
         } finally {
             tarjeta.ocupada = false;
         }
+    }
+
+    avisarDescarga() {
+        this.aviso?.mostrar("Ticket descargado", "exito");
+        window.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
+    }
+
+    mostrarVistaPrevia({ blob, nombre }) {
+        const dialogo = document.createElement("dialog");
+        dialogo.setAttribute("aria-label", "Vista previa del ticket");
+        dialogo.style.width = "min(54rem, 85vw)";
+        dialogo.innerHTML = `
+            <form method="dialog">
+                <button type="submit" autofocus>Cerrar vista previa</button>
+                <a download>Descargar PDF</a>
+                <a target="_blank" rel="noopener">Abrir PDF en otra pestaña</a>
+            </form>
+            <iframe title="Vista previa del ticket PDF"
+                style="display:block; width:100%; height:70dvh; margin-top:1rem; border:0"></iframe>
+        `;
+
+        const pdf = blob.slice(0, blob.size, "application/pdf");
+        const direccion = URL.createObjectURL(pdf);
+        const descarga = dialogo.querySelector("[download]");
+        descarga.href = direccion;
+        descarga.download = nombre;
+        descarga.addEventListener("click", () => this.avisarDescarga());
+        dialogo.querySelector("[target]").href = direccion;
+        dialogo.querySelector("iframe").src = direccion;
+        dialogo.addEventListener("close", () => {
+            dialogo.remove();
+            URL.revokeObjectURL(direccion);
+        }, { once: true });
+        document.body.append(dialogo);
+        dialogo.showModal();
     }
 }

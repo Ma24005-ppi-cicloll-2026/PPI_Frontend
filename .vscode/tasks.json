@@ -3,8 +3,28 @@
     "tasks": [
         {
             "label": "lanzarBrowserSync",
-            "command": "browser-sync start --server src -f \"src/**\" --no-open",
-            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "command -v curl >/dev/null || { echo 'Se requiere curl para verificar BrowserSync.' >&2; exit 1; }\nurl=$1\nshift\necho 'Iniciando BrowserSync'\nbrowser-sync \"$@\" &\nserver=$!\ntrap 'kill \"$server\" 2>/dev/null || true' EXIT\ntrap 'exit 130' INT\ntrap 'exit 143' TERM\ndeadline=$((SECONDS + 15))\nuntil curl --noproxy '*' --fail --silent --max-time 1 --output /dev/null \"$url\"; do\n    if ! kill -0 \"$server\" 2>/dev/null; then\n        wait \"$server\"\n        exit 1\n    fi\n    if (( SECONDS >= deadline )); then\n        echo \"BrowserSync no respondió en $url\" >&2\n        exit 1\n    fi\n    sleep 0.1\ndone\necho 'BrowserSync listo'\nwait \"$server\"",
+                "browser-sync",
+                "http://localhost:3000/",
+                "start",
+                "--server",
+                "src",
+                "--files",
+                "src/**",
+                "--ports",
+                "3000,3000",
+                "--listen",
+                "localhost",
+                "--no-open",
+                "--no-ui"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "type": "process",
             "presentation": {
                 "reveal": "silent"
             },
@@ -13,16 +33,42 @@
                 "owner": "browsersync",
                 "background": {
                     "activeOnStart": true,
-                    "beginsPattern": "^\\[Browsersync\\] Access URLs:",
-                    "endsPattern": "^\\[Browsersync\\] Watching files"
+                    "beginsPattern": "^Iniciando BrowserSync$",
+                    "endsPattern": "^BrowserSync listo$"
                 },
-                "pattern": { "regexp": "^(?!)$" }
+                "pattern": {
+                    "regexp": "^(.*):([0-9]+): (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "message": 3
+                }
             }
         },
         {
             "label": "debugBrowserSync",
-            "command": "browser-sync start --server ./ -f \"src/**,test/**\" --no-open",
-            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "command -v curl >/dev/null || { echo 'Se requiere curl para verificar BrowserSync.' >&2; exit 1; }\nurl=$1\nshift\necho 'Iniciando BrowserSync'\nbrowser-sync \"$@\" &\nserver=$!\ntrap 'kill \"$server\" 2>/dev/null || true' EXIT\ntrap 'exit 130' INT\ntrap 'exit 143' TERM\ndeadline=$((SECONDS + 15))\nuntil curl --noproxy '*' --fail --silent --max-time 1 --output /dev/null \"$url\"; do\n    if ! kill -0 \"$server\" 2>/dev/null; then\n        wait \"$server\"\n        exit 1\n    fi\n    if (( SECONDS >= deadline )); then\n        echo \"BrowserSync no respondió en $url\" >&2\n        exit 1\n    fi\n    sleep 0.1\ndone\necho 'BrowserSync listo'\nwait \"$server\"",
+                "browser-sync",
+                "http://localhost:3100/test/index.html",
+                "start",
+                "--server",
+                ".",
+                "--files",
+                "src/**",
+                "test/**",
+                "--ports",
+                "3100,3100",
+                "--listen",
+                "localhost",
+                "--no-open",
+                "--no-ui"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "type": "process",
             "presentation": {
                 "reveal": "silent"
             },
@@ -31,25 +77,16 @@
                 "owner": "browsersync",
                 "background": {
                     "activeOnStart": true,
-                    "beginsPattern": "^\\[Browsersync\\] Access URLs:",
-                    "endsPattern": "^\\[Browsersync\\] Watching files"
+                    "beginsPattern": "^Iniciando BrowserSync$",
+                    "endsPattern": "^BrowserSync listo$"
                 },
-                "pattern": { "regexp": "^(?!)$" }
+                "pattern": {
+                    "regexp": "^(.*):([0-9]+): (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "message": 3
+                }
             }
-        },
-        {
-            "label": "paraBrowserSync",
-            "command": "echo ${input:terminate}",
-            "type": "shell",
-            "problemMatcher": []
-        }
-    ],
-    "inputs": [
-        {
-            "id": "terminate",
-            "type": "command",
-            "command": "workbench.action.tasks.terminate",
-            "args": "terminateAll"
         }
     ]
 }

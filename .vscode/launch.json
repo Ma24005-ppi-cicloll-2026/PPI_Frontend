@@ -4,24 +4,20 @@
     {
       "type": "chrome",
       "runtimeExecutable": "/usr/bin/brave-browser",
-      "port": 9222,
       "request": "launch",
       "name": "BrowserSync Brave",
       "url": "http://localhost:3000/#/login",
       "webRoot": "${workspaceFolder}/src",
-      "preLaunchTask": "lanzarBrowserSync",
-      "postDebugTask": "paraBrowserSync"
+      "preLaunchTask": "lanzarBrowserSync"
     },
     {
       "type": "chrome",
       "runtimeExecutable": "/usr/bin/brave-browser",
-      "port": 9222,
       "request": "launch",
       "name": "BrowserSync Debug",
-      "url": "http://localhost:3000/test/index.html",
-      "webRoot": "${workspaceFolder}/",
-      "preLaunchTask": "debugBrowserSync",
-      "postDebugTask": "paraBrowserSync"
-    },
+      "url": "http://localhost:3100/test/index.html",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "debugBrowserSync"
+    }
   ]
 }
