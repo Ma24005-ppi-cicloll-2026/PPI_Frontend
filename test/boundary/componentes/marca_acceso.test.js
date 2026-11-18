@@ -40,7 +40,7 @@ describe("<galeno-marca-acceso>", () => {
         const reglas = [...raiz.querySelector("style").sheet.cssRules];
         const media = reglas.find(regla => regla.conditionText === "(prefers-reduced-motion: reduce)");
         const estatica = [...media.cssRules].find(regla => regla.selectorText === ".trazo").style;
-        expect(estatica.animation).to.equal("none");
+        expect(estatica.animationName).to.equal("none");
         expect(estatica.strokeDasharray).to.equal("none");
         expect(estatica.strokeDashoffset).to.equal("0");
     });
