@@ -1,7 +1,7 @@
 importScripts("js/control/sw_estrategias.js");
 
 // Cambia la versión una vez por entrega para renovar los archivos precargados.
-const VERSION = "galeno-v21";
+const VERSION = "galeno-v22";
 
 // Enumera los recursos necesarios para abrir la aplicación sin conexión.
 const ARCHIVOS = [

@@ -48,7 +48,7 @@ class GalenoTarjetaAgenda extends HTMLElement {
         if (mas) mas.addEventListener("click", () => {
             const abierto = mas.getAttribute("aria-expanded") === "true";
             mas.setAttribute("aria-expanded", String(!abierto));
-            mas.querySelector("span").textContent = abierto ? `Ver ${mas.dataset.n} pasos más` : "Ver menos";
+            mas.querySelector("span").textContent = abierto ? this.textoVerMas(Number(mas.dataset.n)) : "Ver menos";
             this.shadowRoot.querySelectorAll(".extra").forEach(li => { li.hidden = abierto; });
         });
     }
@@ -72,10 +72,13 @@ class GalenoTarjetaAgenda extends HTMLElement {
         const mas = seccion.querySelector(".mas");
         if (extras > 0) {
             mas.dataset.n = String(extras);
-            mas.querySelector("span").textContent = `Ver ${extras} pasos más`;
+            mas.querySelector("span").textContent = this.textoVerMas(extras);
         } else mas.remove();
         return seccion;
     }
+
+    // Texto del botón que muestra los pasos ocultos, en singular o plural.
+    textoVerMas(n) { return `Ver ${n} paso${n === 1 ? "" : "s"} más`; }
 
     // Arma la fila de un paso realizado.
     paso(s, extra) {
@@ -87,7 +90,7 @@ class GalenoTarjetaAgenda extends HTMLElement {
         marca.textContent = hecho ? "✓" : "…";
         const nombre = li.querySelector(".paso-nombre");
         nombre.title = s.nombre ?? "";
-        nombre.prepend(`${s.nombre ?? ""} `);
+        nombre.querySelector(".nombre-paso").textContent = s.nombre ?? "";
         const ins = li.querySelector(".ins");
         ins.classList.add(hecho ? "ins-hecho" : "ins-curso");
         ins.textContent = s.estado || "En proceso";

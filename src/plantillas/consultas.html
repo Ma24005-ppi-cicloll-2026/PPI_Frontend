@@ -109,7 +109,7 @@
         .progreso span { display:block; height:100%; border-radius:999px; background:var(--primario, #2F6F73); transition:width var(--velocidad, 180ms); }
         .cuenta { display:block; margin-top:.2rem; color:var(--tinta-suave, #44577B); font-size:var(--fs-0, .75rem); }
         ol { list-style:none; margin:.45rem 0 0; padding:0; }
-        .pasos li { display:grid; grid-template-columns:auto minmax(0, 1.1fr) minmax(0, 1fr) auto auto;
+        .pasos li { display:grid; grid-template-columns:auto minmax(0, 1.5fr) minmax(0, .8fr) auto auto;
                     gap:.55rem; align-items:center; padding:.35rem 0; }
         .pasos li + li { border-top:1px dashed var(--borde, #E3EAEA); }
         .pasos .extra[hidden] { display:none; }
@@ -117,7 +117,8 @@
                  font-size:.65rem; color:#fff; background:var(--inactivo, #8CA0A8); flex:0 0 auto; }
         .marca.hecho { background:var(--exito, #3E7C59); }
         .paso-nombre { min-width:0; font-weight:600; font-size:var(--fs-1, .875rem);
-                       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:.35rem; }
+                       white-space:nowrap; display:flex; flex-direction:column; align-items:flex-start; gap:.15rem; }
+        .nombre-paso { max-width:100%; overflow:hidden; text-overflow:ellipsis; }
         .ins { flex:0 0 auto; border-radius:999px; padding:0 .45rem; font-size:.68rem; font-weight:700; }
         .ins-hecho { background:var(--exito-fondo, #E9F3ED); color:var(--exito, #3E7C59); }
         .ins-curso { background:var(--aviso-fondo, #F7F0E3); color:var(--aviso, #96662C); }
@@ -183,7 +184,7 @@
 <template id="plantilla-galeno-tarjeta-agenda-paso">
     <li>
       <span class="marca" aria-hidden="true"></span>
-      <span class="paso-nombre"><span class="ins"></span></span>
+      <span class="paso-nombre"><span class="nombre-paso"></span><span class="ins"></span></span>
       <span class="quien-paso"></span>
       <time></time>
       <button type="button" class="ver">
