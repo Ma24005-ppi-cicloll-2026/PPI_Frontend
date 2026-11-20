@@ -2,7 +2,8 @@ class DashboardModel {
 
     // Prepara el estado de filtros, contexto y paginación, y recibe las utilidades que usa.
     constructor(contenedor, { irA = () => {}, sesion = new Sesion(), agenda = new Agenda(),
-                              datosClinica = new DatosClinica(), expediente = null } = {}) {
+                              datosClinica = new DatosClinica(), expediente = null,
+                              plantillas = new Plantillas() } = {}) {
         this.contenedor = contenedor;
         this.escuchas = [];
         this.irA = irA;
@@ -10,6 +11,7 @@ class DashboardModel {
         this.agenda = agenda;
         this.datosClinica = datosClinica;
         this.expediente = expediente ?? new Expediente({ datosClinica, agenda });
+        this.plantillas = plantillas;
         this.porPagina = 12;
         this.datos = null;
 
@@ -23,51 +25,10 @@ class DashboardModel {
     iniciar() {
         this.sesion = this.sesionUtil.obtener();
         const contextos = this.sesion?.contextos ?? [];
-        const e = t => this.esc(t);
-        this.contenedor.innerHTML = `
-            <section class="dashboard" aria-labelledby="titulo-dash">
-                <h2 id="titulo-dash" class="sr">Dashboard</h2>
-                <div class="herramientas">
-                    <div class="tarjeta herramientas-caja">
-                        ${this.sesion ? `<h3 class="mini">Bienvenido, ${e(this.sesion.nombre)}</h3>` : ""}
-                        <form id="contexto" novalidate>
-                            <galeno-selector id="clinica" label="Clínica" placeholder="Elija la clínica"></galeno-selector>
-                            <galeno-selector id="rol" label="Rol" placeholder="Elija el rol"></galeno-selector>
-                            <div id="mensaje" role="alert" class="mensaje-error"></div>
-                            <button id="cargar" type="submit">Cargar consultas</button>
-                        </form>
-                        <div id="resumen-contexto" hidden>
-                            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h2M8 11h2M8 15h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            <strong id="resumen-contexto-texto"></strong>
-                            <button id="cambiar-contexto" type="button" class="enlace">Cambiar</button>
-                        </div>
-                        <form id="filtros" hidden novalidate>
-                            <galeno-campo id="paciente" label="Buscar paciente" icono="lupa" limpiar
-                                          placeholder="Nombre o documento"></galeno-campo>
-                            <galeno-segmentado id="modo" label="Fechas"></galeno-segmentado>
-                            <galeno-campo id="desde" label="Desde" type="date" hidden></galeno-campo>
-                            <galeno-campo id="hasta" label="Hasta" type="date" hidden></galeno-campo>
-                        </form>
-                        <div id="conteo" class="conteo" role="group" aria-label="Filtrar por estado" hidden>
-                            <button type="button" class="chip activo" data-estado="total" aria-pressed="true">
-                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                                <span>Total</span><span class="n" data-conteo="total">0</span>
-                            </button>
-                            <button type="button" class="chip" data-estado="curso" aria-pressed="false">
-                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                                <span>En curso</span><span class="n" data-conteo="curso">0</span>
-                            </button>
-                            <button type="button" class="chip" data-estado="devueltas" aria-pressed="false">
-                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                <span>Devueltas</span><span class="n" data-conteo="devueltas">0</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <galeno-estado-vista id="estado"></galeno-estado-vista>
-                <div id="lista" class="rejilla-agenda" aria-live="polite"></div>
-                <galeno-registro-paso id="registro"></galeno-registro-paso>
-            </section>`;
+        this.contenedor.replaceChildren(this.plantillas.clonar("plantilla-pantalla-dashboard"));
+        const bienvenida = this.contenedor.querySelector("#bienvenida");
+        if (this.sesion) bienvenida.textContent = `Bienvenido, ${this.sesion.nombre}`;
+        else bienvenida.remove();
         // Busca un elemento de la vista por su ID.
         const $ = id => this.contenedor.querySelector("#" + id);
         this.selClinica = $("clinica"); this.selRol = $("rol"); this.mensaje = $("mensaje");
@@ -132,9 +93,6 @@ class DashboardModel {
         this.escuchas.forEach(([evento, accion]) => this.contenedor.removeEventListener(evento, accion));
         this.escuchas = [];
     }
-
-    // Escapa el texto antes de incluirlo en una plantilla HTML.
-    esc(t) { return String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
     // Limita los roles disponibles a la clínica seleccionada.
     alElegirClinica(clinica) {

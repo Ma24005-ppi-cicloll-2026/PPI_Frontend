@@ -1,5 +1,8 @@
 class GalenoBotonInstalar extends HTMLElement {
 
+    // Moldes HTML del componente.
+    plantillas = new Plantillas();
+
     // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
@@ -79,33 +82,11 @@ class GalenoBotonInstalar extends HTMLElement {
         const estado = pwa?.estado ?? "no_soportado";
         const visible = estado === "instalable" || estado === "ios_manual";
         this.hidden = !visible;
-        this.shadowRoot.innerHTML = `
-          <style>
-            :host { display:inline-block; }
-            :host([hidden]) { display:none; }
-            button { display:inline-flex; align-items:center; gap:.4rem; min-height:2.75rem;
-                     padding:.35rem .85rem; border:1px solid var(--instalar-borde, #527C80);
-                     border-radius:999px; background:var(--instalar-fondo, #E9F1EF);
-                     color:var(--tinta, #1D3461); cursor:pointer; font:inherit;
-                     font-size:var(--fs-1, .875rem); font-weight:600; }
-            button:hover { background:var(--instalar-hover, #CFE3DD); border-color:var(--foco, #2F6F73); }
-            button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-            button svg { width:1.1rem; height:1.1rem; flex:0 0 auto; }
-            button[hidden] { display:none; }
-            @media (max-width:47.9999em) {
-                button { padding:.35rem .6rem; }
-                .texto { display:none; }
-            }
-          </style>
-          <button type="button" ${visible ? "" : "hidden"} aria-label="Instalar app" title="Instalar app">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-              <rect x="4.5" y="3" width="15" height="18" rx="2.5"/>
-              <path d="M12 8v7.2m0 0-2.7-2.7m2.7 2.7 2.7-2.7"/>
-            </svg>
-            <span class="texto">Instalar app</span>
-          </button>`;
-        this.shadowRoot.querySelector("button").addEventListener("click", () => this.pulsar());
+        const raiz = this.plantillas.clonar("plantilla-galeno-boton-instalar");
+        const boton = raiz.querySelector("button");
+        boton.hidden = !visible;
+        boton.addEventListener("click", () => this.pulsar());
+        this.shadowRoot.replaceChildren(raiz);
     }
 }
 

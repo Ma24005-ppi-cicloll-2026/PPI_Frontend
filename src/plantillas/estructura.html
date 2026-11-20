@@ -1,0 +1,364 @@
+<!-- Plantillas de la estructura de la aplicación: cabecera, menú, tema, conexión, estados y avisos.
+     Cada <template> es un molde: el navegador no lo muestra; el JavaScript lo clona y le pone los datos. -->
+
+<!-- Esqueleto de la aplicación: cabecera, menú, zona de pantallas y avisos. -->
+<template id="plantilla-galeno-app">
+    <galeno-conexion></galeno-conexion>
+    <div class="app">
+        <a class="saltar" href="#/" id="saltar">Saltar al contenido</a>
+        <header>
+            <h1>GalenoSV</h1>
+            <galeno-boton-instalar id="instalar"></galeno-boton-instalar>
+            <galeno-tema id="tema"></galeno-tema>
+            <span id="sesion" aria-live="polite"></span>
+        </header>
+        <nav aria-label="Menú principal"><galeno-menu id="menu"></galeno-menu></nav>
+        <main id="pantalla" tabindex="-1"></main>
+        <footer>GalenoSV · Sistema de gestión médica</footer>
+    </div>
+    <galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>
+    <galeno-invitacion-instalar id="invitacion"></galeno-invitacion-instalar>
+    <galeno-guia-instalacion id="guia"></galeno-guia-instalacion>
+</template>
+
+<!-- Cabecera con la sesión del empleado. -->
+<template id="plantilla-sesion-iniciada">
+    <span class="avatar" aria-hidden="true" data-campo="iniciales"></span>
+    <span class="datos">
+        <span class="nombre" data-campo="nombre"></span>
+        <span class="detalle" data-campo="detalle"></span>
+        <button class="salir" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 4H6.2A2.2 2.2 0 0 0 4 6.2v11.6A2.2 2.2 0 0 0 6.2 20h4.3"/><path d="m15 8 4 4-4 4M19 12H9.5"/></svg><span>Cerrar sesión</span>
+        </button>
+    </span>
+</template>
+
+<!-- Cabecera cuando nadie ha iniciado sesión. -->
+<template id="plantilla-sin-sesion">
+    <span class="avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.5 20c.9-3.3 3.4-5.1 6.5-5.1s5.6 1.8 6.5 5.1"/></svg></span>
+    <span class="datos">
+        <span class="nombre">Sin sesión iniciada</span>
+        <button class="entrar" type="button"><span>Iniciar sesión</span></button>
+    </span>
+</template>
+
+<!-- Menú principal. -->
+<template id="plantilla-galeno-menu">
+    <style>
+        :host { display:block; }
+        .marca { display:none; margin:0; align-items:center; gap:.55rem;
+                 padding:1.05rem 1.1rem .55rem;
+                 color:var(--tinta, #1D3461); font-weight:700; font-size:var(--fs-2, 1rem); letter-spacing:.02em; }
+        .marca svg { width:1.45rem; height:1.45rem; flex:0 0 auto; color:var(--primario, #2F6F73); }
+        ul { list-style:none; margin:0; padding:.35rem .55rem .7rem;
+             display:flex; gap:.2rem; overflow-x:auto; scrollbar-width:none; }
+        ul::-webkit-scrollbar { display:none; }
+        li { flex:0 0 auto; }
+        button { position:relative; display:inline-flex; flex-direction:column; align-items:center; gap:.25rem;
+                 min-width:4.25rem; min-height:3.25rem; padding:.45rem .7rem .6rem;
+                 border:1px solid transparent; border-radius:var(--radio-item, .75rem);
+                 background:transparent; color:var(--tinta, #1D3461);
+                 font:inherit; font-size:var(--fs-0, .75rem); font-weight:600; line-height:1.15;
+                 text-align:center; white-space:nowrap; cursor:pointer;
+                 transition:background-color 150ms ease, color 150ms ease, transform 150ms ease; }
+        button svg { width:1.25rem; height:1.25rem; flex:0 0 auto; color:var(--primario, #2F6F73); }
+        button:hover { background:rgba(255,255,255,.70); }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        button[aria-current=page] { background:var(--primario, #2F6F73); color:var(--sobre-primario, #FFFFFF); font-weight:700; }
+        button[aria-current=page] svg { color:var(--sobre-primario, #FFFFFF); }
+        button[aria-current=page]::after { content:""; position:absolute; left:44%; right:44%; bottom:.28rem;
+                                           height:4px; border-radius:2px; background:var(--acento, #C9775B); }
+        @media (min-width: 48em) {
+            :host { display:flex; flex-direction:column; height:100%; }
+            .marca { display:flex; flex:0 0 auto; padding:1.1rem 1.1rem .6rem; }
+            ul { flex:1 1 auto; flex-direction:column; gap:.15rem; overflow:visible; padding:.4rem .7rem .9rem; }
+            li { flex:none; }
+            button { flex-direction:row; gap:.65rem; width:100%; min-width:0; min-height:2.75rem;
+                     padding:.55rem .8rem; text-align:left; font-size:var(--fs-1, .875rem); }
+            button:hover { transform:translateX(3px); }
+            button[aria-current=page]::after { left:-.7rem; right:auto; top:22%; bottom:22%; width:4px; height:auto; }
+        }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+    </style>
+    <p class="marca"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="14" fill="currentColor" opacity=".14"/><path d="M16 9.5v13M9.5 16h13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><span>GalenoSV</span></p>
+    <ul></ul>
+</template>
+
+<!-- Una opción del menú. -->
+<template id="plantilla-galeno-menu-item">
+    <li><button type="button"><span class="icono"></span><span class="texto"></span></button></li>
+</template>
+
+<!-- Icono del menú: citas. -->
+<template id="icono-menu-citas">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15.5" rx="2.2"/><path d="M3.5 9.5h17M8 2.8v4.2M16 2.8v4.2"/><path d="m8.6 14.6 2.1 2.1 4.4-4.5"/></svg>
+</template>
+
+<!-- Icono del menú: login. -->
+<template id="icono-menu-login">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.5 20c.9-3.3 3.4-5.1 6.5-5.1s5.6 1.8 6.5 5.1"/></svg>
+</template>
+
+<!-- Icono del menú: dashboard. -->
+<template id="icono-menu-dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></svg>
+</template>
+
+<!-- Icono del menú: general. -->
+<template id="icono-menu-general">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/></svg>
+</template>
+
+<!-- Interruptor de tema claro u oscuro. -->
+<template id="plantilla-galeno-tema">
+    <style>
+        :host { display:inline-block; }
+        button { display:inline-flex; align-items:center; justify-content:center;
+                 width:2.4rem; height:2.4rem; padding:0; border:1px solid var(--borde, #DCE9F0);
+                 border-radius:999px; background:var(--superficie, #fff); color:var(--primario, #2F6F73);
+                 cursor:pointer; font:inherit; transition:background var(--velocidad, 180ms), border-color var(--velocidad, 180ms); }
+        button:hover { background:var(--celeste, #E3F1F7); border-color:var(--celeste-fuerte, #B5D8E8); }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        button svg { width:1.15rem; height:1.15rem; }
+        .luna { display:none; }
+        button.oscuro .luna { display:block; }
+        button.oscuro .sol { display:none; }
+        button svg { transition:transform var(--velocidad, 180ms); }
+        button:active svg { transform:scale(.85) rotate(-12deg); }
+    </style>
+    <button type="button" role="switch" aria-checked="false" aria-keyshortcuts="t">
+      <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6 19 19M19 5l-1.4 1.4M6.4 17.6 5 19"/></svg>
+      <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+    </button>
+</template>
+
+<!-- Aviso de conexión perdida o restablecida. -->
+<template id="plantilla-galeno-conexion">
+    <style>
+        :host { display:block; }
+        div { display:flex; align-items:center; justify-content:center; gap:.45rem;
+              padding:.3rem 1rem; text-align:center;
+              font-size:var(--fs-0, .75rem); font-weight:600; color:var(--tinta, #1D3461); }
+        div .icono { flex:0 0 auto; }
+        .sin-conexion { background:var(--aviso-fondo, #F7F0E3); }
+        .sin-conexion .icono { color:var(--aviso, #B98A3E); }
+        .restablecida { background:var(--exito-fondo, #E9F3ED); }
+        .restablecida .icono { color:var(--exito, #4F8A6B); }
+        .oculto { display:none; }
+    </style>
+    <div role="status" aria-live="polite" class="oculto">
+      <svg class="icono sin" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m4 4 16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg class="icono ok" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="19" cy="18" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m17 18 1.4 1.4L21.4 16.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="texto"></span>
+    </div>
+</template>
+
+<!-- Estado de carga con tarjetas de esqueleto. -->
+<template id="plantilla-galeno-estado-cargando">
+    <style>
+        :host { display:block; }
+        .rejilla-esqueleto { display:grid; gap:.8rem; grid-template-columns:repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
+        .esqueleto { position:relative; display:grid; gap:.7rem; padding:1rem;
+                     border:1px solid var(--borde, #E3EAEA); border-radius:var(--radio-tarjeta, .875rem);
+                     background:var(--superficie, #fff); height:100%; box-sizing:border-box; }
+        .esqueleto span { display:block; height:.9rem; border-radius:.4rem;
+                          background:linear-gradient(90deg, var(--borde, #E3EAEA) 25%, var(--fondo, #F5F8F8) 50%, var(--borde, #E3EAEA) 75%);
+                          background-size:12rem 100%; animation:brillo 1.4s ease infinite; }
+        .esqueleto span.titulo { width:40%; height:1.1rem; }
+        .esqueleto span.larga { width:92%; }
+        .esqueleto span.media { width:70%; }
+        .esqueleto span.corta { width:35%; }
+        .lector { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+        @keyframes brillo { from { background-position:12rem 0; } to { background-position:-12rem 0; } }
+        @media (prefers-reduced-motion: reduce) { .esqueleto span { animation:none; } }
+    </style>
+    <div role="status" aria-live="polite">
+      <span class="lector">Cargando información...</span>
+      <div class="rejilla-esqueleto"></div>
+    </div>
+</template>
+
+<!-- Una tarjeta de esqueleto. -->
+<template id="plantilla-galeno-estado-esqueleto">
+    <div class="esqueleto" aria-hidden="true">
+      <span class="titulo"></span><span class="larga"></span><span class="media"></span><span class="corta"></span>
+    </div>
+</template>
+
+<!-- Mensaje de vacío o de error con Reintentar. -->
+<template id="plantilla-galeno-estado-mensaje">
+    <style>
+        div { padding:1.1rem; border:1px solid var(--borde, #E3EAEA); border-radius:var(--radio-tarjeta, .875rem);
+              font-family:inherit; text-align:center;
+              background:var(--info-fondo, #EDF3F2); color:var(--tinta, #1D3461); }
+        div.error { background:var(--error-fondo, #F9EAE6); color:var(--error, #A8402F); border-color:var(--error, #A8402F); }
+        .arte { display:block; margin:0 auto .5rem; }
+        p { margin:.2rem 0 0; }
+        button { margin-left:.6rem; padding:.35rem .9rem; border:0; border-radius:var(--radio-control, .625rem);
+                 background:var(--error, #A8402F); color:#fff; cursor:pointer; font:inherit; min-height:2.2rem; }
+        button:hover { filter:brightness(.92); }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+    </style>
+    <div role="status" aria-live="polite">
+      <svg class="arte" viewBox="0 0 120 70" width="120" height="70" aria-hidden="true" focusable="false">
+        <rect x="14" y="12" width="66" height="46" rx="6" fill="none" stroke="var(--secundario-borde, #AECFC6)" stroke-width="3"/>
+        <path d="M14 24h66" stroke="var(--secundario-borde, #AECFC6)" stroke-width="3"/>
+        <circle cx="22" cy="18" r="2" fill="var(--secundario-borde, #AECFC6)"/>
+        <path d="M24 34h30M24 42h44M24 50h20" stroke="var(--borde, #E3EAEA)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="92" cy="48" r="14" fill="var(--primario-suave, #E9F1EF)" stroke="var(--primario, #2F6F73)" stroke-width="3"/>
+        <path d="M92 41v14M85 48h14" stroke="var(--primario, #2F6F73)" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <span id="texto"></span>
+      <button id="reintentar" type="button">Reintentar</button>
+    </div>
+</template>
+
+<!-- Contenedor de los avisos emergentes. -->
+<template id="plantilla-galeno-notificacion">
+    <style>
+        #caja { position:fixed; top:1rem; right:1rem; z-index:1000; max-width:22rem;
+                display:flex; align-items:flex-start; gap:.55rem;
+                padding:.8rem .9rem; border-radius:var(--radio-control, .625rem);
+                background:var(--superficie, #fff); color:var(--tinta, #1D3461);
+                border:1px solid var(--borde, #DCE9F0); border-left:6px solid var(--info, #3F78A8);
+                box-shadow:var(--sombra-2, 0 6px 18px rgba(29,52,97,.12)); font-family:inherit;
+                font-size:var(--fs-1, .875rem);
+                animation:toast-entrada var(--velocidad, 180ms) ease-out; }
+        #caja[hidden] { display:none; }
+        #caja .icono { width:1.15rem; height:1.15rem; flex:0 0 auto; margin-top:.1rem; color:var(--info, #3F78A8); }
+        #caja .texto { flex:1 1 auto; font-weight:600; }
+        #caja .cerrar { flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+                width:1.6rem; height:1.6rem; margin:-.2rem -.3rem 0 0; padding:0; border:0; border-radius:50%;
+                background:none; color:inherit; cursor:pointer; }
+        #caja .cerrar:hover { background:var(--celeste, #E3F1F7); }
+        #caja .cerrar:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        #caja .barra { position:absolute; left:0; right:0; bottom:0; height:3px;
+                background:var(--info, #3F78A8); transform-origin:left;
+                animation:toast-tiempo 4000ms linear forwards; }
+        #caja.exito { border-left-color:var(--exito, #4F8A6B); }  #caja.exito .icono, #caja.exito .barra { color:var(--exito, #4F8A6B); background-color:var(--exito, #4F8A6B); }
+        #caja.aviso { border-left-color:var(--aviso, #B98A3E); }  #caja.aviso .icono, #caja.aviso .barra { color:var(--aviso, #B98A3E); background-color:var(--aviso, #B98A3E); }
+        #caja.error { border-left-color:var(--error, #B5524A); }  #caja.error .icono, #caja.error .barra { color:var(--error, #B5524A); background-color:var(--error, #B5524A); }
+        #caja.info  { border-left-color:var(--info, #3F78A8); }   #caja.info  .icono, #caja.info  .barra { color:var(--info, #3F78A8); background-color:var(--info, #3F78A8); }
+        @keyframes toast-entrada { from { opacity:0; transform:translateY(-.4rem); } to { opacity:1; transform:none; } }
+        @keyframes toast-tiempo { from { transform:scaleX(1); } to { transform:scaleX(0); } }
+        @media (prefers-reduced-motion: reduce) { #caja { animation:none; } #caja .barra { display:none; } }
+    </style>
+    <div id="caja" role="status" aria-live="polite" hidden></div>
+</template>
+
+<!-- Contenido de un aviso emergente. -->
+<template id="plantilla-galeno-notificacion-aviso">
+    <span class="icono-aviso"></span><span class="texto"></span>
+    <button class="cerrar" type="button" aria-label="Cerrar el aviso"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" focusable="false"><path d="m5 5 10 10m0-10L5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <span class="barra" aria-hidden="true"></span>
+</template>
+
+<!-- Icono de aviso: exito. -->
+<template id="icono-aviso-exito">
+    <svg class="icono" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m8 12.2 2.6 2.6L16.4 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</template>
+
+<!-- Icono de aviso: aviso. -->
+<template id="icono-aviso-aviso">
+    <svg class="icono" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3.5 21.5 20h-19L12 3.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.5v4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.9" r="1.15" fill="currentColor"/></svg>
+</template>
+
+<!-- Icono de aviso: error. -->
+<template id="icono-aviso-error">
+    <svg class="icono" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m9 9 6 6m0-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+</template>
+
+<!-- Icono de aviso: info. -->
+<template id="icono-aviso-info">
+    <svg class="icono" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7.8" r="1.15" fill="currentColor"/></svg>
+</template>
+
+<!-- Panel de marca de la pantalla de acceso. -->
+<template id="plantilla-galeno-marca-acceso">
+            <style>
+        :host { display:block; min-inline-size:0; }
+        .marca {
+            box-sizing:border-box; position:relative; isolation:isolate; overflow:hidden;
+            display:flex; flex-direction:column; justify-content:center;
+            min-block-size:100%; padding:.75rem 1.25rem;
+            border-radius:calc(1rem - 1px) calc(1rem - 1px) 0 0;
+            background:linear-gradient(145deg, var(--celeste, #E3F1F7), var(--secundario, #CFE3DD));
+            color:var(--tinta, #1D3461);
+        }
+        .nombre { display:flex; align-items:center; gap:.5rem; margin:0; font-weight:700; }
+        .nombre svg { inline-size:1.75rem; block-size:1.75rem; color:var(--foco, #2F6F73); }
+        .titulo { margin:.25rem 0 0; font-size:1.125rem; line-height:1.2; font-weight:600; }
+        .ampliado { display:none; }
+        .lema { margin:.75rem 0 0; color:var(--tinta-suave, #44577B); }
+        .forma {
+            position:absolute; z-index:-1; inset:-2rem -3rem auto auto; inline-size:16rem;
+            fill:var(--celeste-fuerte, #B5D8E8); stroke:var(--secundario-borde, #AECFC6);
+            opacity:.55; pointer-events:none;
+        }
+        .ecg { display:block; inline-size:100%; margin:1.5rem 0; color:var(--foco, #2F6F73); }
+        /* pathLength permite dibujar el ECG completo con un desplazamiento de 1. */
+        .trazo {
+            stroke-dasharray:1; stroke-dashoffset:1;
+            animation:pulso 4s ease-in-out infinite;
+        }
+        @keyframes pulso {
+            0% { stroke-dashoffset:1; }
+            48%, 72% { stroke-dashoffset:0; }
+            100% { stroke-dashoffset:-1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .trazo { animation:none; stroke-dasharray:none; stroke-dashoffset:0; }
+        }
+        ul { list-style:none; padding:0; margin:0; display:grid; gap:.75rem; }
+        li { display:flex; align-items:center; gap:.75rem; }
+        li svg { inline-size:1.375rem; block-size:1.375rem; flex:none; color:var(--foco, #2F6F73); }
+        @container acceso (width >= 56rem) {
+            .marca { padding:2.5rem; border-radius:19px 0 0 19px; }
+            .nombre { font-size:1.125rem; }
+            .titulo { margin-top:1rem; font-size:2.25rem; }
+            .ampliado { display:block; }
+        }
+        @container acceso (width < 30rem) {
+            .marca { padding:.75rem 1rem; border-radius:calc(.75rem - 1px) calc(.75rem - 1px) 0 0; }
+        }
+    </style>
+            <div class="marca">
+                <svg class="forma" viewBox="0 0 260 220" aria-hidden="true" focusable="false">
+                    <path d="M220 28c38 30 54 106 0 145s-145 33-176-9 3-87 49-110 89-56 127-26Z"/>
+                    <path d="M223 67c15 33-6 80-49 103s-84 12-102-11 5-60 36-75 100-50 115-17Z" fill="none" stroke-width="2"/>
+                </svg>
+                <p class="nombre">
+                    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" aria-hidden="true" focusable="false">
+                        <rect x="2.5" y="2.5" width="27" height="27" rx="8"/><path d="M16 9.5v13M9.5 16h13"/>
+                    </svg>
+                    GalenoSV
+                </p>
+                <p class="titulo">Portal de empleados</p>
+                <div class="ampliado">
+                    <p class="lema">Cada paciente, con todo su contexto a la mano.</p>
+                    <svg class="ecg" viewBox="0 0 240 64" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path opacity=".22" d="M1 36h238"/>
+                        <path class="trazo" pathLength="1" d="M1 36h45l8-15 8 27 9-20 8 8h29l10-10 9 18 10-34 10 39 9-13h83"/>
+                    </svg>
+                    <ul>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+                                aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.5"/><path d="M5.5 15c.5-2 4.5-2 5 0M14 10h4m-4 4h4"/></svg>
+                            Acceso con tu documento
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+                                aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4m8-4v4M4 10h16m-11 5 2 2 4-4"/></svg>
+                            Tus consultas del día
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+                                aria-hidden="true" focusable="false"><path d="M3 8c5-4 13-4 18 0M6 12c3.5-2.8 8.5-2.8 12 0m-9 4c1.5-1.2 4.5-1.2 6 0M4 4l16 16"/><circle cx="12" cy="20" r=".5"/></svg>
+                            Funciona sin conexión
+                        </li>
+                    </ul>
+                </div>
+            </div>
+</template>

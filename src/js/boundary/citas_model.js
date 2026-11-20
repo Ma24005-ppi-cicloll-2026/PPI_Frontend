@@ -2,7 +2,8 @@ class CitasModel {
 
     // Guarda el contenedor, los servicios y las utilidades que usa la búsqueda.
     constructor(contenedor, { descargar, aviso = null, servicios = null, documentos = new Documentos(), agenda = new Agenda(),
-                              datosClinica = new DatosClinica(), sesion = new Sesion() } = {}) {
+                              datosClinica = new DatosClinica(), sesion = new Sesion(),
+                              plantillas = new Plantillas() } = {}) {
         this.contenedor = contenedor;
         this.escuchas = [];
         this.avisoInyectado = aviso;
@@ -14,7 +15,7 @@ class CitasModel {
         this.servicios = servicios ?? {
             personasRoles: new PersonaRolService(), documentos: new DocumentoService(), tipos: new TipoDocumentoService(),
             consultas: new ConsultaService(), cps: new ConsultaProcedimientoService(), procedimientos: new ProcedimientoService() };
-        this.textoBoton = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="9" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m13.2 13.2 3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Buscar citas</span>';
+        this.plantillas = plantillas;
         this.personasRoles = [];
         this.documentos = [];
         this.pacienteEn = [];
@@ -24,75 +25,7 @@ class CitasModel {
 
     // Monta el asistente y conecta sus campos con la búsqueda.
     iniciar() {
-        this.contenedor.innerHTML = `
-            <section class="citas" aria-labelledby="titulo-citas">
-                <header class="cabecera-pantalla">
-                    <div>
-                        <h2 id="titulo-citas">Buscar citas</h2>
-                        <p>Con su documento de identidad, sin iniciar sesión.</p>
-                    </div>
-                    <svg class="banner-arte" viewBox="0 0 96 76" aria-hidden="true" focusable="false">
-                        <rect class="cal" x="16" y="12" width="56" height="52" rx="8" stroke-width="2.4"/>
-                        <path class="cal" d="M16 26h56" stroke-width="2.4"/>
-                        <path class="cal-raya" d="M30 6v12M58 6v12" stroke-width="2.4" stroke-linecap="round"/>
-                        <path class="cruz" d="M44 34v16M36 42h16" stroke-width="3" stroke-linecap="round"/>
-                        <path class="cora" d="M74 56c-6-4-9-8-9-11.5a4.3 4.3 0 0 1 7.5-2.8l1.5 1.7 1.5-1.7a4.3 4.3 0 0 1 7.5 2.8c0 3.5-3 7.5-9 11.5z" stroke-width="2"/>
-                    </svg>
-                </header>
-                <form id="formulario" class="tarjeta" novalidate>
-                    <ol class="pasos">
-                        <li class="paso"><span class="num" aria-hidden="true">1</span><span class="txt">Documento</span></li>
-                        <li class="paso"><span class="num" aria-hidden="true">2</span><span class="txt">Clínica</span></li>
-                        <li class="paso"><span class="num" aria-hidden="true">3</span><span class="txt">Fechas</span></li>
-                    </ol>
-                    <ol class="asistente">
-                        <li class="seccion-asistente">
-                            <galeno-buscador-tipo-documentos id="tipo" label="Tipo de documento"
-                                                             placeholder="Elija el tipo de documento"></galeno-buscador-tipo-documentos>
-                            <galeno-campo id="numero" label="Número de documento" autocomplete="off"
-                                          placeholder="Elija primero el tipo de documento"
-                                          ayuda="Elija primero el tipo de documento"></galeno-campo>
-                        </li>
-                        <li class="seccion-asistente">
-                            <galeno-selector id="clinica" label="Clínica" placeholder="Primero identifíquese con su documento"></galeno-selector>
-                        </li>
-                        <li class="seccion-asistente">
-                            <div class="fila-fechas">
-                                <galeno-campo id="desde" label="Desde" type="date"></galeno-campo>
-                                <galeno-campo id="hasta" label="Hasta" type="date"></galeno-campo>
-                            </div>
-                        </li>
-                    </ol>
-                    <div id="mensaje" role="alert" class="mensaje-error"></div>
-                    <button id="buscar" type="submit">${this.textoBoton}</button>
-                </form>
-                <div id="bienvenida" class="bienvenida">
-                    <div class="hero">
-                        <svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" focusable="false">
-                            <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
-                            <path d="M3.5 9.5h17M8 2.8v4.2M16 2.8v4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                            <path d="M12 12.5v6M9 15.5h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                        </svg>
-                        <p>Sus citas aparecerán aquí</p>
-                    </div>
-                    <ul class="consejos">
-                        <li>
-                            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><rect x="4" y="2.5" width="12" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 7.5h6M7 10.5h6M7 13.5h3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-                            <span>Tenga a mano su documento de identidad.</span>
-                        </li>
-                        <li>
-                            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="M3 17.5V6l5-3 5 3v11.5M13 17.5h4V10l-4-2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.5 8.5h3M6.5 11.5h3M6.5 14.5h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-                            <span>Elija la clínica donde está registrado como paciente.</span>
-                        </li>
-                        <li>
-                            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><rect x="3" y="4" width="14" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 8h14M7 2.5V6M13 2.5V6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="m7.5 12.5 1.8 1.8 3.4-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            <span>Ajuste las fechas para ver citas pasadas o futuras.</span>
-                        </li>
-                    </ul>
-                </div>
-                <galeno-estado-vista id="estado"></galeno-estado-vista>
-                <div id="resultado" class="rejilla" aria-live="polite"></div>
-            </section>`;
+        this.contenedor.replaceChildren(this.plantillas.clonar("plantilla-pantalla-citas"));
         // Busca un elemento de la vista por su ID.
         const $ = id => this.contenedor.querySelector("#" + id);
         this.buscaTipo = $("tipo"); this.campoNumero = $("numero"); this.selClinica = $("clinica");
@@ -102,6 +35,7 @@ class CitasModel {
         this.aviso = this.avisoInyectado ?? this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
 
         this.boton = $("buscar"); this.bienvenida = $("bienvenida");
+        this.textoBoton = this.boton.querySelector(".texto-boton");
         this.secciones = [...this.contenedor.querySelectorAll(".seccion-asistente")];
         this.pasos = [...this.contenedor.querySelectorAll(".paso")];
 
@@ -248,7 +182,7 @@ class CitasModel {
         const idsPaciente = this.pacienteEn.filter(pr => pr.idClinica?.idClinica === clinica.idClinica).map(pr => pr.idPersonaRol);
         const rango = this.agenda.rango("Rango", this.campoDesde.value, this.campoHasta.value);
         this.estado.mostrar("cargando");
-        this.boton.disabled = true; this.boton.textContent = "Buscando citas...";
+        this.boton.disabled = true; this.textoBoton.textContent = "Buscando citas...";
         return Promise.all([this.servicios.consultas.listarTodo(), this.servicios.cps.listarTodo(),
                             this.servicios.procedimientos.listarTodo()])
             .then(([consultas, cps, procedimientos]) => {
@@ -260,7 +194,7 @@ class CitasModel {
                 if (busqueda === this._busqueda) this.estado.mostrar("error", "No se pudieron cargar las citas.");
             })
             .finally(() => {
-                this.boton.disabled = false; this.boton.innerHTML = this.textoBoton;
+                this.boton.disabled = false; this.textoBoton.textContent = "Buscar citas";
                 this.pintarSecciones();
             });
     }
@@ -313,18 +247,7 @@ class CitasModel {
 
     // Abre el PDF del ticket en un diálogo con opciones para descargarlo.
     mostrarVistaPrevia({ blob, nombre }) {
-        const dialogo = document.createElement("dialog");
-        dialogo.setAttribute("aria-label", "Vista previa del ticket");
-        dialogo.style.width = "min(54rem, 85vw)";
-        dialogo.innerHTML = `
-            <form method="dialog">
-                <button type="submit" autofocus>Cerrar vista previa</button>
-                <a download>Descargar PDF</a>
-                <a target="_blank" rel="noopener">Abrir PDF en otra pestaña</a>
-            </form>
-            <iframe title="Vista previa del ticket PDF"
-                style="display:block; width:100%; height:70dvh; margin-top:1rem; border:0"></iframe>
-        `;
+        const dialogo = this.plantillas.clonar("plantilla-dialogo-ticket").firstElementChild;
 
         const pdf = blob.slice(0, blob.size, "application/pdf");
         const direccion = URL.createObjectURL(pdf);

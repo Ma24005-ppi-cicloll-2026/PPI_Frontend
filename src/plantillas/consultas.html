@@ -1,0 +1,325 @@
+<!-- Plantillas de citas, consultas y pasos.
+     Cada <template> es un molde: el navegador no lo muestra; el JavaScript lo clona y le pone los datos. -->
+
+<!-- Tarjeta de una cita en Buscar citas (HU1). -->
+<template id="plantilla-galeno-tarjeta-cita">
+    <style>
+        :host { display:block; font-family:inherit; height:100%; }
+        article { background:var(--superficie, #fff); color:var(--tinta, #1D3461); border:1px solid var(--borde, #E3EAEA);
+                  border-radius:var(--radio-tarjeta, .875rem); padding:.8rem; height:100%; box-sizing:border-box;
+                  box-shadow:var(--sombra-1, none); display:flex; gap:.8rem;
+                  transition:box-shadow var(--velocidad, 180ms), border-color var(--velocidad, 180ms), transform var(--velocidad, 180ms); }
+        article:hover { box-shadow:var(--sombra-2, none); border-color:var(--secundario-borde, #AECFC6); transform:translateY(-2px); }
+        .fecha { flex:0 0 auto; width:3.4rem; display:flex; flex-direction:column; align-items:center; justify-content:center;
+                 gap:.05rem; background:var(--primario-suave, #E9F1EF); border:1px solid var(--secundario-borde, #AECFC6);
+                 border-radius:var(--radio-control, .625rem); padding:.5rem .2rem; text-align:center; }
+        .fecha .dia { font-size:var(--fs-4, 1.75rem); font-weight:700; line-height:1.1; color:var(--tinta, #1D3461); }
+        .fecha .mes { font-size:var(--fs-0, .75rem); font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+                      color:var(--primario-oscuro, #25585B); }
+        .fecha .anio { font-size:var(--fs-0, .75rem); color:var(--tinta-suave, #44577B); }
+        .cuerpo { display:flex; flex-direction:column; gap:.35rem; min-width:0; flex:1 1 auto; }
+        .hora, .lugar { display:flex; align-items:center; gap:.4rem; margin:0; font-weight:600; color:var(--tinta, #1D3461); }
+        .hora svg, .lugar svg { color:var(--primario, #2F6F73); flex:0 0 auto; }
+        .lugar { color:var(--tinta-suave, #44577B); font-weight:600; font-size:var(--fs-1, .875rem); }
+        ul.chips { list-style:none; display:flex; flex-wrap:wrap; gap:.35rem; margin:.25rem 0 0; padding:0; }
+        ul.chips li { background:var(--secundario, #CFE3DD); color:var(--tinta, #1D3461); border:1px solid var(--secundario-borde, #AECFC6);
+                      border-radius:999px; padding:.15rem .7rem; font-size:var(--fs-0, .75rem); font-weight:600; }
+        p.sin { margin:.25rem 0 0; color:var(--tinta-suave, #44577B); font-size:var(--fs-1, .875rem); }
+        button { margin-top:auto; width:100%; min-height:2.75rem; padding:.5rem .8rem; border:0; border-radius:var(--radio-control, .625rem);
+                 background:var(--primario, #2F6F73); color:var(--sobre-primario, #fff); cursor:pointer; font:inherit; font-weight:600;
+                 display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+                 transition:background var(--velocidad, 180ms); }
+        button:hover:not(:disabled) { background:var(--primario-oscuro, #25585B); }
+        button:disabled { background:var(--inactivo, #8CA0A8); cursor:progress; }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        button svg { flex:0 0 auto; }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <article>
+      <div class="fecha" aria-hidden="true">
+        <span class="dia" data-campo="dia"></span>
+        <span class="mes" data-campo="mes"></span>
+        <span class="anio" data-campo="anio"></span>
+      </div>
+      <div class="cuerpo">
+        <p class="hora">
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v4.2l2.8 1.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span data-campo="hora"></span>
+        </p>
+        <p class="lugar">
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path d="M10 18s-6.5-4.35-6.5-9A3.8 3.8 0 0 1 10 6.6 3.8 3.8 0 0 1 16.5 9c0 4.65-6.5 9-6.5 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span data-campo="clinica"></span>
+        </p>
+        <ul class="chips"></ul>
+        <p class="sin">Sin procedimientos registrados</p>
+        <button id="ticket" type="button">
+          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span data-campo="boton"></span>
+        </button>
+      </div>
+    </article>
+</template>
+
+<!-- Un procedimiento de la cita. -->
+<template id="plantilla-galeno-tarjeta-cita-chip">
+    <li></li>
+</template>
+
+<!-- Tarjeta de una consulta en el panel (HU3). -->
+<template id="plantilla-galeno-tarjeta-agenda">
+    <style>
+        :host { display:block; font-family:inherit; }
+        article { position:relative; background:var(--superficie, #fff); color:var(--tinta, #1D3461);
+                  border:1px solid var(--borde, #E3EAEA); border-left:6px solid var(--primario, #2F6F73);
+                  border-radius:var(--radio-tarjeta, .875rem); padding:.85rem .95rem;
+                  height:100%; box-sizing:border-box; display:flex; flex-direction:column; gap:.55rem;
+                  box-shadow:var(--sombra-1, none);
+                  transition:box-shadow var(--velocidad, 180ms), border-color var(--velocidad, 180ms),
+                             transform var(--velocidad, 180ms); }
+        article:hover { box-shadow:var(--sombra-2, none); border-color:var(--secundario-borde, #AECFC6);
+                        border-left-color:var(--primario, #2F6F73); transform:translateY(-2px); }
+        article.finalizada { border-left-color:var(--borde-fuerte, #9FB0B8); }
+        article.finalizada:hover { border-left-color:var(--borde-fuerte, #9FB0B8); }
+        header { display:flex; justify-content:space-between; gap:.7rem; align-items:flex-start; }
+        .quien { display:flex; gap:.6rem; align-items:center; min-width:0; }
+        .avatar { width:2.6rem; height:2.6rem; flex:0 0 auto; border-radius:50%;
+                  display:grid; place-items:center; font-weight:700; letter-spacing:.02em; font-size:var(--fs-1, .875rem); }
+        .tono-0 { background:var(--secundario, #CFE3DD); color:var(--tinta, #1D3461); }
+        .tono-1 { background:var(--primario-suave, #E9F1EF); color:var(--primario-oscuro, #25585B); }
+        .tono-2 { background:var(--aviso-fondo, #F7F0E3); color:var(--aviso, #96662C); }
+        .tono-3 { background:var(--info-fondo, #EDF3F2); color:var(--tinta-suave, #44577B); }
+        .tono-4 { background:var(--exito-fondo, #E9F3ED); color:var(--exito, #3E7C59); }
+        .ident { min-width:0; }
+        h3 { margin:0; font-size:var(--fs-2, 1rem); }
+        .ident-datos { display:block; color:var(--tinta-suave, #44577B); font-size:var(--fs-0, .75rem);
+                       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .lado-sup { display:flex; flex-direction:column; align-items:flex-end; gap:.3rem; flex:0 0 auto; }
+        .insignia { border-radius:999px; padding:.1rem .6rem; font-size:var(--fs-0, .75rem); font-weight:700; white-space:nowrap; }
+        .insignia.curso { background:var(--primario-suave, #E9F1EF); color:var(--primario-oscuro, #25585B); border:1px solid var(--secundario-borde, #AECFC6); }
+        .insignia.devuelta { background:var(--aviso-fondo, #F7F0E3); color:var(--tinta, #1D3461); border:1px solid var(--aviso, #B98A3E); }
+        .insignia.fin { background:var(--fondo, #F5F8F8); color:var(--tinta-suave, #44577B); border:1px solid var(--borde-fuerte, #9FB0B8); }
+        .cuando { display:flex; flex-direction:column; align-items:flex-end; line-height:1.25;
+                  background:var(--info-fondo, #EDF3F2); border-radius:var(--radio-control, .625rem); padding:.2rem .55rem;
+                  font-size:var(--fs-0, .75rem); color:var(--tinta-suave, #44577B); white-space:nowrap; }
+        .cuando strong { color:var(--tinta, #1D3461); font-size:var(--fs-1, .875rem); }
+        .ref { margin:0; color:var(--tinta-suave, #44577B); font-size:var(--fs-0, .75rem); }
+        .proc h4 { margin:0 0 .3rem; font-size:var(--fs-1, .875rem); display:flex; align-items:center; gap:.4rem; color:var(--tinta, #1D3461); }
+        .proc h4 svg { color:var(--primario, #2F6F73); flex:0 0 auto; }
+        .progreso { height:.4rem; border-radius:999px; background:var(--info-fondo, #EDF3F2); overflow:hidden; }
+        .progreso span { display:block; height:100%; border-radius:999px; background:var(--primario, #2F6F73); transition:width var(--velocidad, 180ms); }
+        .cuenta { display:block; margin-top:.2rem; color:var(--tinta-suave, #44577B); font-size:var(--fs-0, .75rem); }
+        ol { list-style:none; margin:.45rem 0 0; padding:0; }
+        .pasos li { display:grid; grid-template-columns:auto minmax(0, 1.1fr) minmax(0, 1fr) auto auto;
+                    gap:.55rem; align-items:center; padding:.35rem 0; }
+        .pasos li + li { border-top:1px dashed var(--borde, #E3EAEA); }
+        .pasos .extra[hidden] { display:none; }
+        .marca { width:1.15rem; height:1.15rem; border-radius:50%; display:grid; place-items:center;
+                 font-size:.65rem; color:#fff; background:var(--inactivo, #8CA0A8); flex:0 0 auto; }
+        .marca.hecho { background:var(--exito, #3E7C59); }
+        .paso-nombre { min-width:0; font-weight:600; font-size:var(--fs-1, .875rem);
+                       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:.35rem; }
+        .ins { flex:0 0 auto; border-radius:999px; padding:0 .45rem; font-size:.68rem; font-weight:700; }
+        .ins-hecho { background:var(--exito-fondo, #E9F3ED); color:var(--exito, #3E7C59); }
+        .ins-curso { background:var(--aviso-fondo, #F7F0E3); color:var(--aviso, #96662C); }
+        .quien-paso { min-width:0; color:var(--tinta-suave, #44577B); font-size:var(--fs-0, .75rem);
+                      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        time { font-size:var(--fs-0, .75rem); color:var(--tinta-suave, #44577B); white-space:nowrap; }
+        button { font:inherit; cursor:pointer; transition:background var(--velocidad, 180ms), color var(--velocidad, 180ms); }
+        .ver { display:inline-flex; align-items:center; gap:.3rem; border:1px solid var(--borde-fuerte, #9FB0B8);
+               background:var(--superficie, #fff); color:var(--tinta, #1D3461); border-radius:999px;
+               padding:.25rem .55rem; font-size:var(--fs-0, .75rem); font-weight:600; white-space:nowrap; }
+        .ver:hover { background:var(--primario-suave, #E9F1EF); }
+        .ver svg { color:var(--primario, #2F6F73); }
+        .mas { margin-top:.35rem; padding:.25rem 0; border:0; background:none; color:var(--primario-oscuro, #25585B);
+               font-size:var(--fs-1, .875rem); font-weight:600; text-decoration:underline; text-underline-offset:2px; }
+        .mas:hover { background:none; color:var(--tinta, #1D3461); }
+        .atender { margin-top:auto; width:100%; min-height:2.75rem; border:0; background:var(--primario, #2F6F73);
+                   color:var(--sobre-primario, #fff); padding:.5rem .8rem; font-weight:600;
+                   border-radius:var(--radio-control, .625rem); }
+        .atender:hover:not(:disabled) { background:var(--primario-oscuro, #25585B); }
+        .atender:disabled { background:var(--inactivo, #8CA0A8); cursor:not-allowed; }
+        .final { margin:auto 0 0; font-weight:600; color:var(--tinta-suave, #44577B); }
+        .sin { margin:.2rem 0 0; color:var(--tinta-suave, #44577B); font-size:var(--fs-1, .875rem); }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+        @container (max-width:21.99rem) {
+          .pasos li { grid-template-columns:auto minmax(0, 1fr) auto auto; }
+          .quien-paso { display:none; }
+        }
+    </style>
+    <article>
+      <header>
+        <div class="quien">
+          <span class="avatar" aria-hidden="true" data-campo="iniciales"></span>
+          <div class="ident">
+            <h3 data-campo="nombre"></h3>
+            <small class="ident-datos" data-campo="datos"></small>
+          </div>
+        </div>
+        <div class="lado-sup">
+          <span class="insignia" data-campo="insignia"></span>
+          <div class="cuando"><strong data-campo="dia"></strong><span data-campo="hora"></span></div>
+        </div>
+      </header>
+      <small class="ref" data-campo="titulo"></small>
+      <p class="final">Consulta finalizada</p>
+      <button type="button" class="atender">Atender consulta</button>
+    </article>
+</template>
+
+<!-- Un procedimiento dentro de la tarjeta, con su avance. -->
+<template id="plantilla-galeno-tarjeta-agenda-proc">
+    <section class="proc">
+      <h4><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path d="M9 3v2m6-2v2M9 11h6M9 15h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></h4>
+      <div class="progreso" aria-hidden="true"><span></span></div>
+      <small class="cuenta"></small>
+      <ol class="pasos"></ol>
+      <button type="button" class="mas enlace" aria-expanded="false"><span></span></button>
+      <p class="sin">Aún sin pasos realizados</p>
+    </section>
+</template>
+
+<!-- Un paso realizado, con su botón Registro. -->
+<template id="plantilla-galeno-tarjeta-agenda-paso">
+    <li>
+      <span class="marca" aria-hidden="true"></span>
+      <span class="paso-nombre"><span class="ins"></span></span>
+      <span class="quien-paso"></span>
+      <time></time>
+      <button type="button" class="ver">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        <span>Registro</span>
+      </button>
+    </li>
+</template>
+
+<!-- Detalle de un paso (botón Registro). -->
+<template id="plantilla-galeno-registro-paso">
+    <style>
+        dialog { border:1px solid var(--borde, #E3EAEA); border-radius:var(--radio-tarjeta, .875rem);
+                 padding:1.1rem 1.3rem; max-width:32rem; width:calc(100% - 2rem);
+                 color:var(--tinta, #1D3461); font-family:inherit;
+                 background:var(--superficie, #fff); box-shadow:var(--sombra-2, none); }
+        dialog::backdrop { background:rgba(29,52,97,.45); }
+        .titulo { margin:0 0 .15rem; font-size:var(--fs-3, 1.25rem); }
+        .autor { margin:0 0 .8rem; padding-bottom:.6rem; border-bottom:1px solid var(--borde, #E3EAEA);
+                 color:var(--tinta-suave, #44577B); font-size:var(--fs-1, .875rem); }
+        .autor strong { color:var(--tinta, #1D3461); }
+        h3 { margin:.9rem 0 .25rem; font-size:var(--fs-1, .875rem); text-transform:uppercase; letter-spacing:.05em;
+             color:var(--tinta-suave, #44577B); }
+        p { margin:.3rem 0; }
+        .estado { display:inline-flex; align-items:center; gap:.4rem; border-radius:999px; padding:.1rem .6rem;
+                  font-size:var(--fs-0, .75rem); font-weight:700;
+                  background:var(--exito-fondo, #E9F3ED); color:var(--exito, #3E7C59); border:1px solid var(--exito, #3E7C59); }
+        .meta { margin:.5rem 0 0; color:var(--tinta-suave, #44577B); font-size:var(--fs-1, .875rem); }
+        .nota { white-space:pre-wrap; background:var(--info-fondo, #EDF3F2); border:1px solid var(--borde, #E3EAEA);
+                border-radius:var(--radio-control, .625rem); padding:.6rem .8rem; margin:0; }
+        ul { margin:.2rem 0 0; padding-left:1.2rem; }
+        ul li + li { margin-top:.3rem; }
+        .pie { display:flex; justify-content:flex-end; margin-top:1.1rem; }
+        button { min-height:2.75rem; padding:.5rem 1.2rem; border:0; border-radius:var(--radio-control, .625rem);
+                 background:var(--primario, #2F6F73); color:var(--sobre-primario, #fff); cursor:pointer; font:inherit; font-weight:600;
+                 transition:background var(--velocidad, 180ms); }
+        button:hover { background:var(--primario-oscuro, #25585B); }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        @media (max-width:47.99em) {
+          dialog { position:fixed; inset:auto 0 0 0; margin:0; width:100%; max-width:none;
+                   border-radius:1rem 1rem 0 0; max-height:85vh; overflow:auto; }
+        }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <dialog aria-labelledby="titulo">
+      <h2 class="titulo" id="titulo"></h2>
+      <p class="autor"><strong class="procedimiento"></strong><span class="detalle"></span></p>
+      <p><span class="estado"></span></p>
+      <p class="meta"><strong>Fin:</strong><span class="fin"></span></p>
+      <h3>Notas</h3>
+      <p class="nota"></p>
+      <h3>Exámenes</h3>
+      <ul class="examenes"></ul>
+      <p class="sin-examenes">No se asignaron exámenes.</p>
+      <div class="pie"><button id="cerrar" type="button">Cerrar</button></div>
+    </dialog>
+</template>
+
+<!-- Un examen con su resultado. -->
+<template id="plantilla-galeno-registro-paso-examen">
+    <li><strong></strong><span class="resultado"></span></li>
+</template>
+
+<!-- Indicador de pasos del procedimiento (HU4). -->
+<template id="plantilla-galeno-indicador-pasos">
+    <style>
+        :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); }
+        ol { display:flex; flex-wrap:wrap; gap:.35rem .25rem; list-style:none; margin:0; padding:0; }
+        li { display:flex; align-items:center; gap:.25rem; }
+        li + li::before { content:""; width:1.4rem; height:2px; background:var(--borde, #E3EAEA); border-radius:2px; flex:0 0 auto;
+                          margin-right:.25rem; }
+        button { display:inline-flex; align-items:center; gap:.45rem; border:1px solid var(--borde, #E3EAEA);
+                 background:var(--superficie, #fff); color:var(--tinta, #1D3461); font:inherit; padding:.35rem .8rem;
+                 cursor:pointer; min-height:2.5rem; border-radius:999px; font-size:var(--fs-1, .875rem); font-weight:600;
+                 transition:background var(--velocidad, 180ms), border-color var(--velocidad, 180ms), color var(--velocidad, 180ms); }
+        button .punto { width:.7rem; height:.7rem; border-radius:50%; flex:0 0 auto;
+                        background:var(--borde, #E3EAEA); border:2px solid var(--borde-fuerte, #9FB0B8); box-sizing:border-box; }
+        button .punto.hecho { background:var(--exito, #3E7C59); border-color:var(--exito, #3E7C59); }
+        button .punto.actual { background:var(--primario, #2F6F73); border-color:var(--primario, #2F6F73); }
+        button:hover:not(:disabled) { background:var(--primario-suave, #E9F1EF); }
+        button:disabled { color:var(--inactivo, #8CA0A8); cursor:not-allowed; }
+        button[aria-current=step] { background:var(--primario-suave, #E9F1EF); border-color:var(--primario, #2F6F73); color:var(--tinta, #1D3461); }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <ol aria-label="Pasos del procedimiento"></ol>
+</template>
+
+<!-- Un paso del indicador. -->
+<template id="plantilla-galeno-indicador-pasos-paso">
+    <li><button type="button"><span class="punto" aria-hidden="true"></span><span class="nombre"></span></button></li>
+</template>
+
+<!-- Lista de exámenes que se pueden asignar en el paso. -->
+<template id="plantilla-galeno-lista-examenes">
+    <style>
+        :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); }
+        h3 { margin:0 0 .5rem; font-size:var(--fs-2, 1rem); }
+        label.cat { display:block; font-weight:600; margin-bottom:.3rem; font-size:var(--fs-1, .875rem); }
+        select { width:100%; box-sizing:border-box; padding:.5rem .7rem; border:1px solid var(--borde-fuerte, #9FB0B8);
+                 border-radius:var(--radio-control, .625rem); font:inherit; min-height:2.5rem; background:var(--superficie, #fff);
+                 color:var(--texto, #26354E); }
+        select:disabled { background:var(--info-fondo, #EDF3F2); border-style:dashed; color:var(--inactivo, #8CA0A8); cursor:not-allowed; }
+        select:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        ul { list-style:none; margin:.6rem 0; padding:0; border:1px solid var(--borde, #E3EAEA);
+             border-radius:var(--radio-control, .625rem); max-height:16rem; overflow:auto; }
+        li { border-bottom:1px solid var(--borde, #E3EAEA); }
+        li:last-child { border-bottom:0; }
+        li label { display:flex; gap:.6rem; align-items:center; padding:.5rem .7rem; min-height:2.5rem; cursor:pointer;
+                   transition:background var(--velocidad, 180ms); }
+        li label:hover { background:var(--primario-suave, #E9F1EF); }
+        li small { color:var(--tinta-suave, #44577B); display:block; }
+        input { width:1.2rem; height:1.2rem; accent-color:var(--primario, #2F6F73); flex:0 0 auto; }
+        input:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        .vacio { padding:.7rem; }
+        button { width:100%; min-height:2.75rem; border:0; border-radius:var(--radio-control, .625rem);
+                 background:var(--primario, #2F6F73); color:var(--sobre-primario, #fff); font:inherit; font-weight:600; cursor:pointer;
+                 transition:background var(--velocidad, 180ms); }
+        button:hover:not(:disabled) { background:var(--primario-oscuro, #25585B); }
+        button:disabled { background:var(--inactivo, #8CA0A8); cursor:not-allowed; }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <h3>Lista de exámenes asignables</h3>
+    <label class="cat" for="cat">Categoría</label>
+    <select id="cat"><option value="">Todas las categorías</option></select>
+    <ul role="group" aria-label="Exámenes"></ul>
+    <button id="asignar" type="button">Asignar exámenes seleccionados</button>
+</template>
+
+<!-- Un examen de la lista. -->
+<template id="plantilla-galeno-lista-examenes-item">
+    <li><label><input type="checkbox"><span class="texto"><small></small></span></label></li>
+</template>
+
+<!-- Aviso cuando el paso no tiene exámenes. -->
+<template id="plantilla-galeno-lista-examenes-vacia">
+    <li class="vacio">No hay exámenes para este paso.</li>
+</template>

@@ -1,7 +1,7 @@
 importScripts("js/control/sw_estrategias.js");
 
 // Cambia la versión una vez por entrega para renovar los archivos precargados.
-const VERSION = "galeno-v20";
+const VERSION = "galeno-v21";
 
 // Enumera los recursos necesarios para abrir la aplicación sin conexión.
 const ARCHIVOS = [
@@ -33,6 +33,7 @@ const ARCHIVOS = [
     "js/boundary/dashboard_model.js",
     "js/boundary/login_model.js",
     "js/boundary/pantallas.js",
+    "js/boundary/plantillas.js",
     "js/boundary/seguimiento_model.js",
     "js/control/agenda.js",
     "js/control/api_cache.js",
@@ -92,6 +93,11 @@ const ARCHIVOS = [
     "js/entity/tipoMedioContacto.js",
     "js/tema_inicial.js",
     "manifest.webmanifest",
+    "plantillas/consultas.html",
+    "plantillas/estructura.html",
+    "plantillas/formularios.html",
+    "plantillas/instalacion.html",
+    "plantillas/pantallas.html",
     "recursos/capturas/escritorio.png",
     "recursos/capturas/movil.png",
     "recursos/galeno.css",

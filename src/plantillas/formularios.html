@@ -1,0 +1,206 @@
+<!-- Plantillas de los controles de formulario.
+     Cada <template> es un molde: el navegador no lo muestra; el JavaScript lo clona y le pone los datos. -->
+
+<!-- Campo de texto, fecha o contraseña. El JS quita la lupa, la X o el botón Mostrar si no se usan. -->
+<template id="plantilla-galeno-campo">
+    <style>
+        :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); min-width:0; }
+        label { display:block; font-weight:600; margin-bottom:.3rem; font-size:var(--tamano-etiqueta, var(--fs-1, .875rem));
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .fila { display:flex; gap:.4rem; }
+        input:not([type=checkbox]), textarea { flex:1; min-width:0; box-sizing:border-box; padding:.6rem .7rem;
+               border:1px solid var(--borde-fuerte, #9FB0B8); border-radius:var(--radio-control, .625rem); font:inherit;
+               color:var(--texto, #26354E); background:var(--superficie, #fff);
+               transition:border-color var(--velocidad, 180ms), background var(--velocidad, 180ms); }
+        input:not([type=checkbox]) { height:var(--altura-control, 2.75rem); }
+        textarea { resize:vertical; min-height:6rem; }
+        input::placeholder, textarea::placeholder { color:var(--texto-placeholder, var(--inactivo, #8CA0A8)); overflow:hidden; text-overflow:ellipsis; }
+        input:disabled, textarea:disabled { background:var(--info-fondo, #EDF3F2);
+               border:1px solid var(--borde, #E3EAEA); color:var(--inactivo, #8CA0A8); cursor:not-allowed; }
+        input[aria-invalid=true], textarea[aria-invalid=true] { border-color:var(--error, #A8402F); border-width:2px; }
+        input:focus-visible, button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        .check { display:flex; align-items:center; gap:.5rem; font-weight:400; min-height:2.5rem; }
+        input[type=checkbox] { width:1.2rem; height:1.2rem; accent-color:var(--primario, #2F6F73); }
+        button { padding:0 .8rem; border:1px solid var(--tinta, #1D3461); background:var(--superficie, #fff); color:var(--tinta, #1D3461);
+                 border-radius:var(--radio-control, .625rem); cursor:pointer; font:inherit; min-height:2.75rem; }
+        button:hover { background:var(--info-fondo, #EDF3F2); }
+        small { display:block; min-block-size:var(--alto-ayuda, 0px); margin-top:.25rem; color:var(--tinta-suave, #44577B); font-size:var(--fs-1, .875rem); }
+        #error { color:var(--error, #A8402F); font-weight:600; min-height:1.2em; font-size:var(--fs-1, .875rem); }
+        #error:empty { display:none; }
+        .icono { align-self:center; flex:0 0 auto; color:var(--inactivo, #8CA0A8); }
+        button.x { display:none; align-self:center; flex:0 0 auto; width:2rem; height:2rem; padding:0;
+                   justify-content:center; align-items:center; border:0; border-radius:50%;
+                   background:none; color:var(--tinta-suave, #44577B); font-size:1.1rem; line-height:1; cursor:pointer; }
+        button.x:hover { background:var(--info-fondo, #EDF3F2); color:var(--tinta, #1D3461); }
+        input:not(:placeholder-shown) + button.x { display:inline-flex; }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <label for="c"></label>
+    <div class="fila">
+      <svg class="icono" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="c" aria-describedby="ayuda error">
+      <button class="x" type="button" aria-label="Limpiar" title="Limpiar">×</button>
+      <button id="ver" type="button" aria-pressed="false">Mostrar</button>
+    </div>
+    <small id="ayuda"></small>
+    <div id="error" role="alert"></div>
+</template>
+
+<!-- Reemplaza al input cuando el campo es de varias líneas. -->
+<template id="plantilla-galeno-campo-area">
+    <textarea id="c" rows="5" aria-describedby="ayuda error"></textarea>
+</template>
+
+<!-- Casilla de verificación. -->
+<template id="plantilla-galeno-campo-casilla">
+    <label class="check"><input type="checkbox"><span class="texto"></span></label>
+</template>
+
+<!-- Buscador con sugerencias. -->
+<template id="plantilla-galeno-autocomplete">
+    <style>
+        :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); position:relative; min-width:0; }
+        label { display:block; font-weight:600; margin-bottom:.3rem; font-size:var(--tamano-etiqueta, var(--fs-1, .875rem));
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        input { width:100%; box-sizing:border-box; height:var(--altura-control, 2.75rem); padding:.6rem .7rem;
+                border:1px solid var(--borde-fuerte, #9FB0B8); border-radius:var(--radio-control, .625rem); font:inherit;
+                color:var(--texto, #26354E); background:var(--superficie, #fff);
+                transition:border-color var(--velocidad, 180ms); }
+        input::placeholder { color:var(--texto-placeholder, var(--inactivo, #8CA0A8)); overflow:hidden; text-overflow:ellipsis; }
+        ul { list-style:none; margin:.25rem 0 0; padding:0; max-height:12rem; overflow:auto;
+             background:var(--superficie, #fff); border:1px solid var(--borde, #E3EAEA); border-radius:var(--radio-control, .625rem);
+             box-shadow:var(--sombra-2, 0 6px 18px rgba(29,52,97,.10)); z-index:10; }
+        li button {
+            display:block; width:100%; padding:.5rem .7rem; border:0; background:none;
+            color:inherit; font:inherit; font-size:var(--fs-1, .875rem); text-align:start; cursor:pointer;
+        }
+        li button:hover, li button:focus-visible { background:var(--primario-suave, #E9F1EF); }
+        li button:focus-visible { outline:2px solid var(--foco, #2F6F73); outline-offset:-2px; }
+        input:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        small { color:var(--tinta-suave, #44577B); font-size:var(--fs-1, .875rem); }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <label for="q"></label>
+    <input id="q" type="search" autocomplete="off">
+    <small id="ayuda"></small>
+    <ul id="lista" hidden></ul>
+</template>
+
+<!-- Una sugerencia del buscador. -->
+<template id="plantilla-galeno-autocomplete-opcion">
+    <li><button type="button"></button></li>
+</template>
+
+<!-- Lista desplegable. -->
+<template id="plantilla-galeno-selector">
+    <style>
+        :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); min-width:0; }
+        label { display:block; font-weight:600; margin-bottom:.3rem; font-size:var(--fs-1, .875rem);
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        select { width:100%; box-sizing:border-box; padding:.6rem .7rem; border:1px solid var(--borde-fuerte, #9FB0B8);
+                 border-radius:var(--radio-control, .625rem); font:inherit; height:2.75rem; background:var(--superficie, #fff);
+                 color:var(--texto, #26354E); text-overflow:ellipsis;
+                 transition:border-color var(--velocidad, 180ms), background var(--velocidad, 180ms); }
+        select:disabled { background:var(--info-fondo, #EDF3F2); border:1px solid var(--borde, #E3EAEA);
+                          color:var(--inactivo, #8CA0A8); cursor:not-allowed; }
+        select[aria-invalid=true] { border-color:var(--error, #A8402F); border-width:2px; }
+        select:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        #error { color:var(--error, #A8402F); font-weight:600; min-height:1.2em; font-size:var(--fs-1, .875rem); }
+        #error:empty { display:none; }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <label for="s"></label>
+    <select id="s" aria-describedby="error">
+      <option value=""></option>
+    </select>
+    <div id="error" role="alert"></div>
+</template>
+
+<!-- Botones de opción única (Hoy, Pasado, Futuro, Rango). -->
+<template id="plantilla-galeno-segmentado">
+    <style>
+        :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); min-width:0; }
+        label { display:block; font-weight:600; margin-bottom:.3rem; font-size:var(--fs-1, .875rem);
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .grupo { display:flex; flex-wrap:wrap; gap:.3rem; align-items:center; min-width:0;
+                 background:var(--info-fondo, #EDF3F2); border:1px solid var(--borde, #E3EAEA);
+                 border-radius:999px; padding:.2rem; }
+        button { font:inherit; font-size:var(--fs-1, .875rem); font-weight:600; cursor:pointer;
+                 border:1px solid transparent; border-radius:999px; background:none; color:var(--tinta-suave, #44577B);
+                 padding:.4rem .85rem; min-height:2.25rem;
+                 transition:background var(--velocidad, 180ms), color var(--velocidad, 180ms), border-color var(--velocidad, 180ms); }
+        button:hover { color:var(--tinta, #1D3461); }
+        button[aria-checked=true] { background:var(--superficie, #fff); color:var(--primario-oscuro, #25585B);
+                                    border-color:var(--secundario-borde, #AECFC6); box-shadow:var(--sombra-1, none); }
+        button:disabled { opacity:.55; cursor:not-allowed; }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        #error { color:var(--error, #A8402F); font-weight:600; font-size:var(--fs-1, .875rem); }
+        #error:empty { display:none; }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <label id="etiqueta"></label>
+    <div class="grupo" role="radiogroup" aria-labelledby="etiqueta"></div>
+    <div id="error" role="alert"></div>
+</template>
+
+<!-- Una opción del control segmentado. -->
+<template id="plantilla-galeno-segmentado-opcion">
+    <button type="button" role="radio"></button>
+</template>
+
+<!-- Tarjeta de opción con icono. -->
+<template id="plantilla-galeno-opcion">
+    <style>
+        :host { display:block; }
+        button { width:100%; height:100%; text-align:center; font:inherit; color:var(--tinta, #1D3461); background:var(--superficie, #fff);
+                 border:1.5px solid var(--borde-fuerte, #9FB0B8); border-radius:var(--radio-tarjeta, .875rem); padding:.8rem; cursor:pointer;
+                 display:grid; gap:.3rem; justify-items:center; align-content:start; position:relative; min-height:3rem;
+                 transition:border-color var(--velocidad, 180ms), background var(--velocidad, 180ms), box-shadow var(--velocidad, 180ms); }
+        button:hover:not([disabled]) { border-color:var(--primario, #2F6F73); box-shadow:var(--sombra-1, none); }
+        button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
+        button[aria-pressed=true] { border-color:var(--exito, #3E7C59); background:var(--exito-fondo, #E9F3ED); }
+        button[disabled] { opacity:.55; cursor:not-allowed; background:var(--fondo, #F5F8F8); }
+        svg { width:3.5rem; height:3.5rem; fill:var(--tinta, #1D3461); color:var(--tinta, #1D3461); }
+        strong { font-size:1.05rem; }
+        small { color:var(--tinta-suave, #44577B); }
+        .marca { position:absolute; top:.4rem; right:.5rem; color:var(--exito, #3E7C59); font-weight:700; }
+        @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
+    </style>
+    <button type="button" aria-pressed="false">
+      <svg viewBox="0 0 64 64" aria-hidden="true"></svg>
+      <strong class="titulo"></strong>
+      <small class="detalle"></small>
+      <small class="no-disponible">No disponible</small>
+      <span class="marca" aria-hidden="true">✓</span>
+    </button>
+</template>
+
+<!-- Icono de opción: cruz. -->
+<template id="icono-opcion-cruz">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="20" y="8" width="24" height="48" rx="5"/><rect x="8" y="20" width="48" height="24" rx="5"/></svg>
+</template>
+
+<!-- Icono de opción: corazon. -->
+<template id="icono-opcion-corazon">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 56 C8 38 6 22 16 14 C23 9 30 13 32 19 C34 13 41 9 48 14 C58 22 56 38 32 56Z"/></svg>
+</template>
+
+<!-- Icono de opción: diente. -->
+<template id="icono-opcion-diente">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 10 C26 6 30 14 32 14 C34 14 38 6 46 10 C54 14 50 30 46 40 C43 52 40 58 37 52 C34 44 34 38 32 38 C30 38 30 44 27 52 C24 58 21 52 18 40 C14 30 10 14 18 10Z"/></svg>
+</template>
+
+<!-- Icono de opción: ojo. -->
+<template id="icono-opcion-ojo">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M4 32 C16 14 48 14 60 32 C48 50 16 50 4 32Z"/><circle cx="32" cy="32" r="9" fill="#fff"/><circle cx="32" cy="32" r="4"/></svg>
+</template>
+
+<!-- Icono de opción: bebe. -->
+<template id="icono-opcion-bebe">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="20" r="12"/><path d="M12 58 C12 40 22 34 32 34 C42 34 52 40 52 58Z"/></svg>
+</template>
+
+<!-- Icono de opción: general. -->
+<template id="icono-opcion-general">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="currentColor" stroke-width="6"/><rect x="28" y="16" width="8" height="32" rx="2"/><rect x="16" y="28" width="32" height="8" rx="2"/></svg>
+</template>

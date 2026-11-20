@@ -17,4 +17,7 @@ function cargar(src) {
 for (const etiqueta of document.querySelectorAll("script[data-prueba]"))
     await cargar(etiqueta.dataset.prueba);
 
+// Registra los moldes <template> de la aplicación antes de correr las pruebas.
+await new Plantillas().cargar("../src/plantillas/");
+
 mocha.run();

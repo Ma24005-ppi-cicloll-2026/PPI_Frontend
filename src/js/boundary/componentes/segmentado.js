@@ -1,5 +1,8 @@
 class GalenoSegmentado extends HTMLElement {
 
+    // Moldes HTML del componente.
+    plantillas = new Plantillas();
+
     // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
@@ -50,12 +53,6 @@ class GalenoSegmentado extends HTMLElement {
         if (e) e.textContent = mensaje || "";
     }
 
-    // Escapa los caracteres con significado en HTML.
-    escapar(v) {
-        return String(v ?? "").replace(/[&<>"']/g,
-            c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    }
-
     // Desplaza el foco entre las opciones del control.
     moverFoco(desde, paso) {
         const botones = [...this.shadowRoot.querySelectorAll("[role=radio]")];
@@ -64,52 +61,37 @@ class GalenoSegmentado extends HTMLElement {
         botones[i].focus();
     }
 
-    // Actualiza la vista con los datos y el estado actuales.
+    // Clona el molde y agrega un botón por cada opción.
     pintar() {
         const indice = this._opciones.indexOf(this._seleccionado);
-        // Escapa los textos que se insertan en la plantilla.
-        const e = t => this.escapar(t);
-        this.shadowRoot.innerHTML = `
-          <style>
-            :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); min-width:0; }
-            label { display:block; font-weight:600; margin-bottom:.3rem; font-size:var(--fs-1, .875rem);
-                    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-            .grupo { display:flex; flex-wrap:wrap; gap:.3rem; align-items:center; min-width:0;
-                     background:var(--info-fondo, #EDF3F2); border:1px solid var(--borde, #E3EAEA);
-                     border-radius:999px; padding:.2rem; }
-            button { font:inherit; font-size:var(--fs-1, .875rem); font-weight:600; cursor:pointer;
-                     border:1px solid transparent; border-radius:999px; background:none; color:var(--tinta-suave, #44577B);
-                     padding:.4rem .85rem; min-height:2.25rem;
-                     transition:background var(--velocidad, 180ms), color var(--velocidad, 180ms), border-color var(--velocidad, 180ms); }
-            button:hover { color:var(--tinta, #1D3461); }
-            button[aria-checked=true] { background:var(--superficie, #fff); color:var(--primario-oscuro, #25585B);
-                                        border-color:var(--secundario-borde, #AECFC6); box-shadow:var(--sombra-1, none); }
-            button:disabled { opacity:.55; cursor:not-allowed; }
-            button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-            #error { color:var(--error, #A8402F); font-weight:600; font-size:var(--fs-1, .875rem); }
-            #error:empty { display:none; }
-            @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
-          </style>
-          ${this.getAttribute("label") ? `<label id="etiqueta">${e(this.getAttribute("label"))}</label>` : ""}
-          <div class="grupo" role="radiogroup" ${this.getAttribute("label") ? 'aria-labelledby="etiqueta"' : 'aria-label="Opciones"'}>
-            ${this._opciones.map((o, i) => `
-              <button type="button" role="radio" data-i="${i}"
-                      aria-checked="${i === indice}" tabindex="${i === indice ? 0 : (indice < 0 && i === 0 ? 0 : -1)}"
-                      ${this._deshabilitado ? "disabled" : ""}>${e(this.texto(o))}</button>`).join("")}
-          </div>
-          <div id="error" role="alert"></div>`;
-        const botones = [...this.shadowRoot.querySelectorAll("[role=radio]")];
-        botones.forEach(b => {
-            b.addEventListener("click", () => this.seleccionar(this._opciones[Number(b.dataset.i)]));
+        const raiz = this.plantillas.clonar("plantilla-galeno-segmentado");
+        const grupo = raiz.querySelector(".grupo");
+        const etiqueta = this.getAttribute("label");
+        if (etiqueta) raiz.querySelector("label").textContent = etiqueta;
+        else {
+            raiz.querySelector("label").remove();
+            grupo.removeAttribute("aria-labelledby");
+            grupo.setAttribute("aria-label", "Opciones");
+        }
+        const botones = this._opciones.map((o, i) => {
+            const b = this.plantillas.clonar("plantilla-galeno-segmentado-opcion").firstElementChild;
+            b.dataset.i = String(i);
+            b.textContent = this.texto(o);
+            b.setAttribute("aria-checked", String(i === indice));
+            b.tabIndex = i === indice || (indice < 0 && i === 0) ? 0 : -1;
+            b.disabled = this._deshabilitado;
+            b.addEventListener("click", () => this.seleccionar(this._opciones[i]));
             // Atiende las teclas que controla esta vista.
             b.addEventListener("keydown", ev => {
-                const i = Number(b.dataset.i);
                 const teclas = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
                 if (ev.key in teclas) { ev.preventDefault(); this.moverFoco(i, teclas[ev.key]); }
                 else if (ev.key === "Home") { ev.preventDefault(); this.moverFoco(i, -i); }
-                else if (ev.key === "End") { ev.preventDefault(); this.moverFoco(i, botones.length - 1 - i); }
+                else if (ev.key === "End") { ev.preventDefault(); this.moverFoco(i, this._opciones.length - 1 - i); }
             });
+            return b;
         });
+        grupo.append(...botones);
+        this.shadowRoot.replaceChildren(raiz);
     }
 }
 

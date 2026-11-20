@@ -11,23 +11,7 @@ class GalenoApp extends HTMLElement {
     // Prepara el componente cuando se incorpora al documento.
     connectedCallback() {
         if (this._app) return;
-        this.innerHTML = `
-            <galeno-conexion></galeno-conexion>
-            <div class="app">
-                <a class="saltar" href="#/" id="saltar">Saltar al contenido</a>
-                <header>
-                    <h1>GalenoSV</h1>
-                    <galeno-boton-instalar id="instalar"></galeno-boton-instalar>
-                    <galeno-tema id="tema"></galeno-tema>
-                    <span id="sesion" aria-live="polite"></span>
-                </header>
-                <nav aria-label="Menú principal"><galeno-menu id="menu"></galeno-menu></nav>
-                <main id="pantalla" tabindex="-1"></main>
-                <footer>GalenoSV · Sistema de gestión médica</footer>
-            </div>
-            <galeno-notificacion-emergente id="aviso"></galeno-notificacion-emergente>
-            <galeno-invitacion-instalar id="invitacion"></galeno-invitacion-instalar>
-            <galeno-guia-instalacion id="guia"></galeno-guia-instalacion>`;
+        this.replaceChildren(new Plantillas().clonar("plantilla-galeno-app"));
 
         this._app = new AppModel(this);
         this._app.iniciar();
@@ -57,4 +41,7 @@ class GalenoApp extends HTMLElement {
     }
 }
 
-customElements.define("galeno-app", GalenoApp);
+// Carga los moldes HTML y después monta la aplicación.
+new Plantillas().cargar()
+    .then(() => customElements.define("galeno-app", GalenoApp))
+    .catch(error => console.error("No se pudieron cargar las plantillas:", error));

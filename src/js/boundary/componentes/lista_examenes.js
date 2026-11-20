@@ -1,5 +1,8 @@
 class GalenoListaExamenes extends HTMLElement {
 
+    // Moldes HTML del componente.
+    plantillas = new Plantillas();
+
     // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
@@ -34,68 +37,44 @@ class GalenoListaExamenes extends HTMLElement {
         return this._examenes.filter(x => !this._categoria || x.categoria === this._categoria);
     }
 
-    // Escapa los caracteres con significado en HTML.
-    escapar(v) {
-        return String(v ?? "").replace(/[&<>"']/g,
-            c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    // Arma la fila de un examen con su casilla.
+    fila(x) {
+        const li = this.plantillas.clonar("plantilla-galeno-lista-examenes-item").firstElementChild;
+        const casilla = li.querySelector("input");
+        const asignado = this._asignados.has(x.id);
+        casilla.dataset.id = x.id;
+        casilla.checked = asignado || this._marcados.has(x.id);
+        casilla.disabled = asignado;
+        const texto = li.querySelector(".texto");
+        texto.prepend(x.nombre ?? "");
+        const nota = asignado ? "Ya asignado" : x.categoria;
+        if (nota) texto.querySelector("small").textContent = nota;
+        else texto.querySelector("small").remove();
+        casilla.addEventListener("change", () => {
+            if (casilla.checked) this._marcados.add(x.id); else this._marcados.delete(x.id);
+            this.shadowRoot.querySelector("#asignar").disabled = Boolean(this._deshabilitada) || this._marcados.size === 0;
+        });
+        return li;
     }
 
-    // Actualiza la vista con los datos y el estado actuales.
+    // Clona el molde de la lista y la llena con las categorías y los exámenes.
     pintar() {
-        // Escapa los textos que se insertan en la plantilla.
-        const e = t => this.escapar(t);
         const bloqueada = Boolean(this._deshabilitada);
-        this.shadowRoot.innerHTML = `
-          <style>
-            :host { display:block; font-family:inherit; color:var(--tinta, #1D3461); }
-            h3 { margin:0 0 .5rem; font-size:var(--fs-2, 1rem); }
-            label.cat { display:block; font-weight:600; margin-bottom:.3rem; font-size:var(--fs-1, .875rem); }
-            select { width:100%; box-sizing:border-box; padding:.5rem .7rem; border:1px solid var(--borde-fuerte, #9FB0B8);
-                     border-radius:var(--radio-control, .625rem); font:inherit; min-height:2.5rem; background:var(--superficie, #fff);
-                     color:var(--texto, #26354E); }
-            select:disabled { background:var(--info-fondo, #EDF3F2); border-style:dashed; color:var(--inactivo, #8CA0A8); cursor:not-allowed; }
-            select:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-            ul { list-style:none; margin:.6rem 0; padding:0; border:1px solid var(--borde, #E3EAEA);
-                 border-radius:var(--radio-control, .625rem); max-height:16rem; overflow:auto; }
-            li { border-bottom:1px solid var(--borde, #E3EAEA); }
-            li:last-child { border-bottom:0; }
-            li label { display:flex; gap:.6rem; align-items:center; padding:.5rem .7rem; min-height:2.5rem; cursor:pointer;
-                       transition:background var(--velocidad, 180ms); }
-            li label:hover { background:var(--primario-suave, #E9F1EF); }
-            li small { color:var(--tinta-suave, #44577B); display:block; }
-            input { width:1.2rem; height:1.2rem; accent-color:var(--primario, #2F6F73); flex:0 0 auto; }
-            input:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-            .vacio { padding:.7rem; }
-            button { width:100%; min-height:2.75rem; border:0; border-radius:var(--radio-control, .625rem);
-                     background:var(--primario, #2F6F73); color:var(--sobre-primario, #fff); font:inherit; font-weight:600; cursor:pointer;
-                     transition:background var(--velocidad, 180ms); }
-            button:hover:not(:disabled) { background:var(--primario-oscuro, #25585B); }
-            button:disabled { background:var(--inactivo, #8CA0A8); cursor:not-allowed; }
-            button:focus-visible { outline:3px solid var(--foco, #2F6F73); outline-offset:2px; }
-            @media (prefers-reduced-motion: reduce) { :host { --velocidad:0ms; } }
-          </style>
-          <h3>Lista de exámenes asignables</h3>
-          <label class="cat" for="cat">Categoría</label>
-          <select id="cat" ${this._examenes.length ? "" : "disabled"}>
-            <option value="">Todas las categorías</option>
-            ${this.categorias().map(c => `<option value="${e(c)}" ${c === this._categoria ? "selected" : ""}>${e(c)}</option>`).join("")}
-          </select>
-          <ul role="group" aria-label="Exámenes">
-            ${this.visibles().map(x => `<li><label>
-                <input type="checkbox" data-id="${e(x.id)}" ${this._asignados.has(x.id) ? "checked disabled" : ""} ${this._marcados.has(x.id) ? "checked" : ""}>
-                <span>${e(x.nombre)}${this._asignados.has(x.id) ? "<small>Ya asignado</small>" : (x.categoria ? `<small>${e(x.categoria)}</small>` : "")}</span>
-              </label></li>`).join("") || `<li class="vacio">No hay exámenes para este paso.</li>`}
-          </ul>
-          <button id="asignar" type="button" ${bloqueada || this._marcados.size === 0 ? "disabled" : ""}>Asignar exámenes seleccionados</button>`;
-        this.shadowRoot.querySelector("#cat").addEventListener("change", ev => { this._categoria = ev.target.value; this.pintar(); });
-        this.shadowRoot.querySelectorAll("input[data-id]").forEach(i => i.addEventListener("change", () => {
-            if (i.checked) this._marcados.add(i.dataset.id); else this._marcados.delete(i.dataset.id);
-            this.shadowRoot.querySelector("#asignar").disabled = bloqueada || this._marcados.size === 0;
-        }));
-        this.shadowRoot.querySelector("#asignar").addEventListener("click", () => {
+        const raiz = this.plantillas.clonar("plantilla-galeno-lista-examenes");
+        const cat = raiz.querySelector("#cat");
+        cat.disabled = !this._examenes.length;
+        this.categorias().forEach(c => cat.append(new Option(c, c, false, c === this._categoria)));
+        cat.addEventListener("change", ev => { this._categoria = ev.target.value; this.pintar(); });
+        const visibles = this.visibles();
+        raiz.querySelector("ul").append(...(visibles.length ? visibles.map(x => this.fila(x))
+            : [this.plantillas.clonar("plantilla-galeno-lista-examenes-vacia").firstElementChild]));
+        const asignar = raiz.querySelector("#asignar");
+        asignar.disabled = bloqueada || this._marcados.size === 0;
+        asignar.addEventListener("click", () => {
             const ids = this.seleccionados;
             if (ids.length) this.dispatchEvent(new CustomEvent("galeno-asignar", { detail: { ids }, bubbles: true, composed: true }));
         });
+        this.shadowRoot.replaceChildren(raiz);
     }
 }
 

@@ -2,7 +2,8 @@ class SeguimientoModel {
 
     // Conserva el ID de la consulta, recibe las utilidades y escucha las respuestas del servidor.
     constructor(contenedor, idConsulta, { irA = () => {}, aviso = null, sesion = new Sesion(), datosClinica = new DatosClinica(),
-                                          expediente = null, notas = new NotasPaso(), servicios = null } = {}) {
+                                          expediente = null, notas = new NotasPaso(), servicios = null,
+                                          plantillas = new Plantillas() } = {}) {
         this.contenedor = contenedor;
         this.escuchas = [];
         this.avisoInyectado = aviso;
@@ -11,6 +12,7 @@ class SeguimientoModel {
         this.sesionUtil = sesion;
         this.datosClinica = datosClinica;
         this.notasUtil = notas;
+        this.plantillas = plantillas;
         this.expediente = expediente ?? new Expediente({ datosClinica, notas });
         this.flujo = this.expediente.flujo;
         this.servicios = servicios ?? {
@@ -37,53 +39,7 @@ class SeguimientoModel {
     // Monta la vista y pide el expediente.
     iniciar() {
         this.sesion = this.sesionUtil.obtener();
-        this.contenedor.innerHTML = `
-            <section class="consulta" aria-labelledby="titulo-consulta">
-                <header class="cabecera-consulta">
-                    <h2 id="titulo-consulta">Consulta</h2>
-                    <button id="volver" type="button" class="enlace">Volver al dashboard</button>
-                </header>
-                <galeno-estado-vista id="estado"></galeno-estado-vista>
-                <div id="cuerpo" hidden>
-                    <div class="tarjeta tarjeta-paciente">
-                        <span id="iniciales" class="avatar" aria-hidden="true"></span>
-                        <p id="paciente"></p>
-                    </div>
-                    <div class="consulta-grid">
-                        <div class="columna-procedimiento">
-                            <galeno-selector id="procedimiento" label="Procedimiento" hidden></galeno-selector>
-                            <galeno-indicador-pasos id="pasos"></galeno-indicador-pasos>
-                            <div class="bloque-paso" id="bloque-paso">
-                                <h3 id="paso"></h3>
-                                <p id="devuelto" class="aviso-devuelto" role="status" hidden></p>
-                                <p id="lectura" class="badge-lectura" hidden>Solo lectura: este paso ya quedó registrado</p>
-                                <galeno-campo id="notas" label="Notas del paso" type="textarea"></galeno-campo>
-                                <div id="mensaje" role="alert" class="mensaje-error"></div>
-                            </div>
-                            <div id="panel-devolver" class="panel-devolver tarjeta" hidden>
-                                <galeno-campo id="motivo" label="¿Qué le faltó al paso anterior?" type="textarea"
-                                              placeholder="Explique qué debe completar el rol anterior"></galeno-campo>
-                                <div class="acciones">
-                                    <button id="cancelar-devolver" type="button" class="secundario">Cancelar</button>
-                                    <button id="confirmar-devolver" type="button" class="acento">Devolver expediente</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="columna-examenes">
-                            <galeno-lista-examenes id="examenes"></galeno-lista-examenes>
-                        </div>
-                    </div>
-                    <div class="barra-acciones">
-                        <div class="acciones">
-                            <button id="anterior" type="button" class="secundario">Anterior</button>
-                            <button id="devolver" type="button" class="secundario">Devolver al paso anterior</button>
-                            <button id="avanzar" type="button">Guardar y avanzar al siguiente paso</button>
-                            <button id="finalizar" type="button" class="acento">Finalizar consulta</button>
-                        </div>
-                        <p class="nota-finalizar" id="nota-finalizar" hidden>Al finalizar se cierra la consulta y sus pasos quedan en solo lectura.</p>
-                    </div>
-                </div>
-            </section>`;
+        this.contenedor.replaceChildren(this.plantillas.clonar("plantilla-pantalla-consulta"));
         // Busca un elemento de la vista por su ID.
         const $ = id => this.contenedor.querySelector("#" + id);
         ["estado", "cuerpo", "iniciales", "paciente", "procedimiento", "pasos", "paso", "lectura", "devuelto",

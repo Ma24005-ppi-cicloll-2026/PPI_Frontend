@@ -1,0 +1,281 @@
+<!-- Plantillas de las pantallas de la aplicación.
+     Cada <template> es un molde: el navegador no lo muestra; el JavaScript lo clona y le pone los datos. -->
+
+<!-- Pantalla Buscar citas (HU1). -->
+<template id="plantilla-pantalla-citas">
+    <section class="citas" aria-labelledby="titulo-citas">
+        <header class="cabecera-pantalla">
+            <div>
+                <h2 id="titulo-citas">Buscar citas</h2>
+                <p>Con su documento de identidad, sin iniciar sesión.</p>
+            </div>
+            <svg class="banner-arte" viewBox="0 0 96 76" aria-hidden="true" focusable="false">
+                <rect class="cal" x="16" y="12" width="56" height="52" rx="8" stroke-width="2.4"/>
+                <path class="cal" d="M16 26h56" stroke-width="2.4"/>
+                <path class="cal-raya" d="M30 6v12M58 6v12" stroke-width="2.4" stroke-linecap="round"/>
+                <path class="cruz" d="M44 34v16M36 42h16" stroke-width="3" stroke-linecap="round"/>
+                <path class="cora" d="M74 56c-6-4-9-8-9-11.5a4.3 4.3 0 0 1 7.5-2.8l1.5 1.7 1.5-1.7a4.3 4.3 0 0 1 7.5 2.8c0 3.5-3 7.5-9 11.5z" stroke-width="2"/>
+            </svg>
+        </header>
+        <form id="formulario" class="tarjeta" novalidate>
+            <ol class="pasos">
+                <li class="paso"><span class="num" aria-hidden="true">1</span><span class="txt">Documento</span></li>
+                <li class="paso"><span class="num" aria-hidden="true">2</span><span class="txt">Clínica</span></li>
+                <li class="paso"><span class="num" aria-hidden="true">3</span><span class="txt">Fechas</span></li>
+            </ol>
+            <ol class="asistente">
+                <li class="seccion-asistente">
+                    <galeno-buscador-tipo-documentos id="tipo" label="Tipo de documento"
+                                                     placeholder="Elija el tipo de documento"></galeno-buscador-tipo-documentos>
+                    <galeno-campo id="numero" label="Número de documento" autocomplete="off"
+                                  placeholder="Elija primero el tipo de documento"
+                                  ayuda="Elija primero el tipo de documento"></galeno-campo>
+                </li>
+                <li class="seccion-asistente">
+                    <galeno-selector id="clinica" label="Clínica" placeholder="Primero identifíquese con su documento"></galeno-selector>
+                </li>
+                <li class="seccion-asistente">
+                    <div class="fila-fechas">
+                        <galeno-campo id="desde" label="Desde" type="date"></galeno-campo>
+                        <galeno-campo id="hasta" label="Hasta" type="date"></galeno-campo>
+                    </div>
+                </li>
+            </ol>
+            <div id="mensaje" role="alert" class="mensaje-error"></div>
+            <button id="buscar" type="submit"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="9" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m13.2 13.2 3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="texto-boton">Buscar citas</span></button>
+        </form>
+        <div id="bienvenida" class="bienvenida">
+            <div class="hero">
+                <svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" focusable="false">
+                    <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M3.5 9.5h17M8 2.8v4.2M16 2.8v4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M12 12.5v6M9 15.5h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <p>Sus citas aparecerán aquí</p>
+            </div>
+            <ul class="consejos">
+                <li>
+                    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><rect x="4" y="2.5" width="12" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 7.5h6M7 10.5h6M7 13.5h3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                    <span>Tenga a mano su documento de identidad.</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="M3 17.5V6l5-3 5 3v11.5M13 17.5h4V10l-4-2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.5 8.5h3M6.5 11.5h3M6.5 14.5h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                    <span>Elija la clínica donde está registrado como paciente.</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><rect x="3" y="4" width="14" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 8h14M7 2.5V6M13 2.5V6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="m7.5 12.5 1.8 1.8 3.4-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Ajuste las fechas para ver citas pasadas o futuras.</span>
+                </li>
+            </ul>
+        </div>
+        <galeno-estado-vista id="estado"></galeno-estado-vista>
+        <div id="resultado" class="rejilla" aria-live="polite"></div>
+    </section>
+</template>
+
+<!-- Vista previa del ticket PDF (sus estilos están en galeno.css). -->
+<template id="plantilla-dialogo-ticket">
+    <dialog aria-label="Vista previa del ticket" class="dialogo-ticket">
+        <form method="dialog">
+            <button type="submit" autofocus>Cerrar vista previa</button>
+            <a download>Descargar PDF</a>
+            <a target="_blank" rel="noopener">Abrir PDF en otra pestaña</a>
+        </form>
+        <iframe title="Vista previa del ticket PDF"></iframe>
+    </dialog>
+</template>
+
+<!-- Pantalla Iniciar sesión (HU2). -->
+<template id="plantilla-pantalla-login">
+            <style>
+        .login-marco {
+            box-sizing:border-box; display:grid; inline-size:min(32rem, 100%); min-inline-size:0;
+            background:var(--superficie); border:1px solid var(--borde);
+            border-radius:1rem; box-shadow:var(--sombra-2);
+            animation:entrada .25s ease-out;
+        }
+        @keyframes entrada {
+            from { opacity:0; transform:translateY(8px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .login-marco { animation:none; }
+        }
+        .login-tarjeta {
+            min-inline-size:0; padding:1.25rem;
+            --altura-control:3rem; --tamano-etiqueta:.9rem; --alto-ayuda:1.25rem;
+            --texto-placeholder:var(--tinta-suave);
+        }
+        h2 { margin:0; font-size:1.75rem; line-height:1.2; font-weight:600; color:var(--tinta); }
+        .subtitulo { margin:.5rem 0 1rem; color:var(--tinta-suave); }
+        form { display:grid; gap:.75rem; }
+        button { font:inherit; font-weight:600; cursor:pointer; }
+        button:focus-visible { outline:3px solid var(--foco); outline-offset:2px; }
+        button:disabled { opacity:.65; cursor:not-allowed; }
+        button[hidden] { display:none; }
+        #ingresar {
+            min-block-size:3rem; inline-size:100%; padding:.5rem 1rem; border:0;
+            border-radius:var(--radio-control); color:var(--sobre-primario); background:var(--primario);
+        }
+        #ingresar:hover:enabled { background:var(--primario-oscuro); }
+        /* Reserva espacio para que el error no desplace el enlace de citas. */
+        .acciones-alerta {
+            box-sizing:border-box; min-block-size:5.75rem; display:grid; align-content:center;
+            grid-template-columns:1.125rem minmax(0, 1fr); gap:0 .5rem;
+            border-radius:.5rem; border-inline-start:3px solid transparent; padding:.5rem .75rem;
+            font-size:.875rem; line-height:1.35;
+        }
+        .acciones-alerta:has(#mensaje:not(:empty)) {
+            background:var(--error-fondo); border-inline-start-color:var(--error);
+        }
+        .acciones-alerta svg { inline-size:1.125rem; block-size:1.125rem; color:var(--error); }
+        .acciones-alerta:has(#mensaje:empty) svg { visibility:hidden; }
+        #reintentar { grid-column:2; justify-self:start; min-block-size:2rem; }
+        #citas, #reintentar {
+            border:0; padding:0; background:none; color:var(--tinta); text-decoration:underline;
+            text-underline-offset:.15em;
+        }
+        #citas:hover, #reintentar:hover:enabled { color:var(--tinta-suave); }
+        .enlace-aparte {
+            margin:.5rem 0 0; padding-top:.25rem; border-top:1px solid var(--borde);
+            font-size:.875rem; color:var(--tinta-suave);
+        }
+        #citas { min-block-size:2.75rem; }
+        /* Usa el ancho que queda después del menú lateral. */
+        @container acceso (width >= 56rem) {
+            .login-marco {
+                inline-size:min(60rem, 100%); grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+                border-radius:20px;
+            }
+            .login-tarjeta { padding:2.5rem; }
+            .subtitulo { margin-bottom:1.5rem; }
+            form { gap:1rem; }
+            .enlace-aparte { margin-top:1rem; padding-top:.5rem; }
+        }
+        @container acceso (width < 30rem) {
+            .login-marco { inline-size:100%; border-radius:.75rem; }
+            .login-tarjeta { padding:1rem; }
+        }
+    </style>
+            <section class="login-marco" aria-labelledby="titulo-login">
+                <galeno-marca-acceso></galeno-marca-acceso>
+                <div class="login-tarjeta">
+                    <h2 id="titulo-login">Iniciar sesión</h2>
+                    <p class="subtitulo">Use su documento para acceder al portal.</p>
+                    <form id="formulario" novalidate>
+                        <galeno-buscador-tipo-documentos id="tipo" label="Tipo de documento"
+                            placeholder="Elija el tipo de documento"></galeno-buscador-tipo-documentos>
+                        <galeno-campo id="numero" label="Número de documento" autocomplete="off"
+                            placeholder="Elija primero el tipo de documento"
+                            ayuda="Elija primero el tipo de documento"></galeno-campo>
+                        <button id="ingresar" type="submit">Iniciar sesión</button>
+                        <div class="acciones-alerta">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                aria-hidden="true" focusable="false">
+                                <circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 2v2"/>
+                            </svg>
+                            <div id="mensaje" role="alert"></div>
+                            <button id="reintentar" type="button" hidden>Reintentar</button>
+                        </div>
+                    </form>
+                    <p class="enlace-aparte">¿Busca sus citas? <button id="citas" type="button">Ir a Buscar citas</button></p>
+                </div>
+            </section>
+</template>
+
+<!-- Pantalla Dashboard (HU3). -->
+<template id="plantilla-pantalla-dashboard">
+    <section class="dashboard" aria-labelledby="titulo-dash">
+        <h2 id="titulo-dash" class="sr">Dashboard</h2>
+        <div class="herramientas">
+            <div class="tarjeta herramientas-caja">
+                <h3 class="mini" id="bienvenida"></h3>
+                <form id="contexto" novalidate>
+                    <galeno-selector id="clinica" label="Clínica" placeholder="Elija la clínica"></galeno-selector>
+                    <galeno-selector id="rol" label="Rol" placeholder="Elija el rol"></galeno-selector>
+                    <div id="mensaje" role="alert" class="mensaje-error"></div>
+                    <button id="cargar" type="submit">Cargar consultas</button>
+                </form>
+                <div id="resumen-contexto" hidden>
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h2M8 11h2M8 15h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <strong id="resumen-contexto-texto"></strong>
+                    <button id="cambiar-contexto" type="button" class="enlace">Cambiar</button>
+                </div>
+                <form id="filtros" hidden novalidate>
+                    <galeno-campo id="paciente" label="Buscar paciente" icono="lupa" limpiar
+                                  placeholder="Nombre o documento"></galeno-campo>
+                    <galeno-segmentado id="modo" label="Fechas"></galeno-segmentado>
+                    <galeno-campo id="desde" label="Desde" type="date" hidden></galeno-campo>
+                    <galeno-campo id="hasta" label="Hasta" type="date" hidden></galeno-campo>
+                </form>
+                <div id="conteo" class="conteo" role="group" aria-label="Filtrar por estado" hidden>
+                    <button type="button" class="chip activo" data-estado="total" aria-pressed="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <span>Total</span><span class="n" data-conteo="total">0</span>
+                    </button>
+                    <button type="button" class="chip" data-estado="curso" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <span>En curso</span><span class="n" data-conteo="curso">0</span>
+                    </button>
+                    <button type="button" class="chip" data-estado="devueltas" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>Devueltas</span><span class="n" data-conteo="devueltas">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <galeno-estado-vista id="estado"></galeno-estado-vista>
+        <div id="lista" class="rejilla-agenda" aria-live="polite"></div>
+        <galeno-registro-paso id="registro"></galeno-registro-paso>
+    </section>
+</template>
+
+<!-- Pantalla Consulta (HU4). -->
+<template id="plantilla-pantalla-consulta">
+    <section class="consulta" aria-labelledby="titulo-consulta">
+        <header class="cabecera-consulta">
+            <h2 id="titulo-consulta">Consulta</h2>
+            <button id="volver" type="button" class="enlace">Volver al dashboard</button>
+        </header>
+        <galeno-estado-vista id="estado"></galeno-estado-vista>
+        <div id="cuerpo" hidden>
+            <div class="tarjeta tarjeta-paciente">
+                <span id="iniciales" class="avatar" aria-hidden="true"></span>
+                <p id="paciente"></p>
+            </div>
+            <div class="consulta-grid">
+                <div class="columna-procedimiento">
+                    <galeno-selector id="procedimiento" label="Procedimiento" hidden></galeno-selector>
+                    <galeno-indicador-pasos id="pasos"></galeno-indicador-pasos>
+                    <div class="bloque-paso" id="bloque-paso">
+                        <h3 id="paso"></h3>
+                        <p id="devuelto" class="aviso-devuelto" role="status" hidden></p>
+                        <p id="lectura" class="badge-lectura" hidden>Solo lectura: este paso ya quedó registrado</p>
+                        <galeno-campo id="notas" label="Notas del paso" type="textarea"></galeno-campo>
+                        <div id="mensaje" role="alert" class="mensaje-error"></div>
+                    </div>
+                    <div id="panel-devolver" class="panel-devolver tarjeta" hidden>
+                        <galeno-campo id="motivo" label="¿Qué le faltó al paso anterior?" type="textarea"
+                                      placeholder="Explique qué debe completar el rol anterior"></galeno-campo>
+                        <div class="acciones">
+                            <button id="cancelar-devolver" type="button" class="secundario">Cancelar</button>
+                            <button id="confirmar-devolver" type="button" class="acento">Devolver expediente</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="columna-examenes">
+                    <galeno-lista-examenes id="examenes"></galeno-lista-examenes>
+                </div>
+            </div>
+            <div class="barra-acciones">
+                <div class="acciones">
+                    <button id="anterior" type="button" class="secundario">Anterior</button>
+                    <button id="devolver" type="button" class="secundario">Devolver al paso anterior</button>
+                    <button id="avanzar" type="button">Guardar y avanzar al siguiente paso</button>
+                    <button id="finalizar" type="button" class="acento">Finalizar consulta</button>
+                </div>
+                <p class="nota-finalizar" id="nota-finalizar" hidden>Al finalizar se cierra la consulta y sus pasos quedan en solo lectura.</p>
+            </div>
+        </div>
+    </section>
+</template>

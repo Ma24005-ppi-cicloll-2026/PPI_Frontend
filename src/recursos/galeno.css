@@ -375,3 +375,7 @@ header galeno-boton-instalar{ margin-left:auto; }
 /* Respeta la ocultación aunque el elemento tenga un display propio. */
 #pantalla [hidden]{ display:none !important; }
 #pantalla #filtros[hidden]{ display:none !important; }
+
+/* Vista previa del ticket PDF (plantilla-dialogo-ticket). */
+.dialogo-ticket{ width:min(54rem, 85vw); }
+.dialogo-ticket iframe{ display:block; width:100%; height:70dvh; margin-top:1rem; border:0; }

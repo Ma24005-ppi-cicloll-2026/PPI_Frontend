@@ -2,8 +2,9 @@ class AppModel {
 
 
     // Conecta las referencias del shell y configura las rutas.
-    constructor(raiz = document, { sesion = new Sesion(), datosClinica = new DatosClinica() } = {}) {
+    constructor(raiz = document, { sesion = new Sesion(), datosClinica = new DatosClinica(), plantillas = new Plantillas() } = {}) {
         this.raiz = raiz;
+        this.plantillas = plantillas;
         this.sesion = sesion;
         this.datosClinica = datosClinica;
         this.menu = raiz.querySelector("#menu");
@@ -66,37 +67,23 @@ class AppModel {
             .map(d => ({ texto: this.pantallas[d].texto, destino: d }));
     }
 
-    // Escapa los caracteres con significado en HTML.
-    escapar(v) {
-        return String(v ?? "").replace(/[&<>"']/g,
-            c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    }
-
     // Actualiza el nombre y las acciones de sesión en la cabecera.
     pintarSesion() {
         const s = this.sesion.obtener();
         const t = this.textoSesion;
         if (s) {
             const detalle = [s.rol, s.clinica].filter(Boolean).join(" · ");
-            const nombre = this.escapar(s.nombre || "");
-            t.innerHTML = `
-                <span class="avatar" aria-hidden="true">${this.escapar(this.datosClinica.iniciales(s.nombre || ""))}</span>
-                <span class="datos">
-                    <span class="nombre" title="${nombre}">${nombre}</span>
-                    ${detalle ? `<span class="detalle" title="${this.escapar(detalle)}">${this.escapar(detalle)}</span>` : ""}
-                    <button class="salir" type="button">
-                        ${this.menu.iconos?.salir ?? ""}<span>Cerrar sesión</span>
-                    </button>
-                </span>`;
-            t.querySelector("button.salir").addEventListener("click", () => this.sesion.cerrar());
+            const datos = this.plantillas.llenar(this.plantillas.clonar("plantilla-sesion-iniciada"),
+                { iniciales: this.datosClinica.iniciales(s.nombre || ""), nombre: s.nombre || "", detalle });
+            datos.querySelector(".nombre").title = s.nombre || "";
+            if (detalle) datos.querySelector(".detalle").title = detalle;
+            else datos.querySelector(".detalle").remove();
+            datos.querySelector("button.salir").addEventListener("click", () => this.sesion.cerrar());
+            t.replaceChildren(datos);
         } else {
-            t.innerHTML = `
-                <span class="avatar" aria-hidden="true">${this.menu.iconos?.login ?? ""}</span>
-                <span class="datos">
-                    <span class="nombre">Sin sesión iniciada</span>
-                    <button class="entrar" type="button"><span>Iniciar sesión</span></button>
-                </span>`;
-            t.querySelector("button.entrar").addEventListener("click", () => this.irA("login"));
+            const datos = this.plantillas.clonar("plantilla-sin-sesion");
+            datos.querySelector("button.entrar").addEventListener("click", () => this.irA("login"));
+            t.replaceChildren(datos);
         }
         t.classList.toggle("con-sesion", Boolean(s));
     }

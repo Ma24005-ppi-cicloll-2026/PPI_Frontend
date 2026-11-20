@@ -1,9 +1,7 @@
 class GalenoConexion extends HTMLElement {
 
-    iconos = {
-        sin: '<svg class="icono" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m4 4 16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-        ok:  '<svg class="icono" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="19" cy="18" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m17 18 1.4 1.4L21.4 16.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-    };
+    // Moldes HTML del componente.
+    plantillas = new Plantillas();
 
     // Prepara el estado interno antes de montar el componente.
     constructor() {
@@ -70,21 +68,14 @@ class GalenoConexion extends HTMLElement {
             "sin-conexion": this.textoEstado || "Sin conexión: mostrando los datos guardados en este dispositivo.",
             "restablecida": this.textoEstado || "Conexión restablecida"
         };
-        const iconos = { "sin-conexion": this.iconos.sin, "restablecida": this.iconos.ok };
-        this.shadowRoot.innerHTML = `
-          <style>
-            :host { display:block; }
-            div { display:flex; align-items:center; justify-content:center; gap:.45rem;
-                  padding:.3rem 1rem; text-align:center;
-                  font-size:var(--fs-0, .75rem); font-weight:600; color:var(--tinta, #1D3461); }
-            div .icono { flex:0 0 auto; }
-            .sin-conexion { background:var(--aviso-fondo, #F7F0E3); }
-            .sin-conexion .icono { color:var(--aviso, #B98A3E); }
-            .restablecida { background:var(--exito-fondo, #E9F3ED); }
-            .restablecida .icono { color:var(--exito, #4F8A6B); }
-            .oculto { display:none; }
-          </style>
-          <div role="status" aria-live="polite" class="${this._estado}">${iconos[this._estado] ?? ""}<span class="texto">${textos[this._estado] ?? ""}</span></div>`;
+        const raiz = this.plantillas.clonar("plantilla-galeno-conexion");
+        const caja = raiz.querySelector("div");
+        caja.className = this._estado;
+        if (this._estado !== "sin-conexion") raiz.querySelector(".icono.sin").remove();
+        if (this._estado !== "restablecida") raiz.querySelector(".icono.ok").remove();
+        raiz.querySelectorAll(".icono").forEach(i => i.classList.remove("sin", "ok"));
+        raiz.querySelector(".texto").textContent = textos[this._estado] ?? "";
+        this.shadowRoot.replaceChildren(raiz);
     }
 }
 
