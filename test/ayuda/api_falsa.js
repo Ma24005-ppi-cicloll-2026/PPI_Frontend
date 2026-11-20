@@ -44,8 +44,6 @@ class ApiFalsa {
 }
 
 const Ayuda = {
-    // Deja terminar las tareas asíncronas pendientes de la prueba.
-    esperar: (veces = 8) => (async () => { for (let i = 0; i < veces; i++) await new Promise(r => setTimeout(r, 0)); })(),
     // Simula la entrada de texto y notifica el cambio.
     escribir(campo, texto) {
         const i = campo.shadowRoot.querySelector("input, textarea"); i.value = texto; i.dispatchEvent(new Event("input"));

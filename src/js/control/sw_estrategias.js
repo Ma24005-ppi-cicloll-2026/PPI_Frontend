@@ -8,33 +8,32 @@ class EstrategiasCache {
     }
 
     // Guarda los archivos que necesita la aplicación para abrir sin red.
-    async precargar(urls) {
-        const cache = await this.almacen.open(this.nombre);
-        await cache.addAll(urls);
+    precargar(urls) {
+        return this.almacen.open(this.nombre).then(cache => cache.addAll(urls));
     }
 
     // Borra las versiones de caché anteriores a la actual.
-    async limpiarViejos() {
-        const nombres = await this.almacen.keys();
-        await Promise.all(nombres.filter(n => n !== this.nombre).map(n => this.almacen.delete(n)));
+    limpiarViejos() {
+        return this.almacen.keys()
+            .then(nombres => Promise.all(nombres.filter(n => n !== this.nombre).map(n => this.almacen.delete(n))));
     }
 
     // Prefiere la red y usa una copia guardada si falla la solicitud.
-    async redPrimero(peticion, respaldo = "index.html") {
-        const cache = await this.almacen.open(this.nombre);
-        try {
-            const respuesta = await this.red(peticion);
-            if (respuesta && respuesta.ok) await cache.put(peticion, respuesta.clone());
-            return respuesta;
-        } catch (sinRed) {
-            const guardada = await cache.match(peticion);
-            if (guardada) return guardada;
-            if (peticion.mode === "navigate") {
-                const pagina = await cache.match(respaldo);
-                if (pagina) return pagina;
-            }
-            return new Response(JSON.stringify({ error: "Sin conexión y sin datos guardados" }),
-                { status: 503, headers: { "Content-Type": "application/json" } });
-        }
+    redPrimero(peticion, respaldo = "index.html") {
+        return this.almacen.open(this.nombre).then(cache => Promise.resolve()
+            .then(() => this.red(peticion))
+            .then(respuesta => {
+                if (!respuesta || !respuesta.ok) return respuesta;
+                return cache.put(peticion, respuesta.clone()).then(() => respuesta);
+            })
+            .catch(() => this.respaldo(cache, peticion, respaldo)));
+    }
+
+    // Busca la copia guardada, la página principal o responde que no hay datos.
+    respaldo(cache, peticion, pagina) {
+        return cache.match(peticion)
+            .then(guardada => guardada || (peticion.mode === "navigate" ? cache.match(pagina) : null))
+            .then(encontrada => encontrada || new Response(JSON.stringify({ error: "Sin conexión y sin datos guardados" }),
+                { status: 503, headers: { "Content-Type": "application/json" } }));
     }
 }

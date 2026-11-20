@@ -1,7 +1,7 @@
 importScripts("js/control/sw_estrategias.js");
 
 // Cambia la versión una vez por entrega para renovar los archivos precargados.
-const VERSION = "galeno-v18";
+const VERSION = "galeno-v20";
 
 // Enumera los recursos necesarios para abrir la aplicación sin conexión.
 const ARCHIVOS = [
@@ -37,6 +37,7 @@ const ARCHIVOS = [
     "js/control/agenda.js",
     "js/control/api_cache.js",
     "js/control/clinica_service.js",
+    "js/control/configuracion.js",
     "js/control/consulta_procedimiento_paso_service.js",
     "js/control/consulta_procedimiento_service.js",
     "js/control/consulta_service.js",

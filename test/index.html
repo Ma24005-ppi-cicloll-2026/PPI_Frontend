@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <!-- Dirección del backend y tamaño de página: se cambian aquí, no en el código. -->
+    <meta name="galeno-api" content="http://localhost:9080/GalenoSV-1.0-SNAPSHOT/resources/">
+    <meta name="galeno-pagina" content="500">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pruebas del frontend</title>
     <link rel="stylesheet" href="./js/lib/mocha/mocha.css">
@@ -15,6 +18,7 @@
     <script type="module" src="./cargar_pruebas.js"></script>
 
     <!-- Registra el código de producción en el orden que requiere el ejecutor. -->
+    <script data-prueba="../src/js/control/configuracion.js"></script>
     <script data-prueba="../src/js/control/api_cache.js"></script>
     <script data-prueba="../src/js/control/default_service.js"></script>
     <script data-prueba="../src/js/control/clinica_service.js"></script>
@@ -81,6 +85,7 @@
     <!-- Prepara los datos y el API simulado antes de ejecutar las suites. -->
     <script data-prueba="./ayuda/api_falsa.js"></script>
     <script data-prueba="./ayuda/datos.js"></script>
+    <script data-prueba="./ayuda/falsos.js"></script>
 
     <script data-prueba="./control/default_service.test.js"></script>
     <script data-prueba="./control/rutas_services.test.js"></script>
@@ -95,6 +100,7 @@
     <script data-prueba="./control/sw_estrategias.test.js"></script>
     <script data-prueba="./control/instalacion.test.js"></script>
     <script data-prueba="./control/manifest.test.js"></script>
+    <script data-prueba="./control/arquitectura.test.js"></script>
     <script data-prueba="./boundary/componentes/campo_opcion.test.js"></script>
     <script data-prueba="./boundary/componentes/buscadores.test.js"></script>
     <script data-prueba="./boundary/componentes/conexion.test.js"></script>
@@ -110,10 +116,12 @@
     <script data-prueba="./boundary/componentes/registro_pasos_examenes.test.js"></script>
     <script data-prueba="./boundary/login_model.test.js"></script>
     <script data-prueba="./boundary/citas_model.test.js"></script>
-    <script data-prueba="./boundary/instalacion_citas.test.js"></script>
     <script data-prueba="./boundary/dashboard_model.test.js"></script>
     <script data-prueba="./boundary/seguimiento_model.test.js"></script>
-    <script data-prueba="./boundary/app_model.test.js"></script>
+    <!-- Pruebas de integración: recorren varias piezas juntas con el API simulado. -->
+    <script data-prueba="./integracion/flujos.integracion.test.js"></script>
+    <script data-prueba="./integracion/instalacion_citas.integracion.test.js"></script>
+    <script data-prueba="./integracion/app_model.integracion.test.js"></script>
 
 
 </body>

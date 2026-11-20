@@ -65,9 +65,9 @@ class GalenoInvitacionInstalar extends HTMLElement {
     }
 
     // Procesa la aceptación de la invitación de instalación.
-    async aceptar() {
+    aceptar() {
         const pwa = this._pwa;
-        if (!pwa || this._ocupada) return;
+        if (!pwa || this._ocupada) return Promise.resolve();
         if (pwa.estado === "ios_manual") {
             pwa.ventana.dispatchEvent(new Event("galeno-abrir-guia"));
             this._abierta = false;
@@ -77,19 +77,20 @@ class GalenoInvitacionInstalar extends HTMLElement {
             return;
         }
         this._ocupada = true;
-        try {
-            const resultado = await pwa.instalar();
-            this._abierta = false;
-            if (resultado === "accepted") this._aviso?.mostrar("¡GalenoSV instalada!", "exito");
-            this.dispatchEvent(new CustomEvent("galeno-instalacion",
-                { detail: { resultado }, bubbles: true, composed: true }));
-        } catch (e) {
-            this.dispatchEvent(new CustomEvent("galeno-instalacion",
-                { detail: { resultado: "error" }, bubbles: true, composed: true }));
-        } finally {
-            this._ocupada = false;
-            this.pintar();
-        }
+        return Promise.resolve()
+            .then(() => pwa.instalar())
+            .then(resultado => {
+                this._abierta = false;
+                if (resultado === "accepted") this._aviso?.mostrar("¡GalenoSV instalada!", "exito");
+                this.dispatchEvent(new CustomEvent("galeno-instalacion",
+                    { detail: { resultado }, bubbles: true, composed: true }));
+            })
+            .catch(() => this.dispatchEvent(new CustomEvent("galeno-instalacion",
+                { detail: { resultado: "error" }, bubbles: true, composed: true })))
+            .finally(() => {
+                this._ocupada = false;
+                this.pintar();
+            });
     }
 
     // Actualiza la vista con los datos y el estado actuales.

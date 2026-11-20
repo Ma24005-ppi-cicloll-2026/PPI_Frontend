@@ -44,9 +44,9 @@ class GalenoBotonInstalar extends HTMLElement {
     }
 
     // Resuelve la acción del botón según el estado de instalación.
-    async pulsar() {
+    pulsar() {
         const pwa = this._pwa;
-        if (!pwa || this._ocupada) return;
+        if (!pwa || this._ocupada) return Promise.resolve();
         const estado = pwa.estado;
         if (estado === "ios_manual") {
             pwa.ventana.dispatchEvent(new Event("galeno-abrir-guia"));
@@ -56,20 +56,21 @@ class GalenoBotonInstalar extends HTMLElement {
         }
         if (estado !== "instalable") return;
         this._ocupada = true;
-        try {
-            const resultado = await pwa.instalar();
-            if (resultado === "accepted") this._aviso?.mostrar("¡GalenoSV instalada!", "exito");
-            else if (resultado === "no-disponible")
-                this._aviso?.mostrar("También puedes instalarla desde el menú o la barra de direcciones de tu navegador", "info");
-            this.dispatchEvent(new CustomEvent("galeno-instalacion",
-                { detail: { resultado }, bubbles: true, composed: true }));
-        } catch (e) {
-            this.dispatchEvent(new CustomEvent("galeno-instalacion",
-                { detail: { resultado: "error" }, bubbles: true, composed: true }));
-        } finally {
-            this._ocupada = false;
-            this.pintar();
-        }
+        return Promise.resolve()
+            .then(() => pwa.instalar())
+            .then(resultado => {
+                if (resultado === "accepted") this._aviso?.mostrar("¡GalenoSV instalada!", "exito");
+                else if (resultado === "no-disponible")
+                    this._aviso?.mostrar("También puedes instalarla desde el menú o la barra de direcciones de tu navegador", "info");
+                this.dispatchEvent(new CustomEvent("galeno-instalacion",
+                    { detail: { resultado }, bubbles: true, composed: true }));
+            })
+            .catch(() => this.dispatchEvent(new CustomEvent("galeno-instalacion",
+                { detail: { resultado: "error" }, bubbles: true, composed: true })))
+            .finally(() => {
+                this._ocupada = false;
+                this.pintar();
+            });
     }
 
     // Actualiza la vista con los datos y el estado actuales.

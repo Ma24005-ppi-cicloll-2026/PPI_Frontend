@@ -1,12 +1,20 @@
 class CitasModel {
 
-    static LUPA = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="9" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m13.2 13.2 3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-    static BOTON = CitasModel.LUPA + "<span>Buscar citas</span>";
-
-    // Guarda el contenedor y la operación de descarga del ticket.
-    constructor(contenedor, { descargar } = {}) {
+    // Guarda el contenedor, los servicios y las utilidades que usa la búsqueda.
+    constructor(contenedor, { descargar, aviso = null, servicios = null, documentos = new Documentos(), agenda = new Agenda(),
+                              datosClinica = new DatosClinica(), sesion = new Sesion() } = {}) {
         this.contenedor = contenedor;
+        this.escuchas = [];
+        this.avisoInyectado = aviso;
         this.descargar = descargar;
+        this.documentosUtil = documentos;
+        this.agenda = agenda;
+        this.datosClinica = datosClinica;
+        this.sesion = sesion;
+        this.servicios = servicios ?? {
+            personasRoles: new PersonaRolService(), documentos: new DocumentoService(), tipos: new TipoDocumentoService(),
+            consultas: new ConsultaService(), cps: new ConsultaProcedimientoService(), procedimientos: new ProcedimientoService() };
+        this.textoBoton = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="9" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m13.2 13.2 3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Buscar citas</span>';
         this.personasRoles = [];
         this.documentos = [];
         this.pacienteEn = [];
@@ -56,7 +64,7 @@ class CitasModel {
                         </li>
                     </ol>
                     <div id="mensaje" role="alert" class="mensaje-error"></div>
-                    <button id="buscar" type="submit">${CitasModel.BOTON}</button>
+                    <button id="buscar" type="submit">${this.textoBoton}</button>
                 </form>
                 <div id="bienvenida" class="bienvenida">
                     <div class="hero">
@@ -91,7 +99,7 @@ class CitasModel {
         this.campoDesde = $("desde"); this.campoHasta = $("hasta");
         this.mensaje = $("mensaje"); this.estado = $("estado"); this.resultado = $("resultado");
 
-        this.aviso = this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
+        this.aviso = this.avisoInyectado ?? this.contenedor.closest?.("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
 
         this.boton = $("buscar"); this.bienvenida = $("bienvenida");
         this.secciones = [...this.contenedor.querySelectorAll(".seccion-asistente")];
@@ -119,21 +127,36 @@ class CitasModel {
         // Actualiza los datos que dependen de la opción seleccionada.
         this.selClinica.addEventListener("galeno-seleccion", () => this.pintarSecciones());
         this.resultado.addEventListener("galeno-descargar-ticket", e => this.bajarTicket(e));
+        // La vista reacciona cuando llegan los catálogos o las citas del servidor.
+        this.escuchar("galeno-datos-listos", e => { this.buscaTipo.opciones = e.detail.tipos; });
+        this.escuchar("galeno-citas-encontradas", e => this.pintarCitas(e.detail.citas));
         this.datos = this.cargarDatos();
         return this.datos;
     }
 
 
     // Descarta el trabajo pendiente de la vista al salir.
-    destruir() { this._busqueda++; }
+    destruir() { this._busqueda++; this.dejarDeEscuchar(); }
+
+    // Registra una escucha en el contenedor para poder quitarla al salir.
+    escuchar(evento, accion) {
+        this.contenedor.addEventListener(evento, accion);
+        this.escuchas.push([evento, accion]);
+    }
+
+    // Quita las escuchas del contenedor para que un modelo viejo no reaccione.
+    dejarDeEscuchar() {
+        this.escuchas.forEach(([evento, accion]) => this.contenedor.removeEventListener(evento, accion));
+        this.escuchas = [];
+    }
 
     // Actualiza el progreso y los bloqueos del asistente.
     pintarSecciones() {
         const tipo = this.buscaTipo.seleccionado;
         const numero = this.campoNumero.value.trim();
-        const identificado = tipo && numero && Documentos.formatoValido(tipo, numero) && this.pacienteEn.length > 0;
+        const identificado = tipo && numero && this.documentosUtil.formatoValido(tipo, numero) && this.pacienteEn.length > 0;
         const estados = [
-            tipo && numero ? (Documentos.formatoValido(tipo, numero) ? "completa" : "activa") : "activa",
+            tipo && numero ? (this.documentosUtil.formatoValido(tipo, numero) ? "completa" : "activa") : "activa",
             identificado ? "activa" : "bloqueada",
             identificado ? "activa" : "bloqueada"
         ];
@@ -151,17 +174,20 @@ class CitasModel {
     }
 
 
-    // Carga los documentos, tipos y roles necesarios para identificar a la persona.
-    async cargarDatos() {
-        try {
-            this.personasRoles = await new PersonaRolService().listar(0, 1000);
-            this.documentos = await new DocumentoService().listar(0, 5000);
-            this.buscaTipo.opciones = await new TipoDocumentoService().listar(0, 100);
-            return true;
-        } catch (e) {
-            this.mensaje.textContent = "No se pudo conectar con el servidor. Intente de nuevo.";
-            return false;
-        }
+    // Pide los catálogos a la vez y avisa con galeno-datos-listos cuando llegan.
+    cargarDatos() {
+        return Promise.all([this.servicios.personasRoles.listarTodo(), this.servicios.documentos.listarTodo(),
+                            this.servicios.tipos.listarTodo()])
+            .then(([personasRoles, documentos, tipos]) => {
+                this.personasRoles = personasRoles;
+                this.documentos = documentos;
+                this.contenedor.dispatchEvent(new CustomEvent("galeno-datos-listos", { detail: { tipos } }));
+                return true;
+            })
+            .catch(() => {
+                this.mensaje.textContent = "No se pudo conectar con el servidor. Intente de nuevo.";
+                return false;
+            });
     }
 
     // Busca al paciente y carga las clínicas vinculadas a su documento.
@@ -173,10 +199,10 @@ class CitasModel {
         this.selClinica.deshabilitado = true;
         const tipo = this.buscaTipo.seleccionado;
         const numero = this.campoNumero.value.trim();
-        if (!tipo || !numero || !Documentos.formatoValido(tipo, numero)) return;
-        const personas = Documentos.personasConDocumento(this.documentos, tipo, numero);
+        if (!tipo || !numero || !this.documentosUtil.formatoValido(tipo, numero)) return;
+        const personas = this.documentosUtil.personasConDocumento(this.documentos, tipo, numero);
         this.pacienteEn = this.personasRoles.filter(pr =>
-            personas.includes(pr.idPersona?.idPersona) && Sesion.normalizarRol(pr.idRol?.nombre) === "paciente");
+            personas.includes(pr.idPersona?.idPersona) && this.sesion.normalizarRol(pr.idRol?.nombre) === "paciente");
         const clinicas = new Map();
         this.pacienteEn.forEach(pr => pr.idClinica && clinicas.set(pr.idClinica.idClinica, pr.idClinica));
         this.selClinica.opciones = [...clinicas.values()];
@@ -191,7 +217,7 @@ class CitasModel {
         const numero = this.campoNumero.value.trim();
         if (!tipo) { this.mensaje.textContent = "Elija el tipo de documento"; return false; }
         if (!numero) { this.campoNumero.error("Escriba su número de documento"); return false; }
-        if (!Documentos.formatoValido(tipo, numero)) { this.campoNumero.error(Documentos.mensajeFormato(tipo)); return false; }
+        if (!this.documentosUtil.formatoValido(tipo, numero)) { this.campoNumero.error(this.documentosUtil.mensajeFormato(tipo)); return false; }
         if (!this.pacienteEn.length) { this.mensaje.textContent = "No encontramos un paciente con ese documento"; return false; }
         if (!this.selClinica.seleccionado) { this.selClinica.error("Elija la clínica"); return false; }
         const d = this.campoDesde.value, h = this.campoHasta.value;
@@ -199,80 +225,93 @@ class CitasModel {
         return true;
     }
 
-    // Valida el asistente y descarta resultados de búsquedas que ya quedaron atrás.
-    async buscar() {
-
+    // Lanza la búsqueda sin bloquear la vista: cuando llegan las citas se dispara galeno-citas-encontradas.
+    buscar() {
         const busqueda = ++this._busqueda;
         this.bienvenida.hidden = true;
         this.mensaje.textContent = "";
         this.campoHasta.error(""); this.selClinica.error("");
         this.resultado.replaceChildren();
-        if (!(await this.datos)) this.datos = this.cargarDatos();
-        if (!(await this.datos)) return;
-        if (busqueda !== this._busqueda) return;
-        if (!this.pacienteEn.length) this.identificar();
-        if (!this.validar()) return;
+        return (this.datos ?? Promise.resolve(false))
+            .then(listos => listos || (this.datos = this.cargarDatos()))
+            .then(listos => {
+                if (!listos || busqueda !== this._busqueda) return;
+                if (!this.pacienteEn.length) this.identificar();
+                if (!this.validar()) return;
+                return this.pedirCitas(busqueda);
+            });
+    }
+
+    // Pide las consultas y sus procedimientos y avisa cuando están listas.
+    pedirCitas(busqueda) {
         const clinica = this.selClinica.seleccionado;
         const idsPaciente = this.pacienteEn.filter(pr => pr.idClinica?.idClinica === clinica.idClinica).map(pr => pr.idPersonaRol);
-        const rango = Agenda.rango("Rango", this.campoDesde.value, this.campoHasta.value);
+        const rango = this.agenda.rango("Rango", this.campoDesde.value, this.campoHasta.value);
         this.estado.mostrar("cargando");
         this.boton.disabled = true; this.boton.textContent = "Buscando citas...";
-        try {
-            const consultas = await new ConsultaService().listar(0, 5000);
-            if (busqueda !== this._busqueda) return;
-            const mias = consultas
-                .filter(c => idsPaciente.includes(c.idPersonaRol?.idPersonaRol) && Agenda.enRango(c.fechaInicio, rango))
-                .sort((a, b) => DatosClinica.milisegundos(a.fechaInicio) - DatosClinica.milisegundos(b.fechaInicio));
-            if (!mias.length) { this.estado.mostrar("vacio", "No encontramos citas en esa clínica para esas fechas. Pruebe ajustando el rango.", { arte: true }); return; }
-            const cp = await new ConsultaProcedimientoService().listar(0, 5000);
-            if (busqueda !== this._busqueda) return;
-            const procs = await new ProcedimientoService().listar(0, 1000);
-            if (busqueda !== this._busqueda) return;
-            const nombres = new Map(procs.map(p => [p.idProcedimiento, p.nombre]));
-            this.estado.mostrar("contenido");
-            for (const c of mias) {
-                const tarjeta = document.createElement("galeno-tarjeta-cita");
-                tarjeta.cita = {
-                    idConsulta: c.idConsulta, fechaInicio: c.fechaInicio, clinica: clinica.nombre,
-                    procedimientos: cp.filter(x => x.idConsulta?.idConsulta === c.idConsulta)
-                        .map(x => nombres.get(x.idProcedimiento) ?? "Procedimiento")
-                };
-                this.resultado.append(tarjeta);
-            }
-        } catch (e) {
-            if (busqueda !== this._busqueda) return;
-            this.estado.mostrar("error", "No se pudieron cargar las citas.");
-        } finally {
-            this.boton.disabled = false; this.boton.innerHTML = CitasModel.BOTON;
-            this.pintarSecciones();
+        return Promise.all([this.servicios.consultas.listarTodo(), this.servicios.cps.listarTodo(),
+                            this.servicios.procedimientos.listarTodo()])
+            .then(([consultas, cps, procedimientos]) => {
+                if (busqueda !== this._busqueda) return;
+                const citas = this.armarCitas(consultas, cps, procedimientos, idsPaciente, rango, clinica);
+                this.contenedor.dispatchEvent(new CustomEvent("galeno-citas-encontradas", { detail: { citas } }));
+            })
+            .catch(() => {
+                if (busqueda === this._busqueda) this.estado.mostrar("error", "No se pudieron cargar las citas.");
+            })
+            .finally(() => {
+                this.boton.disabled = false; this.boton.innerHTML = this.textoBoton;
+                this.pintarSecciones();
+            });
+    }
+
+    // Filtra las consultas del paciente en el rango y les pone el nombre de sus procedimientos.
+    armarCitas(consultas, cps, procedimientos, idsPaciente, rango, clinica) {
+        const nombres = new Map(procedimientos.map(p => [p.idProcedimiento, p.nombre]));
+        return consultas
+            .filter(c => idsPaciente.includes(c.idPersonaRol?.idPersonaRol) && this.agenda.enRango(c.fechaInicio, rango))
+            .sort((a, b) => this.datosClinica.milisegundos(a.fechaInicio) - this.datosClinica.milisegundos(b.fechaInicio))
+            .map(c => ({
+                idConsulta: c.idConsulta, fechaInicio: c.fechaInicio, clinica: clinica.nombre,
+                procedimientos: cps.filter(x => x.idConsulta?.idConsulta === c.idConsulta)
+                    .map(x => nombres.get(x.idProcedimiento) ?? "Procedimiento")
+            }));
+    }
+
+    // Reacciona a las citas recibidas: muestra las tarjetas o el aviso de que no hay.
+    pintarCitas(citas) {
+        if (!citas.length) {
+            this.estado.mostrar("vacio", "No encontramos citas en esa clínica para esas fechas. Pruebe ajustando el rango.", { arte: true });
+            return;
+        }
+        this.estado.mostrar("contenido");
+        for (const cita of citas) {
+            const tarjeta = document.createElement("galeno-tarjeta-cita");
+            tarjeta.cita = cita;
+            this.resultado.append(tarjeta);
         }
     }
 
-    // Carga el PDF y mantiene el estado de carga en su tarjeta.
-    async bajarTicket(e) {
+    // Pide el PDF y mantiene el estado de carga en su tarjeta hasta que responde.
+    bajarTicket(e) {
         const tarjeta = e.target.closest("galeno-tarjeta-cita");
+        const { idConsulta } = e.detail;
         tarjeta.ocupada = true;
-        try {
-            const { idConsulta } = e.detail;
-            if (this.descargar) {
-                await this.descargar(idConsulta);
-                this.avisarDescarga();
-            } else {
-                const ticket = await new ConsultaService().ticket(idConsulta);
-                this.mostrarVistaPrevia(ticket);
-            }
-        } catch (err) {
-            this.aviso?.mostrar(err.message || "No se pudo generar el ticket", "error");
-        } finally {
-            tarjeta.ocupada = false;
-        }
+        const pedido = this.descargar
+            ? Promise.resolve().then(() => this.descargar(idConsulta)).then(() => this.avisarDescarga())
+            : this.servicios.consultas.ticket(idConsulta).then(ticket => this.mostrarVistaPrevia(ticket));
+        return pedido
+            .catch(err => this.aviso?.mostrar(err.message || "No se pudo generar el ticket", "error"))
+            .finally(() => { tarjeta.ocupada = false; });
     }
 
+    // Avisa que el ticket se descargó.
     avisarDescarga() {
         this.aviso?.mostrar("Ticket descargado", "exito");
         window.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
     }
 
+    // Abre el PDF del ticket en un diálogo con opciones para descargarlo.
     mostrarVistaPrevia({ blob, nombre }) {
         const dialogo = document.createElement("dialog");
         dialogo.setAttribute("aria-label", "Vista previa del ticket");

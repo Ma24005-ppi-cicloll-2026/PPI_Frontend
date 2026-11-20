@@ -94,7 +94,7 @@ describe("<galeno-opcion>", () => {
     describe("iconoPara", () => {
         [["Cardiología", "corazon"], ["Odontología", "diente"], ["Oftalmología", "ojo"], ["Pediatría", "bebe"],
          ["Emergencias", "cruz"], ["Otra cosa", "general"], [null, "general"]].forEach(([texto, esperado]) =>
-            it(`"${texto}" usa el icono ${esperado}`, () => expect(GalenoOpcion.iconoPara(texto)).to.equal(esperado)));
+            it(`"${texto}" usa el icono ${esperado}`, () => expect(document.createElement("galeno-opcion").iconoPara(texto)).to.equal(esperado)));
     });
 });
 }

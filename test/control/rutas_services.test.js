@@ -62,9 +62,9 @@ describe("Metodo activos()", () => {
         });
     });
 
-    it("los demas services no tienen activos()", () => {
-        expect(new DocumentoService().activos).to.equal(undefined);
-        expect(new PersonaService().activos).to.equal(undefined);
+    it("activos() se hereda de DefaultService y no se repite en cada service", () => {
+        conActivos.forEach(Clase => expect(Object.prototype.hasOwnProperty.call(Clase.prototype, "activos")).to.equal(false));
+        expect(new DocumentoService().activos).to.equal(DefaultService.prototype.activos);
     });
 });
 

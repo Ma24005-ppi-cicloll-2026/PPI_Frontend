@@ -1,6 +1,6 @@
 class ConsultaProcedimientoService extends DefaultService {
     // Vincula el servicio con su recurso REST.
-    constructor() {
-        super("consulta_procedimiento");
+    constructor(opciones) {
+        super("consulta_procedimiento", opciones);
     }
 }

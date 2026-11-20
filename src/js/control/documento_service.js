@@ -1,6 +1,6 @@
 class DocumentoService extends DefaultService {
     // Vincula el servicio con su recurso REST.
-    constructor() {
-        super("documento");
+    constructor(opciones) {
+        super("documento", opciones);
     }
 }

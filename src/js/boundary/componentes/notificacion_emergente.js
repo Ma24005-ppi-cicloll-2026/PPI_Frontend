@@ -1,12 +1,12 @@
 class GalenoNotificacionEmergente extends HTMLElement {
 
-    static ICONOS = {
+    iconos = {
         exito: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m8 12.2 2.6 2.6L16.4 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
         aviso: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 3.5 21.5 20h-19L12 3.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.5v4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.9" r="1.15" fill="currentColor"/></svg>',
         error: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m9 9 6 6m0-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
         info:  '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7.8" r="1.15" fill="currentColor"/></svg>'
     };
-    static CRUZ = '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" focusable="false"><path d="m5 5 10 10m0-10L5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    cruz = '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" focusable="false"><path d="m5 5 10 10m0-10L5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
     // Prepara el estado interno antes de montar el componente.
     constructor() {
@@ -61,10 +61,10 @@ class GalenoNotificacionEmergente extends HTMLElement {
     // Presenta el contenido o estado indicado.
     mostrar(mensaje, tipo = "info", milisegundos = 4000) {
         const caja = this.shadowRoot.querySelector("#caja");
-        const icono = GalenoNotificacionEmergente.ICONOS[tipo] ?? GalenoNotificacionEmergente.ICONOS.info;
+        const icono = this.iconos[tipo] ?? this.iconos.info;
         caja.className = tipo;
         caja.innerHTML = `${icono.replace("<svg ", '<svg class="icono" ')}<span class="texto"></span>` +
-            `<button class="cerrar" type="button" aria-label="Cerrar el aviso">${GalenoNotificacionEmergente.CRUZ}</button>` +
+            `<button class="cerrar" type="button" aria-label="Cerrar el aviso">${this.cruz}</button>` +
             `<span class="barra" aria-hidden="true" style="animation-duration:${milisegundos}ms"></span>`;
         caja.querySelector(".texto").textContent = mensaje;
         caja.querySelector(".cerrar").addEventListener("click", () => this.ocultar());

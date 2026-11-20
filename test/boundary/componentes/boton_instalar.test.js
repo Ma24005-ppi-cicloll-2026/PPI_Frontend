@@ -1,7 +1,5 @@
 {
 const { expect } = chai;
-// Deja terminar las tareas asíncronas pendientes de la prueba.
-const esperar = () => new Promise(r => setTimeout(r, 0));
 
 // Prepara un servicio PWA con el estado que requiere la prueba.
 function pwaFalso({ estado = "instalable", resultado = "accepted" } = {}) {
@@ -65,7 +63,7 @@ describe("<galeno-boton-instalar>", () => {
         const pwa = pwaFalso({ estado: "instalable", resultado: "accepted" }); el.pwa = pwa;
         const avisoFalso = { mostrar: sinon.spy() }; el.aviso = avisoFalso;
         const oyente = sinon.spy(); el.addEventListener("galeno-instalacion", oyente);
-        boton().click(); await esperar();
+        await el.pulsar();
         expect(pwa.instalar.calledOnce).to.equal(true);
         expect(oyente.firstCall.args[0].detail.resultado).to.equal("accepted");
         expect(avisoFalso.mostrar.calledWith("¡GalenoSV instalada!", "exito")).to.equal(true);
@@ -74,7 +72,7 @@ describe("<galeno-boton-instalar>", () => {
     it("si el usuario cancela el dialogo (dismissed), no hay toast", async () => {
         const pwa = pwaFalso({ estado: "instalable", resultado: "dismissed" }); el.pwa = pwa;
         const avisoFalso = { mostrar: sinon.spy() }; el.aviso = avisoFalso;
-        boton().click(); await esperar();
+        await el.pulsar();
         expect(pwa.instalar.calledOnce).to.equal(true);
         expect(avisoFalso.mostrar.called).to.equal(false);
         expect(visible(), "sigue disponible por si cambia de idea").to.equal(true);
@@ -90,13 +88,13 @@ describe("<galeno-boton-instalar>", () => {
     });
     it("sin toast asignado, aceptar no rompe", async () => {
         const pwa = pwaFalso({ estado: "instalable", resultado: "accepted" }); el.pwa = pwa;
-        boton().click(); await esperar();
+        await el.pulsar();
         expect(pwa.instalar.calledOnce).to.equal(true);
     });
     it("si el dialogo del navegador aun no esta disponible, explica el camino en un aviso", async () => {
         const pwa = pwaFalso({ estado: "instalable", resultado: "no-disponible" }); el.pwa = pwa;
         const avisoFalso = { mostrar: sinon.spy() }; el.aviso = avisoFalso;
-        boton().click(); await esperar();
+        await el.pulsar();
         expect(avisoFalso.mostrar.firstCall.args[1]).to.equal("info");
         expect(visible(), "el boton sigue disponible para intentarlo de nuevo").to.equal(true);
     });

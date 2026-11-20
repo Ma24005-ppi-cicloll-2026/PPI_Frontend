@@ -34,7 +34,7 @@ describe("ConsultaService · ticket PDF del backend", () => {
     it("sin conexión devuelve el ticket guardado previamente", async () => {
         const guardado = { blob: new Blob(["%PDF guardado"], { type: "application/pdf" }), nombre: "ticket-previo.pdf" };
         stub = sinon.stub(window, "fetch").rejects(new TypeError("Failed to fetch"));
-        leerCache = sinon.stub(ApiCache, "leer").resolves(guardado);
+        leerCache = sinon.stub(ApiCache.prototype, "leer").resolves(guardado);
         expect(await new ConsultaService().ticket("k1")).to.equal(guardado);
         expect(leerCache.calledOnce).to.equal(true);
     });

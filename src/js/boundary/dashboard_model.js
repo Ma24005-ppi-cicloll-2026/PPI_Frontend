@@ -1,11 +1,16 @@
 class DashboardModel {
 
-    static POR_PAGINA = 12;
-
-    // Prepara el estado de filtros, contexto y paginación.
-    constructor(contenedor, { irA = () => {} } = {}) {
+    // Prepara el estado de filtros, contexto y paginación, y recibe las utilidades que usa.
+    constructor(contenedor, { irA = () => {}, sesion = new Sesion(), agenda = new Agenda(),
+                              datosClinica = new DatosClinica(), expediente = null } = {}) {
         this.contenedor = contenedor;
+        this.escuchas = [];
         this.irA = irA;
+        this.sesionUtil = sesion;
+        this.agenda = agenda;
+        this.datosClinica = datosClinica;
+        this.expediente = expediente ?? new Expediente({ datosClinica, agenda });
+        this.porPagina = 12;
         this.datos = null;
 
         this._carga = 0;
@@ -16,9 +21,9 @@ class DashboardModel {
 
     // Prepara el estado y las escuchas que necesita este flujo.
     iniciar() {
-        this.sesion = Sesion.obtener();
+        this.sesion = this.sesionUtil.obtener();
         const contextos = this.sesion?.contextos ?? [];
-        const e = DashboardModel.esc;
+        const e = t => this.esc(t);
         this.contenedor.innerHTML = `
             <section class="dashboard" aria-labelledby="titulo-dash">
                 <h2 id="titulo-dash" class="sr">Dashboard</h2>
@@ -52,9 +57,9 @@ class DashboardModel {
                                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                                 <span>En curso</span><span class="n" data-conteo="curso">0</span>
                             </button>
-                            <button type="button" class="chip" data-estado="finalizadas" aria-pressed="false">
-                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                <span>Finalizadas</span><span class="n" data-conteo="finalizadas">0</span>
+                            <button type="button" class="chip" data-estado="devueltas" aria-pressed="false">
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <span>Devueltas</span><span class="n" data-conteo="devueltas">0</span>
                             </button>
                         </div>
                     </div>
@@ -80,7 +85,7 @@ class DashboardModel {
         this.selRol.formatoTexto = o => o.rol;
         this.selRol.deshabilitado = true;
         this.selModo.formatoTexto = o => o.nombre;
-        this.selModo.opciones = Agenda.MODOS.map(nombre => ({ nombre }));
+        this.selModo.opciones = this.agenda.modos.map(nombre => ({ nombre }));
         this.selModo.seleccionar(this.selModo.opciones[0]);
 
         // Actualiza los datos que dependen de la opción seleccionada.
@@ -90,6 +95,8 @@ class DashboardModel {
         $("cambiar-contexto").addEventListener("click", () => this.desplegarContexto());
         // Repite la operación que produjo el error.
         this.estado.addEventListener("galeno-reintentar", () => this.cargar());
+        // La vista reacciona cuando llega el expediente del servidor.
+        this.escuchar("galeno-panel-cargado", ev => this.alCargarExpediente(ev.detail.datos));
         // Actualiza los datos que dependen de la opción seleccionada.
         this.selModo.addEventListener("galeno-seleccion", () => { this.mostrarFechas(); this.pintar(); });
         [this.campoPaciente, this.campoDesde, this.campoHasta].forEach(c => c.addEventListener("galeno-cambio", () => this.pintar()));
@@ -112,10 +119,22 @@ class DashboardModel {
     }
 
     // Descarta el trabajo pendiente de la vista al salir.
-    destruir() { this._carga++; }
+    destruir() { this._carga++; this.dejarDeEscuchar(); }
+
+    // Registra una escucha en el contenedor para poder quitarla al salir.
+    escuchar(evento, accion) {
+        this.contenedor.addEventListener(evento, accion);
+        this.escuchas.push([evento, accion]);
+    }
+
+    // Quita las escuchas del contenedor para que un modelo viejo no reaccione.
+    dejarDeEscuchar() {
+        this.escuchas.forEach(([evento, accion]) => this.contenedor.removeEventListener(evento, accion));
+        this.escuchas = [];
+    }
 
     // Escapa el texto antes de incluirlo en una plantilla HTML.
-    static esc(t) { return String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    esc(t) { return String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
     // Limita los roles disponibles a la clínica seleccionada.
     alElegirClinica(clinica) {
@@ -138,30 +157,36 @@ class DashboardModel {
         this.selClinica.shadowRoot.querySelector("select")?.focus();
     }
 
-    // Carga el expediente del contexto y descarta respuestas obsoletas.
-    async cargar() {
+    // Pide el expediente sin bloquear la vista; al llegar se dispara galeno-panel-cargado.
+    cargar() {
         const carga = ++this._carga;
         this.mensaje.textContent = "";
         const clinica = this.selClinica.seleccionado, ctx = this.selRol.seleccionado;
-        if (!clinica) { this.selClinica.error("Elija la clínica"); return; }
-        if (!ctx) { this.selRol.error("Elija el rol"); return; }
+        if (!clinica) { this.selClinica.error("Elija la clínica"); return Promise.resolve(); }
+        if (!ctx) { this.selRol.error("Elija el rol"); return Promise.resolve(); }
         this.selClinica.error(""); this.selRol.error("");
         this.ctx = ctx;
-        Sesion.elegirContexto(ctx);
+        this.sesionUtil.elegirContexto(ctx);
         this.estado.mostrar("cargando", "", { tarjetas: 6 });
         this.lista.replaceChildren();
-        try {
-            const datos = await Expediente.cargar();
-            if (carga !== this._carga) return;
-            this.datos = datos;
-            this.filtros.hidden = false;
-            this.conteo.hidden = false;
-            this.pintarContexto();
-            this.pintar();
-        } catch (e) {
-            if (carga !== this._carga) return;
-            this.estado.mostrar("error", "No se pudieron cargar las consultas.");
-        }
+        return this.expediente.cargar()
+            .then(datos => {
+                if (carga !== this._carga) return;
+                this.contenedor.dispatchEvent(new CustomEvent("galeno-panel-cargado", { detail: { datos } }));
+            })
+            .catch(() => {
+                if (carga !== this._carga) return;
+                this.estado.mostrar("error", "No se pudieron cargar las consultas.");
+            });
+    }
+
+    // Reacciona al expediente recibido mostrando filtros, contadores y tarjetas.
+    alCargarExpediente(datos) {
+        this.datos = datos;
+        this.filtros.hidden = false;
+        this.conteo.hidden = false;
+        this.pintarContexto();
+        this.pintar();
     }
 
     // Resume la clínica y el rol seleccionados.
@@ -174,25 +199,25 @@ class DashboardModel {
 
     // Obtiene las consultas que coinciden con el contexto y los filtros.
     filtradas() {
-        const texto = DatosClinica.normalizar(this.campoPaciente.value);
-        const rango = Agenda.rango(this.selModo.seleccionado?.nombre, this.campoDesde.value, this.campoHasta.value);
+        const texto = this.datosClinica.normalizar(this.campoPaciente.value);
+        const rango = this.agenda.rango(this.selModo.seleccionado?.nombre, this.campoDesde.value, this.campoHasta.value);
         return this.datos.consultas
-            .filter(c => DatosClinica.esDeClinica(c.idPersonaRol, this.ctx.idClinica))
-            .filter(c => !Expediente.abierta(c) || Expediente.laAtiende(this.datos, c, this.ctx.idRol))
-            .filter(c => Agenda.enRango(c.fechaInicio, rango))
+            .filter(c => this.datosClinica.esDeClinica(c.idPersonaRol, this.ctx.idClinica))
+            .filter(c => this.expediente.pendienteDelRol(this.datos, c, this.ctx.idRol))
+            .filter(c => this.agenda.enRango(c.fechaInicio, rango))
             .filter(c => {
                 if (!texto) return true;
-                const p = Expediente.paciente(this.datos, c);
-                return DatosClinica.normalizar(p.nombre).includes(texto) || DatosClinica.normalizar(p.documento).includes(texto);
+                const p = this.expediente.paciente(this.datos, c);
+                return this.datosClinica.normalizar(p.nombre).includes(texto) || this.datosClinica.normalizar(p.documento).includes(texto);
             })
-            .sort((a, b) => DatosClinica.milisegundos(a.fechaInicio) - DatosClinica.milisegundos(b.fechaInicio));
+            .sort((a, b) => this.datosClinica.milisegundos(a.fechaInicio) - this.datosClinica.milisegundos(b.fechaInicio));
     }
 
     // Aplica el filtro de estado a las consultas del listado.
     visibles() {
         const cs = this.filtradas();
-        if (this.chipEstado === "curso") return cs.filter(c => Expediente.abierta(c));
-        if (this.chipEstado === "finalizadas") return cs.filter(c => !Expediente.abierta(c));
+        if (this.chipEstado === "curso") return cs.filter(c => !this.expediente.devuelta(this.datos, c));
+        if (this.chipEstado === "devueltas") return cs.filter(c => this.expediente.devuelta(this.datos, c));
         return cs;
     }
 
@@ -210,8 +235,8 @@ class DashboardModel {
     // Actualiza los contadores con las consultas filtradas.
     pintarChips(consultas) {
         // Calcula el valor del contador que se muestra en la vista.
-        const n = estado => consultas.filter(c =>
-            estado === "curso" ? Expediente.abierta(c) : estado === "finalizadas" ? !Expediente.abierta(c) : true).length;
+        const n = estado => consultas.filter(c => estado === "total" ? true
+            : (estado === "devueltas") === this.expediente.devuelta(this.datos, c)).length;
         this.conteo.querySelectorAll(".n").forEach(s => {
             const hasta = n(s.dataset.conteo);
             s.dataset.valor = String(hasta);
@@ -226,8 +251,8 @@ class DashboardModel {
 
     // Prepara los datos que necesita la tarjeta de la consulta.
     tarjeta(c) {
-        const base = Expediente.tarjeta(this.datos, c);
-        const procs = Expediente.procedimientosDe(this.datos, c);
+        const base = this.expediente.tarjeta(this.datos, c);
+        const procs = this.expediente.procedimientosDe(this.datos, c);
         return { ...base, procedimientos: base.procedimientos.map((p, i) =>
             ({ ...p, total: procs[i]?.estado?.definidos?.length ?? p.pasos.length })) };
     }
@@ -240,9 +265,9 @@ class DashboardModel {
         const consultas = this.visibles();
         this.pintarChips(this.filtradas());
         const mensajes = {
-            total: "No hay consultas para esos filtros. Pruebe cambiar las fechas o el nombre del paciente.",
+            total: "No hay consultas pendientes para su rol con esos filtros. Pruebe cambiar las fechas o el nombre del paciente.",
             curso: "No hay consultas en curso para esos filtros.",
-            finalizadas: "No hay consultas finalizadas para esos filtros."
+            devueltas: "No hay consultas devueltas a su rol."
         };
         if (!consultas.length) { this.estado.mostrar("vacio", mensajes[this.chipEstado], { arte: true }); return; }
         this.estado.mostrar("contenido");
@@ -252,8 +277,8 @@ class DashboardModel {
     // Añade las tarjetas de esta tanda al listado.
     agregarTarjetas(consultas) {
         this.lista.querySelector("#mostrar-mas")?.remove();
-        const desde = this.pagina * DashboardModel.POR_PAGINA;
-        const lote = consultas.slice(desde, desde + DashboardModel.POR_PAGINA);
+        const desde = this.pagina * this.porPagina;
+        const lote = consultas.slice(desde, desde + this.porPagina);
         for (const c of lote) {
             const t = document.createElement("galeno-tarjeta-agenda");
             t.datos = this.tarjeta(c);
@@ -271,7 +296,7 @@ class DashboardModel {
 
     // Abre el detalle del paso seleccionado.
     verRegistro(idPaso) {
-        const datos = Expediente.registro(this.datos, idPaso);
+        const datos = this.expediente.registro(this.datos, idPaso);
         if (!datos) return;
         this.registro.datos = datos;
         this.registro.abrir();

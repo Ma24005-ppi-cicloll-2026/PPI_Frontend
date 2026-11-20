@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GalenoSV</title>
     <meta name="description" content="GalenoSV: sistema de gestión médica">
+    <!-- Dirección del backend y tamaño de página: se cambian aquí, no en el código. -->
+    <meta name="galeno-api" content="http://localhost:9080/GalenoSV-1.0-SNAPSHOT/resources/">
+    <meta name="galeno-pagina" content="500">
     <meta name="theme-color" content="#F1F8FB">
     <meta name="color-scheme" content="light dark">
     <!-- Aplica el tema y captura la instalación antes de montar la interfaz. -->
@@ -22,6 +25,7 @@
 
 
     <!-- Carga la caché antes de los servicios que guardan respuestas. -->
+    <script src="js/control/configuracion.js"></script>
     <script src="js/control/api_cache.js"></script>
     <script src="js/control/default_service.js"></script>
     <script src="js/control/clinica_service.js"></script>

@@ -2,8 +2,10 @@ class AppModel {
 
 
     // Conecta las referencias del shell y configura las rutas.
-    constructor(raiz = document) {
+    constructor(raiz = document, { sesion = new Sesion(), datosClinica = new DatosClinica() } = {}) {
         this.raiz = raiz;
+        this.sesion = sesion;
+        this.datosClinica = datosClinica;
         this.menu = raiz.querySelector("#menu");
         this.zona = raiz.querySelector("#pantalla");
         this.textoSesion = raiz.querySelector("#sesion");
@@ -20,7 +22,7 @@ class AppModel {
         this.alCambiarContexto = () => this.pintarSesion();
         this.alCambiarHash = () => this.alCambiarDireccion();
         this.alNavegarMenu = e =>
-            e.detail.destino === "salir" ? Sesion.cerrar() : this.irA(e.detail.destino);
+            e.detail.destino === "salir" ? this.sesion.cerrar() : this.irA(e.detail.destino);
         this.actual = null;
         this.param = null;
     }
@@ -56,7 +58,7 @@ class AppModel {
     }
 
     // Devuelve las rutas disponibles para la sesión actual.
-    permitidas() { return Object.keys(this.pantallas).filter(d => Sesion.puede(d)); }
+    permitidas() { return Object.keys(this.pantallas).filter(d => this.sesion.puede(d)); }
 
     // Construye el menú con las rutas permitidas para la sesión.
     construirMenu() {
@@ -65,31 +67,31 @@ class AppModel {
     }
 
     // Escapa los caracteres con significado en HTML.
-    static escapar(v) {
+    escapar(v) {
         return String(v ?? "").replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
     // Actualiza el nombre y las acciones de sesión en la cabecera.
     pintarSesion() {
-        const s = Sesion.obtener();
+        const s = this.sesion.obtener();
         const t = this.textoSesion;
         if (s) {
             const detalle = [s.rol, s.clinica].filter(Boolean).join(" · ");
-            const nombre = AppModel.escapar(s.nombre || "");
+            const nombre = this.escapar(s.nombre || "");
             t.innerHTML = `
-                <span class="avatar" aria-hidden="true">${AppModel.escapar(GalenoTarjetaAgenda.iniciales(s.nombre || ""))}</span>
+                <span class="avatar" aria-hidden="true">${this.escapar(this.datosClinica.iniciales(s.nombre || ""))}</span>
                 <span class="datos">
                     <span class="nombre" title="${nombre}">${nombre}</span>
-                    ${detalle ? `<span class="detalle" title="${AppModel.escapar(detalle)}">${AppModel.escapar(detalle)}</span>` : ""}
+                    ${detalle ? `<span class="detalle" title="${this.escapar(detalle)}">${this.escapar(detalle)}</span>` : ""}
                     <button class="salir" type="button">
-                        ${GalenoMenu.ICONOS.salir}<span>Cerrar sesión</span>
+                        ${this.menu.iconos?.salir ?? ""}<span>Cerrar sesión</span>
                     </button>
                 </span>`;
-            t.querySelector("button.salir").addEventListener("click", () => Sesion.cerrar());
+            t.querySelector("button.salir").addEventListener("click", () => this.sesion.cerrar());
         } else {
             t.innerHTML = `
-                <span class="avatar" aria-hidden="true">${GalenoMenu.ICONOS.login}</span>
+                <span class="avatar" aria-hidden="true">${this.menu.iconos?.login ?? ""}</span>
                 <span class="datos">
                     <span class="nombre">Sin sesión iniciada</span>
                     <button class="entrar" type="button"><span>Iniciar sesión</span></button>
@@ -103,13 +105,13 @@ class AppModel {
     reiniciar(pedida = null) {
         this.pintarSesion();
         this.menu.items = this.construirMenu();
-        if (pedida && Sesion.puede(pedida.destino)) this.irA(pedida.destino, pedida.param);
-        else this.irA(Sesion.obtener() ? "dashboard" : "citas");
+        if (pedida && this.sesion.puede(pedida.destino)) this.irA(pedida.destino, pedida.param);
+        else this.irA(this.sesion.obtener() ? "dashboard" : "citas");
     }
 
     // Cambia de ruta y monta la pantalla correspondiente.
     irA(destino, param = null) {
-        if (!this.pantallas[destino] || !Sesion.puede(destino)) destino = Sesion.obtener() ? "dashboard" : "citas";
+        if (!this.pantallas[destino] || !this.sesion.puede(destino)) destino = this.sesion.obtener() ? "dashboard" : "citas";
         if (destino === "consulta" && !param) destino = "dashboard";
         this.actual = destino;
         this.param = destino === "consulta" ? param : null;

@@ -1,5 +1,8 @@
 class GalenoRegistroPaso extends HTMLElement {
 
+    // Utilidades del sistema que usa el componente para mostrar los datos.
+    fechas = new GestorFechas();
+
     // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
@@ -49,7 +52,7 @@ class GalenoRegistroPaso extends HTMLElement {
         const examenes = d.examenes?.length
             ? `<ul>${d.examenes.map(x => `<li><strong>${e(x.nombre)}</strong>: ${e(x.resultado || "sin resultado todavía")}</li>`).join("")}</ul>`
             : "<p>No se asignaron exámenes.</p>";
-        const detalle = [d.quien ? e(d.quien) : "—", d.rol ? e(d.rol) : "", e(GestorFechas.aFechaHora(d.inicio))]
+        const detalle = [d.quien ? e(d.quien) : "—", d.rol ? e(d.rol) : "", e(this.fechas.aFechaHora(d.inicio))]
             .filter(Boolean).join(" · ");
         this.shadowRoot.innerHTML = `
           <style>
@@ -89,7 +92,7 @@ class GalenoRegistroPaso extends HTMLElement {
             <h2 class="titulo" id="titulo">${e(d.paso || "Paso")}</h2>
             <p class="autor"><strong>${e(d.procedimiento || "")}</strong>${d.procedimiento ? " · " : ""}${detalle}</p>
             <p><span class="estado">${e(d.estado || "—")}</span></p>
-            <p class="meta"><strong>Fin:</strong> ${d.fin ? e(GestorFechas.aFechaHora(d.fin)) : "En proceso"}</p>
+            <p class="meta"><strong>Fin:</strong> ${d.fin ? e(this.fechas.aFechaHora(d.fin)) : "En proceso"}</p>
             <h3>Notas</h3>
             <p class="nota">${e(d.nota || "No se escribieron notas.")}</p>
             <h3>Exámenes</h3>

@@ -1,7 +1,7 @@
 class GalenoOpcion extends HTMLElement {
 
     // Devuelve los iconos del menú.
-    static get ICONOS() {
+    get iconos() {
         return {
             cruz: '<rect x="20" y="8" width="24" height="48" rx="5"/><rect x="8" y="20" width="48" height="24" rx="5"/>',
             corazon: '<path d="M32 56 C8 38 6 22 16 14 C23 9 30 13 32 19 C34 13 41 9 48 14 C58 22 56 38 32 56Z"/>',
@@ -13,7 +13,7 @@ class GalenoOpcion extends HTMLElement {
     }
 
     // Elige el icono que corresponde al tipo de opción.
-    static iconoPara(texto) {
+    iconoPara(texto) {
         const t = String(texto ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
         if (/cardi|corazon/.test(t)) return "corazon";
         if (/dent|odont|diente/.test(t)) return "diente";
@@ -53,7 +53,7 @@ class GalenoOpcion extends HTMLElement {
     pintar() {
         const d = this._datos;
         const activo = d.activo !== false;
-        const icono = GalenoOpcion.ICONOS[d.icono] ?? GalenoOpcion.ICONOS.general;
+        const icono = this.iconos[d.icono] ?? this.iconos.general;
         this.shadowRoot.innerHTML = `
           <style>
             :host { display:block; }

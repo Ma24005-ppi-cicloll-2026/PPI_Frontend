@@ -1,27 +1,27 @@
 class GalenoTema extends HTMLElement {
 
-    static CLAVE = "galeno-tema";
-    static ORDEN = ["auto", "claro", "oscuro"];
+    clave = "galeno-tema";
+    orden = ["auto", "claro", "oscuro"];
 
     // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
-        this._valor = GalenoTema.leer();
+        this._valor = this.leer();
         this.alCambiarSistema = () => { if (this._valor === "auto") this.pintar(); };
     }
 
     // Recupera el dato si existe y conserva un formato válido.
-    static leer() {
+    leer() {
         try {
-            const v = localStorage.getItem(GalenoTema.CLAVE);
-            return GalenoTema.ORDEN.includes(v) ? v : "auto";
+            const v = localStorage.getItem(this.clave);
+            return this.orden.includes(v) ? v : "auto";
         } catch (e) { return "auto"; }
     }
 
     // Guarda el dato o reemplaza la nota del paso correspondiente.
-    static guardar(v) {
-        try { localStorage.setItem(GalenoTema.CLAVE, v); } catch (e) {   }
+    guardar(v) {
+        try { localStorage.setItem(this.clave, v); } catch (e) {   }
     }
 
     // Devuelve el valor del control.
@@ -37,8 +37,8 @@ class GalenoTema extends HTMLElement {
 
     // Selecciona la opción indicada.
     elegir(valor) {
-        this._valor = GalenoTema.ORDEN.includes(valor) ? valor : "auto";
-        GalenoTema.guardar(this._valor);
+        this._valor = this.orden.includes(valor) ? valor : "auto";
+        this.guardar(this._valor);
         this.pintar();
         this.dispatchEvent(new CustomEvent("galeno-tema",
             { detail: { valor: this._valor }, bubbles: true, composed: true }));
@@ -56,7 +56,7 @@ class GalenoTema extends HTMLElement {
     }
 
     // Aplica el tema seleccionado al documento.
-    static aplicar(valor) {
+    aplicar(valor) {
         const raiz = document.documentElement;
         if (valor === "claro" || valor === "oscuro") raiz.dataset.tema = valor;
         else delete raiz.dataset.tema;
@@ -64,7 +64,7 @@ class GalenoTema extends HTMLElement {
 
     // Actualiza la vista con los datos y el estado actuales.
     pintar() {
-        GalenoTema.aplicar(this._valor);
+        this.aplicar(this._valor);
         const oscuro = this.oscuro;
         const meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.content = oscuro ? "#0F1E26" : "#F1F8FB";
@@ -92,8 +92,8 @@ class GalenoTema extends HTMLElement {
             <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
           </button>`;
         this.shadowRoot.querySelector("button").addEventListener("click", () => {
-            const i = GalenoTema.ORDEN.indexOf(this._valor);
-            this.elegir(GalenoTema.ORDEN[(i + 1) % GalenoTema.ORDEN.length]);
+            const i = this.orden.indexOf(this._valor);
+            this.elegir(this.orden[(i + 1) % this.orden.length]);
         });
     }
 }

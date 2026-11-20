@@ -1,6 +1,6 @@
 class GalenoGuiaInstalacion extends HTMLElement {
 
-    static PASOS = [
+    pasosGuia = [
         {
             titulo: "1. Toque Compartir",
             texto: "En Safari, pulse el boton Compartir de la barra inferior.",
@@ -79,7 +79,7 @@ class GalenoGuiaInstalacion extends HTMLElement {
 
     // Actualiza la vista con los datos y el estado actuales.
     pintar() {
-        const pasos = GalenoGuiaInstalacion.PASOS.map(p => `
+        const pasos = this.pasosGuia.map(p => `
             <li>
               <span class="icono">${p.svg}</span>
               <span class="paso-texto"><strong>${p.titulo}</strong><small>${p.texto}</small></span>

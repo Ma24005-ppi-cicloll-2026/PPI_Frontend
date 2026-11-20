@@ -26,8 +26,8 @@ describe("DefaultService", () => {
     // Prepara el entorno de las pruebas.
     beforeEach(() => {
         copias = new Map();
-        guardarCache = sinon.stub(ApiCache, "guardar").callsFake(async (url, valor) => { copias.set(url, valor); return true; });
-        leerCache = sinon.stub(ApiCache, "leer").callsFake(async url => copias.get(url) ?? null);
+        guardarCache = sinon.stub(ApiCache.prototype, "guardar").callsFake(async (url, valor) => { copias.set(url, valor); return true; });
+        leerCache = sinon.stub(ApiCache.prototype, "leer").callsFake(async url => copias.get(url) ?? null);
         fetchFalso = sinon.stub(window, "fetch");
         servicio = new DefaultService("documento");
     });
@@ -42,10 +42,10 @@ describe("DefaultService", () => {
     });
 
     describe("listar", () => {
-        it("usa primero=0 y max=50 por defecto", async () => {
+        it("usa primero=0 y el tamaño de página de la configuración por defecto", async () => {
             fetchFalso.resolves(respuesta(200, []));
             await servicio.listar();
-            expect(fetchFalso.firstCall.args[0]).to.match(/documento\?primero=0&max=50$/);
+            expect(fetchFalso.firstCall.args[0]).to.match(/documento\?primero=0&max=500$/);
         });
         it("usa los valores que se le pasan", async () => {
             fetchFalso.resolves(respuesta(200, []));

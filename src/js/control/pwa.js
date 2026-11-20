@@ -1,15 +1,13 @@
 class Pwa {
 
-    static CLAVE_APLAZO = "galeno-instalar-aplazo";
-    static CLAVE_SESION = "galeno-invitacion-vista";
-    static DIAS_APLAZO = 7;
-    static MS_DIA = 24 * 60 * 60 * 1000;
-
     // Prepara las referencias del navegador y el estado de instalación.
     constructor({ ventana = window, navegador = navigator, almacen = null } = {}) {
         this.ventana = ventana;
         this.navegador = navegador;
         this.almacen = almacen || { local: ventana.localStorage, sesion: ventana.sessionStorage };
+        this.claveAplazo = "galeno-instalar-aplazo";
+        this.claveSesion = "galeno-invitacion-vista";
+        this.msAplazo = 7 * 24 * 60 * 60 * 1000;
         this.eventoInstalacion = null;
         this.registro = null;
         this._probable = false;
@@ -48,17 +46,20 @@ class Pwa {
     }
 
     // Registra el service worker si el navegador lo admite.
-    async registrar(ruta = "sw.js") {
-        if (!("serviceWorker" in this.navegador)) return null;
-        try {
-            this.registro = await this.navegador.serviceWorker.register(ruta);
-            this._probable = this.navegadorInstalable();
-            if (this._probable) this.ventana.dispatchEvent(new CustomEvent("galeno-instalable"));
-            return this.registro;
-        } catch (e) {
-            console.warn("No se pudo registrar el service worker:", e.message);
-            return null;
-        }
+    registrar(ruta = "sw.js") {
+        if (!("serviceWorker" in this.navegador)) return Promise.resolve(null);
+        return Promise.resolve()
+            .then(() => this.navegador.serviceWorker.register(ruta))
+            .then(registro => {
+                this.registro = registro;
+                this._probable = this.navegadorInstalable();
+                if (this._probable) this.ventana.dispatchEvent(new CustomEvent("galeno-instalable"));
+                return registro;
+            })
+            .catch(e => {
+                console.warn("No se pudo registrar el service worker:", e.message);
+                return null;
+            });
     }
 
     // Comprueba si el navegador ofrece instalación.
@@ -97,38 +98,38 @@ class Pwa {
     }
 
     // Solicita la instalación o abre las instrucciones disponibles.
-    async instalar() {
-        if (!this.puedeInstalar) return "no-disponible";
+    instalar() {
+        if (!this.puedeInstalar) return Promise.resolve("no-disponible");
         const evento = this.eventoInstalacion;
         this.eventoInstalacion = null;
-        await evento.prompt();
-        const { outcome } = await evento.userChoice;
-        return outcome;
+        return Promise.resolve(evento.prompt())
+            .then(() => evento.userChoice)
+            .then(({ outcome }) => outcome);
     }
 
 
     // Guarda la fecha desde la que se cuenta el aplazamiento.
     aplazar() {
-        try { this.almacen.local.setItem(Pwa.CLAVE_APLAZO, String(Date.now())); } catch (e) {   }
+        try { this.almacen.local.setItem(this.claveAplazo, String(Date.now())); } catch (e) {   }
     }
 
     // Indica si sigue vigente el aplazamiento de la invitación.
     aplazado() {
         try {
-            const fecha = Number(this.almacen.local.getItem(Pwa.CLAVE_APLAZO));
+            const fecha = Number(this.almacen.local.getItem(this.claveAplazo));
             if (!fecha) return false;
-            return Date.now() - fecha < Pwa.DIAS_APLAZO * Pwa.MS_DIA;
+            return Date.now() - fecha < this.msAplazo;
         } catch (e) { return false; }
     }
 
     // Registra que la invitación ya se mostró en esta sesión.
     marcarInvitacionMostrada() {
-        try { this.almacen.sesion.setItem(Pwa.CLAVE_SESION, "1"); } catch (e) {   }
+        try { this.almacen.sesion.setItem(this.claveSesion, "1"); } catch (e) {   }
     }
 
     // Consulta si ya se mostró la invitación en esta sesión.
     invitacionMostrada() {
-        try { return this.almacen.sesion.getItem(Pwa.CLAVE_SESION) === "1"; } catch (e) { return false; }
+        try { return this.almacen.sesion.getItem(this.claveSesion) === "1"; } catch (e) { return false; }
     }
 
     // Comprueba si corresponde ofrecer la invitación en esta sesión.

@@ -348,6 +348,14 @@ header galeno-boton-instalar{ margin-left:auto; }
     border:1px solid var(--aviso); border-radius:999px;
     font-size:var(--fs-0); font-weight:700; padding:.1rem .7rem;
 }
+#pantalla .aviso-devuelto{
+    margin:0 0 .75rem; padding:.6rem .8rem; border-radius:.5rem;
+    background:var(--aviso-fondo); border:1px solid var(--aviso); color:var(--tinta); font-weight:600;
+}
+#pantalla .aviso-devuelto[hidden]{ display:none; }
+#pantalla .panel-devolver{ display:grid; gap:.75rem; margin-top:1rem; border-color:var(--aviso); }
+#pantalla .panel-devolver[hidden]{ display:none; }
+#pantalla .panel-devolver .acciones{ display:flex; flex-wrap:wrap; gap:.5rem; justify-content:flex-end; }
 #pantalla .solo-lectura{ background:var(--fondo); border-style:dashed; }
 #pantalla .barra-acciones{
     position:sticky; bottom:0; z-index:5;

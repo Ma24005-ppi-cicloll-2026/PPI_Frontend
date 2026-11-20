@@ -1,6 +1,6 @@
 class MedioContactoService extends DefaultService {
     // Vincula el servicio con su recurso REST.
-    constructor() {
-        super("medio_contacto");
+    constructor(opciones) {
+        super("medio_contacto", opciones);
     }
 }

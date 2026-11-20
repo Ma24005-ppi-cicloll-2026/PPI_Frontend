@@ -1,7 +1,5 @@
 {
 const { expect } = chai;
-// Deja terminar las tareas asíncronas pendientes de la prueba.
-const esperar = () => new Promise(r => setTimeout(r, 0));
 
 // Prepara un servicio PWA con el estado que requiere la prueba.
 function pwaFalso({ estado = "instalable", resultado = "accepted", aplazado = false } = {}) {
@@ -116,7 +114,7 @@ describe("<galeno-invitacion-instalar>", () => {
         const pwa = pwaFalso(); el.pwa = pwa;
         const avisoFalso = { mostrar: sinon.spy() }; el.aviso = avisoFalso;
         pwa.ventana.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
-        primario().click(); await esperar();
+        await el.aceptar();
         expect(pwa.instalar.calledOnce).to.equal(true);
         expect(avisoFalso.mostrar.calledWith("¡GalenoSV instalada!", "exito")).to.equal(true);
         expect(visible()).to.equal(false);
@@ -125,7 +123,7 @@ describe("<galeno-invitacion-instalar>", () => {
         const pwa = pwaFalso({ resultado: "dismissed" }); el.pwa = pwa;
         const avisoFalso = { mostrar: sinon.spy() }; el.aviso = avisoFalso;
         pwa.ventana.dispatchEvent(new CustomEvent("galeno-ticket-descargado"));
-        primario().click(); await esperar();
+        await el.aceptar();
         expect(avisoFalso.mostrar.called).to.equal(false);
         expect(visible()).to.equal(false);
     });

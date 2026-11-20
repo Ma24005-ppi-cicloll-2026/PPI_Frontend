@@ -1,14 +1,12 @@
 {
 const { expect } = chai;
-// Deja terminar las tareas asíncronas pendientes de la prueba.
-const esperar = () => new Promise(r => setTimeout(r, 0));
 
 describe("Ticket de citas · activacion de la invitacion a instalar", () => {
     let api, zona, modelo, descargar, invitacion, pwa;
 
     // Prepara el entorno de las pruebas.
     beforeEach(async () => {
-        Sesion.cerrar();
+        new Sesion().cerrar();
         api = new ApiFalsa(Datos.bd());
         zona = document.createElement("div"); document.body.append(zona);
         pwa = {
@@ -23,10 +21,10 @@ describe("Ticket de citas · activacion de la invitacion a instalar", () => {
         invitacion = document.createElement("galeno-invitacion-instalar");
         invitacion.pwa = pwa;
         document.body.append(invitacion);
-        await Ayuda.esperar();
+        await Ayuda.hasta(() => invitacion.shadowRoot.querySelector(".tarjeta"));
         descargar = sinon.stub().resolves("ticket.pdf");
         modelo = new CitasModel(zona, { descargar });
-        await modelo.iniciar(); await Ayuda.esperar();
+        await modelo.iniciar();
     });
     // Limpia el entorno al terminar las pruebas.
     afterEach(() => { api.restaurar(); zona.remove(); invitacion.remove(); });
@@ -42,7 +40,7 @@ describe("Ticket de citas · activacion de la invitacion a instalar", () => {
     const bajarTicket = async tarjeta => {
         tarjeta.dispatchEvent(new CustomEvent("galeno-descargar-ticket",
             { detail: { idConsulta: "c1" }, bubbles: true, composed: true }));
-        await esperar();
+        await Ayuda.hasta(() => tarjeta.cita.ocupada === false, { mensaje: "la tarjeta siguió ocupada" });
     };
 
     it("la descarga exitosa sigue igual y activa la invitacion (una vez por sesion)", async () => {

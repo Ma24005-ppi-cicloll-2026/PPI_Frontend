@@ -6,6 +6,8 @@ class GalenoPantalla extends HTMLElement {
         super();
         this._irA = () => {};
         this._modelo = null;
+        // Servicios o utilidades que se le pasan al modelo; las pruebas ponen aquí sus versiones falsas.
+        this.dependencias = {};
         this._activa = false;
     }
 
@@ -33,7 +35,7 @@ class GalenoPantalla extends HTMLElement {
 
 class GalenoPantallaCitas extends GalenoPantalla {
     // Monta el controlador de esta ruta con su propia vista.
-    iniciarModelo() { this._modelo = new CitasModel(this); this._modelo.iniciar(); }
+    iniciarModelo() { this._modelo = new CitasModel(this, this.dependencias); this._modelo.iniciar(); }
 }
 
 class GalenoPantallaLogin extends GalenoPantalla {
@@ -146,14 +148,14 @@ class GalenoPantallaLogin extends GalenoPantalla {
                 </div>
             </section>`;
         const aviso = this.closest("galeno-app")?.querySelector("#aviso") ?? document.querySelector("#aviso");
-        this._modelo = new LoginModel(this.shadowRoot, { irA: this.irA, aviso });
+        this._modelo = new LoginModel(this.shadowRoot, { irA: this.irA, aviso, ...this.dependencias });
         this._modelo.iniciar();
     }
 }
 
 class GalenoPantallaDashboard extends GalenoPantalla {
     // Monta el controlador de esta ruta con su propia vista.
-    iniciarModelo() { this._modelo = new DashboardModel(this, { irA: this.irA }); this._modelo.iniciar(); }
+    iniciarModelo() { this._modelo = new DashboardModel(this, { irA: this.irA, ...this.dependencias }); this._modelo.iniciar(); }
 }
 
 class GalenoPantallaConsulta extends GalenoPantalla {
@@ -161,7 +163,7 @@ class GalenoPantallaConsulta extends GalenoPantalla {
     constructor() { super(); this.idConsulta = null; }
     // Monta el controlador de esta ruta con su propia vista.
     iniciarModelo() {
-        this._modelo = new SeguimientoModel(this, this.idConsulta, { irA: this.irA });
+        this._modelo = new SeguimientoModel(this, this.idConsulta, { irA: this.irA, ...this.dependencias });
         this._modelo.iniciar();
     }
 }

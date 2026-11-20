@@ -1,6 +1,6 @@
 class GalenoMenu extends HTMLElement {
 
-    static ICONOS = {
+    iconos = {
         citas: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15.5" rx="2.2"/><path d="M3.5 9.5h17M8 2.8v4.2M16 2.8v4.2"/><path d="m8.6 14.6 2.1 2.1 4.4-4.5"/></svg>`,
         login: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.5 20c.9-3.3 3.4-5.1 6.5-5.1s5.6 1.8 6.5 5.1"/></svg>`,
         dashboard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></svg>`,
@@ -8,7 +8,7 @@ class GalenoMenu extends HTMLElement {
         general: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/></svg>`
     };
 
-    static MARCA = `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="14" fill="currentColor" opacity=".14"/><path d="M16 9.5v13M9.5 16h13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+    marca = `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="14" fill="currentColor" opacity=".14"/><path d="M16 9.5v13M9.5 16h13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
 
     // Prepara el estado interno antes de montar el componente.
     constructor() {
@@ -31,7 +31,7 @@ class GalenoMenu extends HTMLElement {
     connectedCallback() { this.pintar(); }
 
     // Escapa los caracteres con significado en HTML.
-    static escapar(t) {
+    escapar(t) {
         const d = document.createElement("div");
         d.textContent = t == null ? "" : String(t);
         return d.innerHTML;
@@ -76,15 +76,15 @@ class GalenoMenu extends HTMLElement {
             }
             @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
           </style>
-          <p class="marca">${GalenoMenu.MARCA}<span>GalenoSV</span></p>
+          <p class="marca">${this.marca}<span>GalenoSV</span></p>
           <ul></ul>`;
         const ul = this.shadowRoot.querySelector("ul");
         this._items.forEach(item => {
             const li = document.createElement("li");
             const b = document.createElement("button");
             b.type = "button";
-            b.innerHTML = (GalenoMenu.ICONOS[item.destino] || GalenoMenu.ICONOS.general)
-                + `<span>${GalenoMenu.escapar(item.texto)}</span>`;
+            b.innerHTML = (this.iconos[item.destino] || this.iconos.general)
+                + `<span>${this.escapar(item.texto)}</span>`;
             if (item.destino === this._activo) b.setAttribute("aria-current", "page");
             b.addEventListener("click", () => {
                 this._activo = item.destino;

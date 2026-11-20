@@ -1,5 +1,8 @@
 class GalenoTarjetaCita extends HTMLElement {
 
+    // Utilidades del sistema que usa el componente para mostrar los datos.
+    fechas = new GestorFechas();
+
     // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
@@ -30,7 +33,7 @@ class GalenoTarjetaCita extends HTMLElement {
     // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const c = this._cita || {};
-        const f = GestorFechas.leer(c.fechaInicio);
+        const f = this.fechas.leer(c.fechaInicio);
         const dia = f ? f.toLocaleDateString("es-SV", { day: "2-digit" }) : "—";
         const mes = f ? f.toLocaleDateString("es-SV", { month: "short" }).replace(".", "") : "—";
         const anio = f ? f.getFullYear() : "";

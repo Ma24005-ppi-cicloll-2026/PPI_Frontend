@@ -1,129 +1,136 @@
 {
 const { expect } = chai;
-describe("CitasModel (HU1)", () => {
-    let api, zona, modelo, descargar;
-    // Prepara el entorno de las pruebas.
-    beforeEach(async () => {
-        Sesion.cerrar();
-        api = new ApiFalsa(Datos.bd());
-        zona = document.createElement("div"); document.body.append(zona);
-        descargar = sinon.stub().resolves("ticket.pdf");
-        modelo = new CitasModel(zona, { descargar });
-        await modelo.iniciar(); await Ayuda.esperar();
-    });
-    // Limpia el entorno al terminar las pruebas.
-    afterEach(() => { api.restaurar(); zona.remove(); });
-    // Busca un elemento de la pantalla de prueba por su ID.
-    const q = id => zona.querySelector("#" + id);
-    // Busca los registros que coinciden con los datos elegidos.
-    const buscar = async () => { q("formulario").dispatchEvent(new Event("submit", { cancelable: true })); await Ayuda.esperar(12); };
-    // Rellena los datos de identidad en el asistente.
-    const documento = (tipo, numero) => { Ayuda.tipo(q("tipo"), tipo); Ayuda.escribir(q("numero"), numero); };
-    // Devuelve las tarjetas que están visibles en el resultado.
-    const tarjetas = () => [...zona.querySelectorAll("galeno-tarjeta-cita")];
 
-    it("es un asistente en orden: tipo, numero, clinica, fechas", () => {
-        const orden = [...zona.querySelectorAll("#formulario [id]")].map(e => e.id)
-            .filter(id => id !== "desde" && id !== "hasta");
-        expect(orden).to.deep.equal(["tipo", "numero", "clinica", "mensaje", "buscar"]);
-        expect(q("desde").getAttribute("type")).to.equal("date");
+// Pruebas unitarias: cada caso arma su paciente, sus clínicas y sus consultas mínimas.
+describe("CitasModel (HU1)", () => {
+    const dui = Falsos.tipo("t-dui");
+    const luis = Falsos.persona("p-luis", "Luis", "Pérez");
+    const paciente = Falsos.rol("r-pac", "Paciente");
+    const sa = Falsos.clinica("c-sa", "Santa Ana"), sm = Falsos.clinica("c-sm", "San Miguel");
+    const enSa = Falsos.personaRol("pr-sa", luis, paciente, sa), enSm = Falsos.personaRol("pr-sm", luis, paciente, sm);
+    const consulta = (id, personaRol, desfase) => ({ idConsulta: id, fechaInicio: Falsos.dia(desfase), idPersonaRol: personaRol });
+    let zona, modelo, servicios, descargar, aviso;
+
+    // Crea el modelo con los servicios falsos y lo inicia.
+    const montar = ({ personasRoles = [enSa, enSm], consultas = [], falla = false } = {}) => {
+        servicios = {
+            personasRoles: Falsos.servicio(personasRoles), documentos: Falsos.servicio([Falsos.documento(luis, dui, "11111111-1")]),
+            tipos: Falsos.servicio([dui]), consultas: Falsos.servicio(consultas, { falla }),
+            cps: Falsos.servicio([{ idConsultaProcedimiento: "cp1", idProcedimiento: "pc1", idConsulta: { idConsulta: "k-hoy" } }]),
+            procedimientos: Falsos.servicio([{ idProcedimiento: "pc1", nombre: "Consulta general" }])
+        };
+        descargar = sinon.stub().resolves("ticket.pdf");
+        aviso = Falsos.aviso();
+        zona = document.createElement("div"); document.body.append(zona);
+        modelo = new CitasModel(zona, { servicios, descargar, aviso });
+        return modelo.iniciar();
+    };
+    // Busca un elemento de la vista.
+    const q = id => zona.querySelector("#" + id);
+    // Identifica al paciente con su DUI.
+    const identificar = (numero = "11111111-1") => { Ayuda.tipo(q("tipo"), "t-dui"); Ayuda.escribir(q("numero"), numero); };
+    // Elige la clínica por su ID.
+    const elegirClinica = id => Ayuda.elegir(q("clinica"), q("clinica").opciones.findIndex(c => c.idClinica === id));
+    // IDs de las citas que se muestran.
+    const ids = () => [...zona.querySelectorAll("galeno-tarjeta-cita")].map(t => t.cita.idConsulta);
+
+    afterEach(() => zona?.remove());
+
+    it("al iniciar llena el buscador con los tipos de documento", async () => {
+        await montar();
+        expect(q("tipo").opciones).to.have.length(1);
     });
-    it("cada seccion del asistente se ve activa o bloqueada segun el estado", () => {
-        const secciones = [...zona.querySelectorAll(".seccion-asistente")];
-        expect(secciones).to.have.length(3);
-        expect(secciones[0].classList.contains("activa")).to.equal(true);
-        expect(secciones[1].classList.contains("bloqueada")).to.equal(true);
-        documento("DUI", "11111111-1");
-        expect(secciones[0].classList.contains("completa")).to.equal(true);
-        expect(secciones[1].classList.contains("activa")).to.equal(true);
-        expect(secciones[2].classList.contains("activa")).to.equal(true);
+    it("al identificarse ofrece solo las clínicas donde es paciente", async () => {
+        await montar();
+        identificar();
+        expect(q("clinica").opciones.map(c => c.idClinica)).to.have.members(["c-sa", "c-sm"]);
     });
-    it("numero y clinica estan bloqueados al inicio", () => {
-        expect(q("numero").deshabilitado).to.equal(true);
-        expect(q("clinica").deshabilitado).to.equal(true);
+    it("si es paciente de una sola clínica, queda elegida", async () => {
+        await montar({ personasRoles: [enSa] });
+        identificar();
+        expect(q("clinica").seleccionado.idClinica).to.equal("c-sa");
     });
-    it("al escribir un documento de paciente se llena la lista con SUS clinicas", () => {
-        documento("DUI", "11111111-1");
-        expect(q("clinica").opciones.map(c => c.nombre)).to.have.members(["Santa Ana", "San Miguel"]);
-        expect(q("clinica").deshabilitado).to.equal(false);
+    it("buscar devuelve una promesa y la vista reacciona al evento galeno-citas-encontradas", async () => {
+        await montar({ consultas: [consulta("k-hoy", enSa, 0)] });
+        identificar(); elegirClinica("c-sa");
+        const eventos = [];
+        zona.addEventListener("galeno-citas-encontradas", e => eventos.push(e.detail.citas));
+        const promesa = modelo.buscar();
+        expect(eventos).to.have.length(0);
+        await promesa;
+        expect(eventos).to.have.length(1);
+        expect(ids()).to.deep.equal(["k-hoy"]);
     });
-    it("si solo es paciente de una clinica queda elegida", () => {
-        Ayuda.tipo(q("tipo"), "Pasaporte"); Ayuda.escribir(q("numero"), "A1234567");
-        expect(q("clinica").seleccionado.nombre).to.equal("Santa Ana");
+    it("muestra solo las citas de esa clínica, de la más antigua a la más reciente", async () => {
+        await montar({ consultas: [consulta("k-manana", enSa, 1), consulta("k-otra", enSm, 0), consulta("k-ayer", enSa, -1)] });
+        identificar(); elegirClinica("c-sa");
+        await modelo.buscar();
+        expect(ids()).to.deep.equal(["k-ayer", "k-manana"]);
     });
-    it("un empleado que no es paciente no tiene clinicas", () => {
-        documento("DUI", "01234567-8");
-        expect(q("clinica").opciones).to.have.length(0);
+    it("cada cita lleva el nombre de sus procedimientos", async () => {
+        await montar({ consultas: [consulta("k-hoy", enSa, 0)] });
+        identificar(); elegirClinica("c-sa");
+        await modelo.buscar();
+        expect(zona.querySelector("galeno-tarjeta-cita").cita.procedimientos).to.deep.equal(["Consulta general"]);
     });
-    it("valida el formato del documento", async () => {
-        documento("DUI", "12"); await buscar();
-        expect(q("numero").shadowRoot.querySelector("#error").textContent).to.contain("formato de DUI");
+    it("filtra por el rango de fechas", async () => {
+        await montar({ consultas: [consulta("k-hoy", enSa, 0), consulta("k-manana", enSa, 1)] });
+        identificar(); elegirClinica("c-sa");
+        q("desde").value = Falsos.fechaLocal(1); q("hasta").value = Falsos.fechaLocal(1);
+        await modelo.buscar();
+        expect(ids()).to.deep.equal(["k-manana"]);
     });
-    it("si no existe ese paciente lo dice", async () => {
-        documento("DUI", "99999999-9"); await buscar();
-        expect(q("mensaje").textContent).to.contain("No encontramos un paciente");
-    });
-    it("pide elegir la clinica", async () => {
-        documento("DUI", "11111111-1"); await buscar();
-        expect(q("clinica").shadowRoot.querySelector("#error").textContent).to.contain("clínica");
-    });
-    it("muestra una card por cita de ESA clinica, de la mas proxima a la mas lejana", async () => {
-        documento("DUI", "11111111-1");
-        Ayuda.elegir(q("clinica"), q("clinica").opciones.findIndex(c => c.nombre === "Santa Ana"));
-        await buscar();
-        expect(tarjetas().map(t => t.cita.idConsulta)).to.deep.equal(["k-ayer", "k-hoy", "k-cerrada"].sort((a, b) => 0) && tarjetas().map(t => t.cita.idConsulta));
-        const ids = tarjetas().map(t => t.cita.idConsulta);
-        expect(ids).to.have.members(["k-ayer", "k-hoy", "k-cerrada"]);
-        expect(ids[0]).to.equal("k-ayer");
-        expect(tarjetas()[1].cita.clinica).to.equal("Santa Ana");
-        expect(tarjetas()[1].cita.procedimientos).to.deep.equal(["Consulta general"]);
-    });
-    it("filtra por rango de fechas", async () => {
-        documento("DUI", "11111111-1");
-        Ayuda.elegir(q("clinica"), q("clinica").opciones.findIndex(c => c.nombre === "Santa Ana"));
-        const hoy = Datos.fechaLocal(0);
-        q("desde").value = hoy; q("hasta").value = hoy;
-        await buscar();
-        expect(tarjetas().map(t => t.cita.idConsulta)).to.have.members(["k-hoy", "k-cerrada"]);
-    });
-    it("fechas al reves dan error", async () => {
-        documento("DUI", "11111111-1");
-        Ayuda.elegir(q("clinica"), 0);
+    it("con datos inválidos no consulta al servidor", async () => {
+        await montar();
+        identificar("123");
+        await modelo.buscar();
+        expect(servicios.consultas.listarTodo.called).to.equal(false);
+        identificar(); elegirClinica("c-sa");
         q("desde").value = "2026-12-01"; q("hasta").value = "2026-11-01";
-        await buscar();
-        expect(q("hasta").shadowRoot.querySelector("#error").textContent).to.contain("anterior");
-        expect(tarjetas()).to.have.length(0);
+        await modelo.buscar();
+        expect(servicios.consultas.listarTodo.called).to.equal(false);
     });
-    it("sin citas en el rango lo dice", async () => {
-        documento("DUI", "11111111-1");
-        Ayuda.elegir(q("clinica"), q("clinica").opciones.findIndex(c => c.nombre === "Santa Ana"));
-        q("desde").value = "2001-01-01"; q("hasta").value = "2001-01-02";
-        await buscar();
+    it("sin citas muestra el estado vacío", async () => {
+        await montar();
+        identificar(); elegirClinica("c-sa");
+        await modelo.buscar();
         expect(q("estado").estado).to.equal("vacio");
     });
-    it("error del servidor al buscar se muestra con Reintentar", async () => {
-        documento("DUI", "11111111-1");
-        Ayuda.elegir(q("clinica"), 0);
-        const original = window.fetch;
-        window.fetch = sinon.stub().callsFake((u, o) => /resources\/consulta\?/.test(u) ? Promise.resolve(new Response("", { status: 500 })) : original(u, o));
-        try { await buscar(); } finally { window.fetch = original; }
+    it("si el servidor falla muestra el estado de error", async () => {
+        await montar({ falla: true });
+        identificar(); elegirClinica("c-sa");
+        await modelo.buscar();
         expect(q("estado").estado).to.equal("error");
     });
-    it("el boton de la card descarga el ticket de ESA consulta", async () => {
-        documento("DUI", "11111111-1");
-        Ayuda.elegir(q("clinica"), q("clinica").opciones.findIndex(c => c.nombre === "Santa Ana"));
-        await buscar();
-        Ayuda.clic(tarjetas()[0], "#ticket"); await Ayuda.esperar();
-        expect(descargar.calledOnceWith("k-ayer")).to.equal(true);
-        expect(tarjetas()[0].cita.ocupada).to.equal(false);
+    it("descarta la respuesta de una búsqueda que ya quedó atrás", async () => {
+        await montar({ consultas: [consulta("k-hoy", enSa, 0)] });
+        identificar(); elegirClinica("c-sa");
+        const lenta = Falsos.diferida();
+        servicios.consultas.listarTodo.onFirstCall().returns(lenta.promesa);
+        const primera = modelo.buscar();
+        await Ayuda.hasta(() => servicios.consultas.listarTodo.calledOnce, { mensaje: "la primera búsqueda no pidió las consultas" });
+        await modelo.buscar();
+        lenta.resolver([consulta("k-vieja", enSa, 0)]);
+        await primera;
+        expect(ids()).to.deep.equal(["k-hoy"]);
     });
-    it("si el ticket falla no se rompe la pantalla", async () => {
+    it("el botón de la tarjeta descarga el ticket de esa consulta y libera la tarjeta", async () => {
+        await montar({ consultas: [consulta("k-hoy", enSa, 0)] });
+        identificar(); elegirClinica("c-sa");
+        await modelo.buscar();
+        const tarjeta = zona.querySelector("galeno-tarjeta-cita");
+        await modelo.bajarTicket({ target: tarjeta, detail: { idConsulta: "k-hoy" } });
+        expect(descargar.calledOnceWith("k-hoy")).to.equal(true);
+        expect(tarjeta.cita.ocupada).to.equal(false);
+    });
+    it("si el ticket falla avisa el error sin romper la lista", async () => {
+        await montar({ consultas: [consulta("k-hoy", enSa, 0)] });
+        identificar(); elegirClinica("c-sa");
+        await modelo.buscar();
         descargar.rejects(new Error("La cita ya no existe"));
-        documento("DUI", "11111111-1");
-        Ayuda.elegir(q("clinica"), q("clinica").opciones.findIndex(c => c.nombre === "Santa Ana"));
-        await buscar();
-        Ayuda.clic(tarjetas()[0], "#ticket"); await Ayuda.esperar();
-        expect(tarjetas()).to.have.length(3);
+        await modelo.bajarTicket({ target: zona.querySelector("galeno-tarjeta-cita"), detail: { idConsulta: "k-hoy" } });
+        expect(aviso.mostrar.calledWith("La cita ya no existe", "error")).to.equal(true);
+        expect(ids()).to.deep.equal(["k-hoy"]);
     });
 });
 }

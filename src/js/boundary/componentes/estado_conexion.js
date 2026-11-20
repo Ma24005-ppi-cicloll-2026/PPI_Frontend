@@ -1,6 +1,6 @@
 class GalenoConexion extends HTMLElement {
 
-    static ICONOS = {
+    iconos = {
         sin: '<svg class="icono" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m4 4 16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
         ok:  '<svg class="icono" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="19" cy="18" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m17 18 1.4 1.4L21.4 16.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     };
@@ -70,7 +70,7 @@ class GalenoConexion extends HTMLElement {
             "sin-conexion": this.textoEstado || "Sin conexión: mostrando los datos guardados en este dispositivo.",
             "restablecida": this.textoEstado || "Conexión restablecida"
         };
-        const iconos = { "sin-conexion": GalenoConexion.ICONOS.sin, "restablecida": GalenoConexion.ICONOS.ok };
+        const iconos = { "sin-conexion": this.iconos.sin, "restablecida": this.iconos.ok };
         this.shadowRoot.innerHTML = `
           <style>
             :host { display:block; }

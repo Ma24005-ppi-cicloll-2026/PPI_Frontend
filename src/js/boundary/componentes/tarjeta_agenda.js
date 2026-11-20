@@ -1,5 +1,9 @@
 class GalenoTarjetaAgenda extends HTMLElement {
 
+    // Utilidades del sistema que usa el componente para mostrar los datos.
+    agenda = new Agenda();
+    datosClinica = new DatosClinica();
+
     // Prepara el estado interno antes de montar el componente.
     constructor() {
         super();
@@ -22,13 +26,13 @@ class GalenoTarjetaAgenda extends HTMLElement {
     }
 
     // Obtiene las iniciales que se muestran en el avatar.
-    static iniciales(nombre) {
+    iniciales(nombre) {
         return String(nombre ?? "").trim().split(/\s+/).slice(0, 2)
             .map(p => p[0] ? p[0].toUpperCase() : "").join("") || "?";
     }
 
     // Elige el estilo visual para el estado recibido.
-    static tono(nombre) {
+    tono(nombre) {
         let h = 0;
         for (const c of String(nombre ?? "")) h = (h * 31 + c.charCodeAt(0)) % 997;
         return h % 5;
@@ -66,16 +70,16 @@ class GalenoTarjetaAgenda extends HTMLElement {
         const proc = pr => {
             if (!pr.pasos.length) return `<p class="sin">Aún sin pasos realizados</p>`;
             const total = pr.total ?? pr.pasos.length;
-            const hechos = pr.pasos.filter(s => s.estado === DatosClinica.COMPLETADO).length;
+            const hechos = pr.pasos.filter(s => s.estado === this.datosClinica.completado).length;
             const pct = total > 0 ? Math.round(hechos * 100 / total) : 0;
             // Genera una fila con el resumen del paso.
             const li = (s, extra) => `
                 <li ${extra ? 'class="extra" hidden' : ""}>
-                  <span class="marca ${s.estado === DatosClinica.COMPLETADO ? "hecho" : "curso"}" aria-hidden="true">${s.estado === DatosClinica.COMPLETADO ? "✓" : "…"}</span>
+                  <span class="marca ${s.estado === this.datosClinica.completado ? "hecho" : "curso"}" aria-hidden="true">${s.estado === this.datosClinica.completado ? "✓" : "…"}</span>
                   <span class="paso-nombre" title="${e(s.nombre)}">${e(s.nombre)}
-                    <span class="ins ${s.estado === DatosClinica.COMPLETADO ? "ins-hecho" : "ins-curso"}">${e(s.estado || "En proceso")}</span></span>
+                    <span class="ins ${s.estado === this.datosClinica.completado ? "ins-hecho" : "ins-curso"}">${e(s.estado || "En proceso")}</span></span>
                   <span class="quien-paso" title="${e((s.quien || "—") + (s.rol ? " · " + s.rol : ""))}">${e(s.quien || "—")}${s.rol ? " · " + e(s.rol) : ""}</span>
-                  <time>${e(Agenda.hora(s.fecha))}</time>
+                  <time>${e(this.agenda.hora(s.fecha))}</time>
                   <button type="button" class="ver" data-paso="${e(s.idPaso)}" aria-label="Ver registro de ${e(s.nombre)}">
                     <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                     <span>Registro</span>
@@ -119,6 +123,7 @@ class GalenoTarjetaAgenda extends HTMLElement {
             .lado-sup { display:flex; flex-direction:column; align-items:flex-end; gap:.3rem; flex:0 0 auto; }
             .insignia { border-radius:999px; padding:.1rem .6rem; font-size:var(--fs-0, .75rem); font-weight:700; white-space:nowrap; }
             .insignia.curso { background:var(--primario-suave, #E9F1EF); color:var(--primario-oscuro, #25585B); border:1px solid var(--secundario-borde, #AECFC6); }
+            .insignia.devuelta { background:var(--aviso-fondo, #F7F0E3); color:var(--tinta, #1D3461); border:1px solid var(--aviso, #B98A3E); }
             .insignia.fin { background:var(--fondo, #F5F8F8); color:var(--tinta-suave, #44577B); border:1px solid var(--borde-fuerte, #9FB0B8); }
             .cuando { display:flex; flex-direction:column; align-items:flex-end; line-height:1.25;
                       background:var(--info-fondo, #EDF3F2); border-radius:var(--radio-control, .625rem); padding:.2rem .55rem;
@@ -172,15 +177,15 @@ class GalenoTarjetaAgenda extends HTMLElement {
           <article class="${finalizada ? "finalizada" : ""}">
             <header>
               <div class="quien">
-                <span class="avatar tono-${GalenoTarjetaAgenda.tono(p.nombre)}" aria-hidden="true">${e(GalenoTarjetaAgenda.iniciales(p.nombre))}</span>
+                <span class="avatar tono-${this.tono(p.nombre)}" aria-hidden="true">${e(this.iniciales(p.nombre))}</span>
                 <div class="ident">
                   <h3>${e(p.nombre || "Paciente")}</h3>
                   <small class="ident-datos" title="${e((p.edad != null ? p.edad + " años · " : "") + (p.documento || "—"))}">${p.edad != null ? e(p.edad) + " años · " : ""}${e(p.documento || "—")}</small>
                 </div>
               </div>
               <div class="lado-sup">
-                <span class="insignia ${finalizada ? "fin" : "curso"}">${finalizada ? "Finalizada" : "En curso"}</span>
-                <div class="cuando"><strong>${e(Agenda.dia(d.fechaInicio))}</strong><span>${e(Agenda.hora(d.fechaInicio))}</span></div>
+                <span class="insignia ${finalizada ? "fin" : d.devuelta ? "devuelta" : "curso"}">${finalizada ? "Finalizada" : d.devuelta ? "Devuelta" : "En curso"}</span>
+                <div class="cuando"><strong>${e(this.agenda.dia(d.fechaInicio))}</strong><span>${e(this.agenda.hora(d.fechaInicio))}</span></div>
               </div>
             </header>
             ${d.titulo ? `<small class="ref">${e(d.titulo)}</small>` : ""}

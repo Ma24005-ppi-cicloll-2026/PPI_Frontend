@@ -5,7 +5,7 @@ describe("AppModel", () => {
     const empleado = { idPersona: "p-ana", nombre: "Ana Mejía", contextos: [{ idPersonaRol: "pr-ana-med-sa", idRol: "r-med", rol: "Médico", idClinica: "c-sa", clinica: "Santa Ana" }] };
     // Prepara el entorno de las pruebas.
     beforeEach(() => {
-        Sesion.cerrar(); window.location.hash = "";
+        new Sesion().cerrar(); window.location.hash = "";
         api = new ApiFalsa(Datos.bd());
         transicionStub = sinon.stub(document, "startViewTransition")
             .callsFake(fn => { fn(); return { finished: Promise.resolve() }; });
@@ -14,9 +14,11 @@ describe("AppModel", () => {
         document.body.append(cont);
     });
     // Limpia el entorno al terminar las pruebas.
-    afterEach(() => { transicionStub.restore(); app?.destruir(); api.restaurar(); cont.remove(); Sesion.cerrar(); window.location.hash = ""; });
+    afterEach(() => { transicionStub.restore(); app?.destruir(); api.restaurar(); cont.remove(); new Sesion().cerrar(); window.location.hash = ""; });
     // Monta el enrutador y espera a que termine la primera carga.
-    const arrancar = async () => { app = new AppModel(); app.iniciar(); await Ayuda.esperar(); };
+    const arrancar = async () => { app = new AppModel(); app.iniciar(); await Ayuda.hasta(() => cont.querySelector("#pantalla").firstElementChild); };
+    // Espera a que la pantalla indicada quede montada, sin contar vueltas.
+    const enPantalla = texto => Ayuda.hasta(() => titulo() === texto, { mensaje: "no se abrió " + texto });
     // Recoge los destinos que muestra el menú.
     const menu = () => app.menu.items.map(i => i.texto);
     // Devuelve la raíz encapsulada de la pantalla de acceso.
@@ -34,7 +36,7 @@ describe("AppModel", () => {
         it("el boton Iniciar sesión de la cabecera lleva al login", async () => {
             await arrancar();
             cont.querySelector("#sesion button.entrar").click();
-            await Ayuda.esperar();
+            await enPantalla("Iniciar sesión");
             expect(titulo()).to.equal("Iniciar sesión");
             expect(window.location.hash).to.equal("#/login");
         });
@@ -65,7 +67,7 @@ describe("AppModel", () => {
 
     describe("empleado", () => {
         // Prepara el entorno de las pruebas.
-        beforeEach(() => Sesion.iniciar(empleado));
+        beforeEach(() => new Sesion().iniciar(empleado));
         it("empieza en el Dashboard", async () => {
             await arrancar();
             expect(titulo()).to.equal("Dashboard");
@@ -74,8 +76,8 @@ describe("AppModel", () => {
         it("la cabecera compacta muestra el titulo de la seccion actual", async () => {
             await arrancar();
             expect(cont.querySelector("#titulo-seccion-texto").textContent).to.equal("Dashboard");
-            Sesion.cerrar();
-            await Ayuda.esperar();
+            new Sesion().cerrar();
+            await Ayuda.hasta(() => cont.querySelector("#titulo-seccion-texto").textContent === "Buscar citas");
             expect(cont.querySelector("#titulo-seccion-texto").textContent).to.equal("Buscar citas");
         });
         it("el menu solo lleva pantallas; Cerrar sesión vive en la cabecera", async () => {
@@ -88,7 +90,7 @@ describe("AppModel", () => {
             expect(titulo()).to.equal("Dashboard");
         });
         it("#/consulta/<id> abre la consulta y la URL guarda el id", async () => {
-            await arrancar(); app.irA("consulta", "k-hoy"); await Ayuda.esperar(15);
+            await arrancar(); app.irA("consulta", "k-hoy"); await enPantalla("Consulta");
             expect(titulo()).to.equal("Consulta");
             expect(window.location.hash).to.equal("#/consulta/k-hoy");
             expect(app.menu.activo).to.equal("dashboard");
@@ -98,24 +100,24 @@ describe("AppModel", () => {
             expect(titulo()).to.equal("Dashboard");
         });
         it("recargar con #/consulta/<id> respeta la direccion", async () => {
-            window.location.hash = "/consulta/k-hoy"; await arrancar(); await Ayuda.esperar(15);
+            window.location.hash = "/consulta/k-hoy"; await arrancar(); await enPantalla("Consulta");
             expect(titulo()).to.equal("Consulta");
         });
         it("el boton Atrás (hashchange) cambia de pantalla", async () => {
             await arrancar();
-            window.location.hash = "/citas"; await Ayuda.esperar(20);
+            window.location.hash = "/citas"; await enPantalla("Buscar citas");
             expect(titulo()).to.equal("Buscar citas");
         });
         it("elegir clinica y rol actualiza el encabezado (nombre y linea rol · clinica)", async () => {
             await arrancar();
-            Sesion.elegirContexto(empleado.contextos[0]);
+            new Sesion().elegirContexto(empleado.contextos[0]);
             expect(cont.querySelector("#sesion .nombre").textContent).to.equal("Ana Mejía");
             expect(cont.querySelector("#sesion .detalle").textContent).to.equal("Médico · Santa Ana");
         });
         it("Cerrar sesión (boton de la cabecera) vuelve a Buscar citas", async () => {
             await arrancar();
             cont.querySelector("#sesion button.salir").click();
-            await Ayuda.esperar();
+            await enPantalla("Buscar citas");
             expect(titulo()).to.equal("Buscar citas");
             expect(menu()).to.deep.equal(["Buscar citas", "Iniciar sesión"]);
         });
@@ -123,7 +125,7 @@ describe("AppModel", () => {
 
     describe("transicion de pantallas (view transitions)", () => {
         // Prepara el entorno de las pruebas.
-        beforeEach(() => Sesion.iniciar(empleado));
+        beforeEach(() => new Sesion().iniciar(empleado));
         it("usa document.startViewTransition al cambiar de pantalla", async () => {
             await arrancar();
             expect(transicionStub.calledOnce).to.equal(true);
@@ -144,17 +146,17 @@ describe("AppModel", () => {
             await arrancar();
             expect(cont.querySelector("#anuncio").textContent).to.equal("Pantalla: Dashboard");
             expect(document.activeElement).to.equal(cont.querySelector("#pantalla h2"));
-            app.irA("citas"); await Ayuda.esperar();
+            app.irA("citas"); await Ayuda.hasta(() => cont.querySelector("#anuncio").textContent === "Pantalla: Buscar citas");
             expect(cont.querySelector("#anuncio").textContent).to.equal("Pantalla: Buscar citas");
         });
     });
 
     it("iniciar sesion desde el login lleva al Dashboard", async () => {
-        await arrancar(); app.irA("login"); await Ayuda.esperar(15);
+        await arrancar(); app.irA("login"); await enPantalla("Iniciar sesión"); await cont.querySelector("galeno-pantalla-login")._modelo.datos;
         const z = login();
         Ayuda.tipo(z.querySelector("#tipo"), "DUI"); Ayuda.escribir(z.querySelector("#numero"), "01234567-8");
         z.querySelector("#formulario").dispatchEvent(new Event("submit", { cancelable: true }));
-        await Ayuda.esperar(20);
+        await enPantalla("Dashboard");
         expect(titulo()).to.equal("Dashboard");
     });
 });
