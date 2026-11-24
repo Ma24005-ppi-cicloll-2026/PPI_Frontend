@@ -141,8 +141,9 @@ header galeno-boton-instalar{ margin-left:auto; }
 #pantalla .mensaje-error{ color:var(--error); font-weight:600; min-height:1.2em; font-size:var(--fs-1); }
 #pantalla .mensaje-error:empty{ display:none; }
 
-/* Equilibra el espacio de la barra de desplazamiento para conservar el eje del login. */
-#pantalla:has(> galeno-pantalla-login){
+/* Equilibra el espacio de la barra de desplazamiento en las pantallas centradas. */
+#pantalla:has(> galeno-pantalla-login),
+#pantalla:has(> galeno-pantalla-dashboard #filtros[hidden]){
     scrollbar-width:thin;
     scrollbar-gutter:stable both-edges;
 }
@@ -262,6 +263,10 @@ header galeno-boton-instalar{ margin-left:auto; }
 
 /* Las herramientas y las tarjetas del dashboard se ajustan al ancho disponible. */
 #pantalla > section.dashboard{ max-width:80rem; }
+#pantalla > galeno-pantalla-dashboard:has(#filtros[hidden]){
+    display:grid; align-items:center; min-block-size:100%;
+}
+#pantalla .dashboard:has(#filtros[hidden]){ width:100%; max-width:44rem; margin:0 auto; }
 #pantalla .dashboard{ container-type:inline-size; }
 
 #pantalla .dashboard .herramientas{
@@ -275,6 +280,33 @@ header galeno-boton-instalar{ margin-left:auto; }
 #pantalla .dashboard #contexto #mensaje{ grid-column:1 / -1; margin:0; }
 #pantalla .dashboard #cargar{ margin:0; grid-column:1 / -1; }
 #pantalla .dashboard #filtros [hidden]{ display:none !important; }
+
+#pantalla .dashboard:has(#filtros[hidden]) .herramientas{ position:static; background:none; padding:0; }
+#pantalla .dashboard:has(#filtros[hidden]) .herramientas-caja{
+    gap:1rem; padding:clamp(1rem, 4cqi, 2rem);
+}
+#pantalla .dashboard:has(#filtros[hidden]) .mini{
+    grid-column:1 / -1; font-size:var(--fs-4); color:var(--tinta);
+}
+#pantalla .dashboard:has(#filtros[hidden]) #contexto{ --altura-control:3rem; }
+#pantalla .dashboard:has(#filtros[hidden]) #cargar{ min-height:var(--altura-control); }
+#pantalla .dashboard .pasos{
+    grid-column:1 / -1; display:grid; gap:.65rem; list-style:none; margin:0; padding:0;
+}
+#pantalla .dashboard .paso{
+    display:flex; align-items:center; gap:.45rem; color:var(--tinta-suave);
+    font-size:var(--fs-1); font-weight:600;
+}
+#pantalla .dashboard .paso .num{
+    display:grid; place-items:center; flex:0 0 auto; width:1.5rem; height:1.5rem;
+    border-radius:50%; background:var(--primario-suave); color:var(--tinta);
+    border:1px solid var(--secundario-borde); font-size:var(--fs-0);
+}
+#pantalla .dashboard .herramientas-caja #estado{
+    grid-column:1 / -1; border-top:1px solid var(--borde);
+    --ancho-arte:clamp(8.5rem, 28cqi, 11rem); --fondo-estado:transparent; --borde-estado:transparent;
+}
+#pantalla .dashboard:has(#filtros[hidden]) #lista:empty{ display:none; }
 
 #pantalla .dashboard #resumen-contexto{ display:flex; align-items:center; gap:.5rem; min-width:0; }
 #pantalla .dashboard #resumen-contexto svg{ color:var(--primario); flex:0 0 auto; }
@@ -305,6 +337,7 @@ header galeno-boton-instalar{ margin-left:auto; }
     #pantalla .dashboard #contexto{ grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto; align-items:end; }
     #pantalla .dashboard #contexto #cargar{ grid-column:3; grid-row:1; }
     #pantalla .dashboard #contexto #mensaje{ grid-column:1 / -1; grid-row:2; margin:0; }
+    #pantalla .dashboard .pasos{ grid-template-columns:repeat(3, minmax(0, 1fr)); }
     #pantalla .dashboard #filtros{ grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); }
 }
 @container (min-width:60rem){

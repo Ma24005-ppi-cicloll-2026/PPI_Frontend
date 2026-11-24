@@ -7,9 +7,8 @@ class ConsultaService extends DefaultService {
     // Obtiene el PDF de la cita y conserva una copia para usar sin red.
     ticket(id) {
         const url = `${this.url}/${encodeURIComponent(id)}/ticket`;
-        return fetch(url, { headers: { Accept: "application/pdf" } })
+        return this.solicitar(url, { headers: { Accept: "application/pdf" } })
             .then(r => {
-                this.avisar("galeno-api-disponible");
                 if (r.status === 404) throw new Error("La cita ya no existe");
                 if (!r.ok) throw new Error("No se pudo generar el ticket (error " + r.status + ")");
                 const disposicion = r.headers.get("Content-Disposition") ?? "";

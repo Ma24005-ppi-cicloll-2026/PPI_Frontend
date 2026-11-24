@@ -36,8 +36,7 @@ class DashboardModel {
         this.filtros = $("filtros"); this.campoPaciente = $("paciente"); this.selModo = $("modo");
         this.campoDesde = $("desde"); this.campoHasta = $("hasta");
         this.conteo = $("conteo"); this.estado = $("estado"); this.lista = $("lista"); this.registro = $("registro");
-        this.estado.mostrar("vacio",
-            "Elija su clínica y rol y pulse “Cargar consultas” para ver sus consultas.", { arte: true });
+        this.estado.mostrar("vacio", "Sus consultas aparecerán aquí.", { arte: true });
         this.contextos = contextos;
 
         const clinicas = new Map();
@@ -140,6 +139,10 @@ class DashboardModel {
 
     // Reacciona al expediente recibido mostrando filtros, contadores y tarjetas.
     alCargarExpediente(datos) {
+        if (!this.datos) {
+            this.lista.before(this.estado);
+            this.contenedor.querySelector(".pasos").hidden = true;
+        }
         this.datos = datos;
         this.filtros.hidden = false;
         this.conteo.hidden = false;

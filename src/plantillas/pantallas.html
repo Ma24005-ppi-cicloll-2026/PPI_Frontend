@@ -196,6 +196,12 @@
                     <div id="mensaje" role="alert" class="mensaje-error"></div>
                     <button id="cargar" type="submit">Cargar consultas</button>
                 </form>
+                <ol class="pasos" role="list">
+                    <li class="paso"><span class="num" aria-hidden="true">1</span> Elija su clínica</li>
+                    <li class="paso"><span class="num" aria-hidden="true">2</span> Elija su rol</li>
+                    <li class="paso"><span class="num" aria-hidden="true">3</span> Cargue sus consultas</li>
+                </ol>
+                <galeno-estado-vista id="estado"></galeno-estado-vista>
                 <div id="resumen-contexto" hidden>
                     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h2M8 11h2M8 15h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <strong id="resumen-contexto-texto"></strong>
@@ -224,7 +230,6 @@
                 </div>
             </div>
         </div>
-        <galeno-estado-vista id="estado"></galeno-estado-vista>
         <div id="lista" class="rejilla-agenda" aria-live="polite"></div>
         <galeno-registro-paso id="registro"></galeno-registro-paso>
     </section>

@@ -77,9 +77,23 @@ describe("DefaultService", () => {
             expect(e.message).to.include("500");
         });
         it("lanza error si no hay conexion (fetch falla)", async () => {
+            const avisar = sinon.spy(servicio, "avisar");
             fetchFalso.rejects(new TypeError("Failed to fetch"));
             const e = await esperarError(() => servicio.listar());
             expect(e.message).to.include("Failed to fetch");
+            expect(avisar.calledOnceWith("galeno-api-no-disponible")).to.equal(true);
+        });
+        it("avisa de una interrupción HTTP hasta que el API responde con éxito", async () => {
+            const avisar = sinon.spy(servicio, "avisar");
+            fetchFalso.onFirstCall().resolves(respuesta(503));
+            fetchFalso.onSecondCall().resolves(respuesta(404));
+            fetchFalso.onThirdCall().resolves(respuesta(204));
+            await esperarError(() => servicio.listar());
+            expect(await servicio.buscar("x")).to.equal(null);
+            await servicio.eliminar("x");
+            expect(avisar.getCalls().map(c => c.args[0])).to.deep.equal([
+                "galeno-api-no-disponible", "galeno-api-disponible"
+            ]);
         });
     });
 

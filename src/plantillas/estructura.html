@@ -3,8 +3,8 @@
 
 <!-- Esqueleto de la aplicación: cabecera, menú, zona de pantallas y avisos. -->
 <template id="plantilla-galeno-app">
-    <galeno-conexion></galeno-conexion>
     <div class="app">
+        <galeno-conexion></galeno-conexion>
         <a class="saltar" href="#/" id="saltar">Saltar al contenido</a>
         <header>
             <h1>GalenoSV</h1>
@@ -135,21 +135,36 @@
 <!-- Aviso de conexión perdida o restablecida. -->
 <template id="plantilla-galeno-conexion">
     <style>
-        :host { display:block; }
-        div { display:flex; align-items:center; justify-content:center; gap:.45rem;
+        :host { display:grid; grid-template-rows:1fr; opacity:1;
+                transition:grid-template-rows var(--velocidad), opacity var(--velocidad); }
+        :host([data-estado="oculto"]) { grid-template-rows:0fr; opacity:0; }
+        .aviso { min-height:0; overflow:hidden; }
+        [role=status] { display:flex; align-items:center; justify-content:center; gap:.45rem;
               padding:.3rem 1rem; text-align:center;
               font-size:var(--fs-0, .75rem); font-weight:600; color:var(--tinta, #1D3461); }
-        div .icono { flex:0 0 auto; }
-        .sin-conexion { background:var(--aviso-fondo, #F7F0E3); }
-        .sin-conexion .icono { color:var(--aviso, #B98A3E); }
-        .restablecida { background:var(--exito-fondo, #E9F3ED); }
+        .icono { flex:0 0 auto; }
+        [hidden] { display:none; }
+        .sin-conexion {
+            box-sizing:border-box; min-height:2.875rem; gap:.65rem; padding:.45rem var(--espacio);
+            text-align:left; line-height:1.3; color:var(--sobre-primario);
+            background:#803932;
+            background:color-mix(in srgb, var(--error) 60%, #321411);
+            border-bottom:1px solid rgba(0,0,0,.22);
+            box-shadow:inset 0 -3px 6px rgba(0,0,0,.08);
+        }
+        .sin-conexion .icono { width:1.35rem; height:1.35rem; }
+        .sin-conexion strong { font-size:var(--fs-2); }
+        .sin-conexion .texto { font-size:var(--fs-1); font-weight:400; overflow-wrap:anywhere; }
+        .restablecida, .oculto { box-sizing:border-box; min-height:1.75rem; background:var(--exito-fondo, #E9F3ED); }
         .restablecida .icono { color:var(--exito, #4F8A6B); }
-        .oculto { display:none; }
+        @media (prefers-reduced-motion: reduce) { :host { transition:none; } }
     </style>
-    <div role="status" aria-live="polite" class="oculto">
-      <svg class="icono sin" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m4 4 16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <svg class="icono ok" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="19" cy="18" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m17 18 1.4 1.4L21.4 16.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="texto"></span>
+    <div class="aviso">
+      <div role="status" aria-live="polite" class="oculto">
+        <svg class="icono sin" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m4 4 16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg class="icono ok" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 9.5C8 4.5 16 4.5 21.5 9.5M6 13c3.5-3 8.5-3 12 0m-9 3.5c1.7-1.2 3.8-1.2 5.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="19" cy="18" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m17 18 1.4 1.4L21.4 16.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span><strong></strong><span class="texto"></span></span>
+      </div>
     </div>
 </template>
 
@@ -192,7 +207,9 @@
               font-family:inherit; text-align:center;
               background:var(--info-fondo, #EDF3F2); color:var(--tinta, #1D3461); }
         div.error { background:var(--error-fondo, #F9EAE6); color:var(--error, #A8402F); border-color:var(--error, #A8402F); }
-        .arte { display:block; margin:0 auto .5rem; }
+        .vacio { background:var(--fondo-estado, var(--info-fondo, #EDF3F2));
+                 border-color:var(--borde-estado, var(--borde, #E3EAEA)); }
+        .arte { display:block; width:var(--ancho-arte, 120px); max-width:100%; height:auto; margin:0 auto .5rem; }
         p { margin:.2rem 0 0; }
         button { margin-left:.6rem; padding:.35rem .9rem; border:0; border-radius:var(--radio-control, .625rem);
                  background:var(--error, #A8402F); color:#fff; cursor:pointer; font:inherit; min-height:2.2rem; }

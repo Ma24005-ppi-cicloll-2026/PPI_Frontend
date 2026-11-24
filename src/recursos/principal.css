@@ -57,8 +57,6 @@
     --fuente:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
     --fs-0:.75rem;  --fs-1:.875rem;  --fs-2:1rem;  --fs-3:1.25rem;  --fs-4:1.75rem;
-
-    --barra-movil:4.4rem;
 }
 
 /* Sigue el tema del sistema mientras el usuario no elija uno. */
@@ -143,9 +141,8 @@ html, body{ height:100%; }
     height:100vh;
     height:100dvh;
     grid-template-columns:minmax(0, 1fr);
-    grid-template-rows:auto 1fr auto;
-    grid-template-areas:"cabecera" "centro" "pie";
-    padding-bottom:calc(var(--barra-movil) + env(safe-area-inset-bottom, 0px));
+    grid-template-rows:auto auto 1fr auto auto;
+    grid-template-areas:"conexion" "cabecera" "centro" "pie" "menu";
 }
 
 header{
@@ -157,6 +154,8 @@ header{
     border-bottom:1px solid var(--borde);
     color:var(--tinta);
 }
+
+.app > galeno-conexion{ grid-area:conexion; min-width:0; }
 
 main{
     grid-area:centro;
@@ -174,9 +173,9 @@ footer{
     text-align:center;
 }
 
-/* En móvil la barra inferior queda fuera de la rejilla. */
+/* En móvil el menú ocupa la última fila. */
 nav{
-    position:fixed; inset:auto 0 0 0; z-index:50;
+    grid-area:menu; z-index:50;
     background:var(--menu-fondo);
     border-top:1px solid var(--menu-borde);
     padding-bottom:env(safe-area-inset-bottom, 0px);
@@ -190,18 +189,15 @@ body > galeno-notificacion-emergente,
 body > galeno-invitacion-instalar,
 body > galeno-guia-instalacion{ display:block; height:0; margin:0; }
 
-/* En escritorio el menú ocupa las tres filas de la columna lateral. */
+/* En escritorio el menú ocupa la columna lateral completa. */
 @media screen and (min-width: 48em){
     .app{
         grid-template-columns:16rem minmax(0, 1fr);
-        grid-template-rows:auto 1fr auto;
-        grid-template-areas:"menu cabecera" "menu centro" "menu pie";
-        padding-bottom:0;
+        grid-template-rows:auto auto 1fr auto;
+        grid-template-areas:"conexion conexion" "menu cabecera" "menu centro" "menu pie";
     }
     nav{
-        grid-area:menu;
-        position:sticky; top:0; inset:auto;
-        height:100vh; height:100dvh; align-self:start; overflow-y:auto;
+        min-height:0; overflow-y:auto;
         display:flex; flex-direction:column;
         border-top:0; border-right:1px solid var(--menu-borde);
         padding-bottom:0;

@@ -11,7 +11,6 @@ class GalenoConexion extends HTMLElement {
         this.temporizador = null;
         this.alPerder = () => this.perder();
         this.alVolver = () => this.volver();
-        this.alCache = () => this.mostrarCache();
         this.alApiDisponible = () => { if (this._estado === "sin-conexion") this.volver(); };
     }
 
@@ -22,7 +21,7 @@ class GalenoConexion extends HTMLElement {
     connectedCallback() {
         window.addEventListener("offline", this.alPerder);
         window.addEventListener("online", this.alVolver);
-        window.addEventListener("galeno-api-cache", this.alCache);
+        window.addEventListener("galeno-api-no-disponible", this.alPerder);
         window.addEventListener("galeno-api-disponible", this.alApiDisponible);
         if (navigator.onLine === false) this.perder();
         this.pintar();
@@ -32,24 +31,16 @@ class GalenoConexion extends HTMLElement {
     disconnectedCallback() {
         window.removeEventListener("offline", this.alPerder);
         window.removeEventListener("online", this.alVolver);
-        window.removeEventListener("galeno-api-cache", this.alCache);
+        window.removeEventListener("galeno-api-no-disponible", this.alPerder);
         window.removeEventListener("galeno-api-disponible", this.alApiDisponible);
         clearTimeout(this.temporizador);
     }
 
     // Actualiza el indicador al perder la conexión.
     perder() {
+        if (this._estado === "sin-conexion") return;
         clearTimeout(this.temporizador);
         this._estado = "sin-conexion";
-        this.textoEstado = "Sin conexión: se muestran los últimos datos guardados en este dispositivo. Las escrituras requieren conexión.";
-        this.pintar();
-    }
-
-    // Avisa de que la información procede de una copia local.
-    mostrarCache() {
-        clearTimeout(this.temporizador);
-        this._estado = "sin-conexion";
-        this.textoEstado = "El servidor no responde: se muestran los últimos datos guardados en este dispositivo. Las escrituras requieren conexión.";
         this.pintar();
     }
 
@@ -57,7 +48,6 @@ class GalenoConexion extends HTMLElement {
     volver() {
         clearTimeout(this.temporizador);
         this._estado = "restablecida";
-        this.textoEstado = "Conexión restablecida";
         this.pintar();
         this.temporizador = setTimeout(() => { this._estado = "oculto"; this.pintar(); }, 3000);
     }
@@ -65,17 +55,18 @@ class GalenoConexion extends HTMLElement {
     // Actualiza la vista con los datos y el estado actuales.
     pintar() {
         const textos = {
-            "sin-conexion": this.textoEstado || "Sin conexión: mostrando los datos guardados en este dispositivo.",
-            "restablecida": this.textoEstado || "Conexión restablecida"
+            "sin-conexion": "Se muestran los últimos datos guardados en este dispositivo. Las escrituras requieren conexión.",
+            "restablecida": "Conexión restablecida"
         };
-        const raiz = this.plantillas.clonar("plantilla-galeno-conexion");
-        const caja = raiz.querySelector("div");
+        const raiz = this.shadowRoot;
+        if (!raiz.firstChild) raiz.append(this.plantillas.clonar("plantilla-galeno-conexion"));
+        this.dataset.estado = this._estado;
+        const caja = raiz.querySelector("[role=status]");
         caja.className = this._estado;
-        if (this._estado !== "sin-conexion") raiz.querySelector(".icono.sin").remove();
-        if (this._estado !== "restablecida") raiz.querySelector(".icono.ok").remove();
-        raiz.querySelectorAll(".icono").forEach(i => i.classList.remove("sin", "ok"));
+        raiz.querySelector("strong").textContent = this._estado === "sin-conexion" ? "No se puede acceder al servidor. " : "";
+        raiz.querySelector(".icono.sin").toggleAttribute("hidden", this._estado !== "sin-conexion");
+        raiz.querySelector(".icono.ok").toggleAttribute("hidden", this._estado !== "restablecida");
         raiz.querySelector(".texto").textContent = textos[this._estado] ?? "";
-        this.shadowRoot.replaceChildren(raiz);
     }
 }
 

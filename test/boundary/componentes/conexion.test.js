@@ -17,7 +17,7 @@ describe("<galeno-conexion>", () => {
     it("al perder la conexion avisa que muestra datos guardados", () => {
         window.dispatchEvent(new Event("offline"));
         expect(el.estado).to.equal("sin-conexion");
-        expect(aviso().textContent).to.contain("Sin conexión");
+        expect(aviso().textContent).to.contain("No se puede acceder al servidor");
         expect(aviso().getAttribute("aria-live")).to.equal("polite");
     });
     it("al volver dice 'Conexión restablecida' y se esconde solo a los 3 segundos", () => {

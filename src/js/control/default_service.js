@@ -13,12 +13,23 @@ class DefaultService {
         window.dispatchEvent(new CustomEvent(nombre, detail ? { detail } : undefined));
     }
 
+    // Notifica el estado del API antes de procesar la respuesta o recurrir a la caché.
+    solicitar(url, opciones) {
+        return fetch(url, opciones).then(respuesta => {
+            if (respuesta.ok) this.avisar("galeno-api-disponible");
+            else if ([502, 503, 504].includes(respuesta.status)) this.avisar("galeno-api-no-disponible", { url });
+            return respuesta;
+        }, error => {
+            if (error instanceof TypeError || navigator.onLine === false) this.avisar("galeno-api-no-disponible", { url });
+            throw error;
+        });
+    }
+
     // Lee el JSON y recurre a IndexedDB cuando falla la conexión.
     getJson(url, opciones = {}) {
         this.ultimaLecturaDesdeCache = false;
-        return fetch(url, opciones)
+        return this.solicitar(url, opciones)
             .then(respuesta => {
-                this.avisar("galeno-api-disponible");
                 if (respuesta.status === 404) return null;
                 if (!respuesta.ok) throw new Error("No se pudo consultar (error " + respuesta.status + ")");
                 return respuesta.json().then(datos => {
@@ -58,7 +69,7 @@ class DefaultService {
 
     // Envía el registro en formato JSON con el método indicado.
     enviar(url, metodo, datos) {
-        return fetch(url, { method: metodo, headers: { "Content-Type": "application/json" }, body: JSON.stringify(datos) });
+        return this.solicitar(url, { method: metodo, headers: { "Content-Type": "application/json" }, body: JSON.stringify(datos) });
     }
 
     // Crea el registro o elemento que necesita este flujo.
@@ -79,7 +90,7 @@ class DefaultService {
 
     // Solicita el borrado del registro y comprueba el resultado.
     eliminar(id) {
-        return fetch(`${this.url}/${encodeURIComponent(id)}`, { method: "DELETE" }).then(r => {
+        return this.solicitar(`${this.url}/${encodeURIComponent(id)}`, { method: "DELETE" }).then(r => {
             if (r.status === 409) throw new Error("No se puede eliminar: esta siendo usado en otra parte");
             if (r.status !== 204) throw new Error("No se pudo eliminar (error " + r.status + ")");
         });
@@ -87,7 +98,7 @@ class DefaultService {
 
     // Devuelve los registros marcados como activos.
     activos() {
-        return fetch(this.url + "/activos").then(r => {
+        return this.solicitar(this.url + "/activos").then(r => {
             if (!r.ok) throw new Error("No se pudo listar activos (error " + r.status + ")");
             return r.json();
         });
