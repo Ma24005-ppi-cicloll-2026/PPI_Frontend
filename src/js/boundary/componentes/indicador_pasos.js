@@ -41,5 +41,5 @@ class GalenoIndicadorPasos extends HTMLElement {
         this.shadowRoot.replaceChildren(raiz);
     }
 }
-
+//entregar
 customElements.define("galeno-indicador-pasos", GalenoIndicadorPasos);
